@@ -19,6 +19,8 @@ const staticFiles = new Map([
     "instrument-serif-italic.ttf",
   ].map((file) => [`/demo/fonts/${file}`, [`demo/fonts/${file}`, "font/ttf"]]),
   ...[
+    "pagepaint.js",
+    "pagepaint.mjs",
     "review-tool.js",
     "review-tool.mjs",
     "review-tool.js.map",

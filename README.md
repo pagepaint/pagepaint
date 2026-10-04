@@ -1,4 +1,4 @@
-# Review Tool
+# Pagepaint
 
 A plain JavaScript feedback widget for AI-built apps. Load one CDN script, draw over the page, capture the viewport, and save notes directly into a selected local repository. No backend or local Node server is required to use it.
 
@@ -6,22 +6,23 @@ A plain JavaScript feedback widget for AI-built apps. Load one CDN script, draw 
 
 ```html
 <script
-  src="https://review-tool.timo-bejan.workers.dev/v0.2.2/review-tool.js"
-  data-review-tool
+  src="https://review-tool.timo-bejan.workers.dev/v0.3.0/pagepaint.js"
+  data-pagepaint
   data-project="my-app"
   defer
 ></script>
 ```
 
-The dependencies are bundled. The script runs in the app's origin, so each domain and localhost port has its own browser storage and folder permission. Use a different `data-project` for separate apps sharing an origin. Your site's CSP must allow the CDN script, the widget's inline styles, and data/blob images.
+The dependencies are bundled. The script runs in the app's origin, so each domain and localhost port has its own browser storage and folder permission. Use a different `data-project` for separate apps sharing an origin. The display name is saved on first visit: localhost uses the page title, falling back to host and port; hosted apps use the hostname without `www.`. Set `data-project-name` to choose another default, or rename it in Settings. Renaming preserves the project ID and existing history. Your site's CSP must allow the CDN script, the widget's inline styles, data/blob images, and blob media.
 
-The hosted playground is at <https://review-tool.timo-bejan.workers.dev/>. The unversioned `/review-tool.js` URL follows the current release; the versioned URL pins this release. ES modules are available at `/v0.2.2/review-tool.mjs`.
+The hosted playground is at <https://review-tool.timo-bejan.workers.dev/>. The unversioned `/review-tool.js` URL follows the current release; the versioned URL pins this release. ES modules are available at `/v0.3.0/pagepaint.mjs`.
 
 ```js
-import { init } from "https://review-tool.timo-bejan.workers.dev/v0.2.2/review-tool.mjs";
+import { init } from "https://review-tool.timo-bejan.workers.dev/v0.3.0/pagepaint.mjs";
 
 const review = init({
   projectId: "my-app",
+  projectName: "My app", // Optional; settings can rename it later.
   position: "bottom-right",
   offset: 24,
   label: "Feedback",
@@ -36,11 +37,12 @@ await review.drawOnPage();
 await review.capture();
 await review.exportZip();
 const feedback = await review.getFeedback();
+await review.recordVideo(); // Starts screen selection; stop through the visible toolbar.
 review.setPosition({ bottom: 100, right: 32 });
 review.destroy();
 ```
 
-Script attributes also support `data-position`, `data-offset`, `data-label`, and `data-author`. Positions are `bottom-right`, `bottom-left`, `top-right`, and `top-left`; custom numeric offsets are available through JavaScript. Repeated initialization returns the active instance.
+Script attributes also support `data-project-name`, `data-position`, `data-offset`, `data-label`, and `data-author`. Positions are `bottom-right`, `bottom-left`, `top-right`, and `top-left`; custom numeric offsets are available through JavaScript. Repeated initialization returns the active instance.
 
 ## Repo files and agent workflow
 
@@ -52,9 +54,10 @@ Each saved note produces:
 .annotations/<id>.json
 .annotations/<id>.webp           # Annotated capture, when attached
 .annotations/<id>.original.webp  # Unannotated reference, when attached
+.annotations/<id>.webm           # Recording, when attached (or .mp4)
 ```
 
-JSON includes `id`, `projectId`, `status: "open"`, `comment`, `url`, `viewport`, `selector`, and `shapes`, plus complete message and capture context. Shapes use capture-pixel coordinates. Selectors are best-effort targets from live drawing; screenshot-editor marks may have a null selector. The metadata is written last. Retries preserve existing JSON, including agent changes.
+JSON includes `id`, `projectId`, `projectName`, `threadId`, `area`, `status: "open"`, `comment`, `url`, `viewport`, `selector`, and `shapes`, plus complete message and capture context. Shapes use capture-pixel coordinates. Selectors are best-effort targets from live drawing; screenshot-editor marks may have a null selector. The metadata is written last. Retries preserve existing JSON, including agent changes.
 
 In Settings, **Add agent instructions** appends the following line to existing `AGENTS.md` and/or `CLAUDE.md`, or creates `AGENTS.md` if neither exists. It preserves existing content and avoids duplicate instructions:
 
@@ -76,21 +79,31 @@ Folder saving uses the File System Access API. It requires HTTPS or localhost an
 - Each note and screenshot keeps its own full URL, path, repeated query parameters, hash, viewport, scroll position, title, browser context, and timestamp.
 - Feedback, drafts, appearance, and folder handles remain in the current browser's IndexedDB database `review-tool`. Feedback is not uploaded. Settings shows the origin's estimated storage usage/quota and offers persistent storage where supported. Estimates include other data stored by the app and are not guaranteed free disk space.
 - Browser data can be cleared or evicted. Repo files are ordinary files on the chosen disk and survive clearing browser data. This release does not rebuild browser history from a repository after browser data is cleared.
-- **Download ZIP** includes locally known notes and unsent drafts, `feedback.json`, `transcript.md`, original and annotated PNGs, and annotation coordinates. It remains available without folder access. Large histories and ZIP exports are held in memory, so practical capacity is lower than disk capacity.
+- **Download ZIP** includes locally known notes and unsent drafts, `feedback.json`, `transcript.md`, original and annotated PNGs, annotation coordinates, and original video files with their context. It remains available without folder access. Large histories and ZIP exports are held in memory, so practical capacity is lower than disk capacity.
 
-The conversation is a local feedback log, not an AI chat or multi-user service. `review-tool:feedback` and `review-tool:error` events bubble to `document`; capture errors include their message in `event.detail`.
+One issue is one thread: **Open thread** shows its replies, **All issues** returns to the issue list, and **New issue** starts a separate item. Drafts are saved separately for each thread. Optional area labels group context without a subproject hierarchy. Root issue records have `threadId === id`; replies reference that root. The root record’s status is authoritative for the thread. Older notes become independent issues automatically. The conversation is a local feedback log. The compatible `window.ReviewTool` global and `/review-tool.js` URLs remain available. `window.Pagepaint` is the new global. `review-tool:feedback` and `review-tool:error` events bubble to `document`; capture errors include their message in `event.detail`.
 
 JavaScript initialization also accepts a `hotkeys` object. Keys are `toggle`, `draw-page`, `capture`, `send`, `undo`, and `redo`. Use combinations such as `"Alt+Shift+F"` or `"Mod+Enter"`, and `""` to disable an action. Each combination needs Ctrl, Meta, Mod, or Alt; duplicate combinations are rejected. Saved user preferences take precedence over initialization defaults.
 
+## Video and browser extension
+
+The video button records a user-selected screen, window, or tab using `getDisplayMedia` and `MediaRecorder`. It produces a previewable attachment with recording-time context and saves its Blob in IndexedDB. Recordings are video-only, limited to one minute or approximately 50 MB. Stop through **Stop & attach**, add a comment, then Send. ZIPs and repo saves contain the original `.webm` or `.mp4` file. Canceling screen selection leaves the draft intact. Stop before leaving a CDN-embedded page; its recorder cannot survive page navigation.
+
+Download [the Chrome / Edge extension ZIP](https://review-tool.timo-bejan.workers.dev/v0.3.0/pagepaint-extension.zip), extract it, enable Developer mode at `chrome://extensions` or `edge://extensions`, and choose **Load unpacked** with that folder. Click the extension icon on an app, or use Alt+Shift+P (configurable in the browser’s extension shortcuts). Browser-internal pages may block capture. A Chrome Web Store release will follow public repository preparation.
+
+The extension bundles the shared library, uses native tab screenshots instead of DOM reconstruction, and records in an offscreen document so a clip can continue across navigations. Click its recording badge/action to stop if the on-page toolbar is unavailable. Completed clips are recoverable in its local project library. **Open Pagepaint library** in Settings provides centralized project history, repo folder saving, and ZIP export. Projects are separated by full origin, including localhost port. CDN embeds and the extension have separate storage histories. Activating the extension replaces a mounted CDN widget for that page session, preserving its app-origin data and avoiding duplicate controls.
+
+See [PRIVACY.md](PRIVACY.md) for storage, capture permissions, and deletion behavior. Everything lives in one repository: shared source in `src/`, extension adapters in `extension/`, playground in `index.html` / `demo/`, and builds in `scripts/`.
+
 ## Capture limits
 
-[html2canvas-pro](https://github.com/yorickshan/html2canvas-pro) renders the visible DOM viewport without an extension or screen-recording permission. Cross-origin iframes, video, protected canvases, and images without CORS headers may be omitted; some CSS rendering can differ. Captures are capped at 2× scale and approximately six million pixels. Add `data-review-tool-ignore` or `data-html2canvas-ignore` to exclude page elements. URLs and visible content are deliberately included in exported feedback.
+[html2canvas-pro](https://github.com/yorickshan/html2canvas-pro) renders the visible DOM viewport without an extension or screen-recording permission. Cross-origin iframes, video, protected canvases, and images without CORS headers may be omitted; some CSS rendering can differ. Captures are capped at 2× scale and approximately six million pixels. Add `data-pagepaint-ignore` or `data-html2canvas-ignore` to exclude page elements. URLs and visible content are deliberately included in exported feedback.
 
 Capture cloning waits for external stylesheets and fonts, and suppresses the hidden contents of closed HTML disclosures (`details`). It does not change the live page. New captures include the library version and renderer in their metadata for troubleshooting. Older screenshots cannot be repaired from their PNGs; capture them again after updating the embedding script.
 
 ## Library development and deployment
 
-Node is only a build/test dependency for library maintainers. Consumers use the CDN script directly.
+Node 24+ is only a build/test dependency for library maintainers. Consumers use the CDN script directly.
 
 ```sh
 npm ci
@@ -99,7 +112,7 @@ npm run check
 npm run format:check
 ```
 
-Tests launch a temporary static fixture server, exercise real browser capture/drawing, IndexedDB recovery, offline ZIP exports, saved appearance, and repository file operations. The automated repo test substitutes an origin-private directory for the native picker; browser permission UI is not covered by that test.
+Tests launch a temporary static fixture server, exercise real browser capture/drawing, IndexedDB recovery, offline ZIP exports, saved appearance, and repository file operations. The automated repo test substitutes an origin-private directory for the native picker; browser permission UI is not covered by that test. Video tests use real MediaRecorder encoding; the CDN selector is replaced by a canvas stream. Extension tests exercise real native tab capture and offscreen recording across navigation, using fixture permissions and a Chromium test allowlist instead of clicking the browser toolbar.
 
 Build the public static assets and deploy with Cloudflare's `cf` CLI:
 
@@ -108,4 +121,8 @@ cf auth login
 CLOUDFLARE_ACCOUNT_ID=<your-account-id> npm run deploy
 ```
 
-`scripts/build-cdn.js` produces Cloudflare Build Output in `.cloudflare/output/v0/`; `cf deploy --prebuilt` hosts only the bundled library, playground, and fonts. It uploads no feedback, repo folders, or backend. The deployment targets a Worker named `review-tool`. Build Output is a beta Cloudflare format; the dry-run check is `cf deploy --prebuilt --dry-run` after `npm run build:cdn`.
+`scripts/build-cdn.js` produces Cloudflare Build Output in `.cloudflare/output/v0/`; `cf deploy --prebuilt` hosts only the bundled library, playground, fonts, licenses, and extension ZIP. It uploads no feedback, repo folders, or backend. The deployment targets a Worker named `review-tool`. Build Output is a beta Cloudflare format; the dry-run check is `cf deploy --prebuilt --dry-run` after `npm run build:cdn`.
+
+## License and public release
+
+[MIT](LICENSE). Existing copyright attribution is preserved. The umbrella organization is still to be chosen, and the repository and npm package have not been publicly published. `private: true` protects against accidental npm publication. [CONTRIBUTING.md](CONTRIBUTING.md) covers checks and the remaining public release decisions. CI checks code without deploying it.

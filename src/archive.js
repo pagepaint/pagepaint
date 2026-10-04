@@ -1,23 +1,39 @@
 // ABOUTME: Packages feedback, page context, and original and annotated captures in a ZIP.
 // ABOUTME: Includes page context and unsent drafts for a portable feedback handoff.
 import JSZip from "jszip";
+import { videoExtension } from "./recording.js";
 
 export async function createArchive(
   records,
   projectId,
   type = "blob",
   draft = null,
+  projectName = projectId,
 ) {
   const zip = new JSZip();
   const feedback = [];
   const entries = [...records];
-  if (draft && (draft.text || draft.capture))
-    entries.push({ ...draft, id: "draft", draft: true });
+  for (const item of Array.isArray(draft)
+    ? draft
+    : draft
+      ? [{ ...draft, id: "draft" }]
+      : []) {
+    if (item.text || item.capture || item.video)
+      entries.push({ ...item, draft: true });
+  }
   for (const record of entries) {
     const { key, synced, repoSaved, ...entry } = record;
+    if (entry.video) {
+      const { blob, ...video } = entry.video;
+      const file = `recordings/${entry.id.replace(/:/g, "-")}.${videoExtension(video)}`;
+      zip.file(file, new Uint8Array(await blob.arrayBuffer()), {
+        compression: "STORE",
+      });
+      entry.video = { ...video, file };
+    }
     if (entry.capture) {
       const { original, annotated, ...capture } = entry.capture;
-      const directory = `captures/${entry.id}`;
+      const directory = `captures/${entry.id.replace(/:/g, "-")}`;
       zip.file(`${directory}/original.png`, original.split(",")[1], {
         base64: true,
       });
@@ -42,6 +58,7 @@ export async function createArchive(
       {
         schemaVersion: 1,
         projectId,
+        projectName,
         exportedAt: new Date().toISOString(),
         feedback,
       },
@@ -49,7 +66,7 @@ export async function createArchive(
       2,
     ),
   );
-  const transcript = [`# Feedback: ${projectId}`, ""];
+  const transcript = [`# Feedback: ${projectName}`, ""];
   for (const entry of feedback) {
     transcript.push(
       `## ${entry.draft ? "Unsent draft" : entry.author || "Reviewer"} · ${entry.createdAt || entry.updatedAt}`,
@@ -58,7 +75,10 @@ export async function createArchive(
       "",
       `URL: ${entry.context?.url || entry.capture?.context?.url || ""}`,
       "",
+      `Thread: ${entry.threadId || entry.id} · ${entry.status || "open"}${entry.area ? ` · Area: ${entry.area}` : ""}`,
+      "",
     );
+    if (entry.video) transcript.push(`Recording: ${entry.video.file}`, "");
     if (entry.capture)
       transcript.push(
         `Original: ${entry.capture.original}`,

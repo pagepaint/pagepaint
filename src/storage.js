@@ -65,16 +65,48 @@ export class FeedbackStore {
       .filter(
         (record) =>
           record.projectId === this.projectId &&
-          !["draft", "preferences", "folder"].includes(record.id),
+          !["draft", "preferences", "folder"].includes(record.id) &&
+          !record.id.startsWith("draft:") &&
+          !record.id.startsWith("video:"),
       )
       .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
   }
 
-  async draft() {
+  async draft(threadId = null) {
+    const id = threadId ? `draft:${threadId}` : "draft";
     return this.run("readonly", (store) =>
       store
-        ? store.get(`${this.projectId}:draft`)
-        : this.memory.get(`${this.projectId}:draft`),
+        ? store.get(`${this.projectId}:${id}`)
+        : this.memory.get(`${this.projectId}:${id}`),
+    );
+  }
+
+  async drafts() {
+    const all = await this.run("readonly", (store) =>
+      store ? store.getAll() : Array.from(this.memory.values()),
+    );
+    return all.filter(
+      (record) =>
+        record.projectId === this.projectId &&
+        (record.id === "draft" || record.id.startsWith("draft:")),
+    );
+  }
+
+  async pendingVideos() {
+    const all = await this.run("readonly", (store) =>
+      store ? store.getAll() : Array.from(this.memory.values()),
+    );
+    return all.filter(
+      (record) =>
+        record.projectId === this.projectId && record.id.startsWith("video:"),
+    );
+  }
+
+  async remove(id) {
+    return this.run("readwrite", (store) =>
+      store
+        ? store.delete(`${this.projectId}:${id}`)
+        : this.memory.delete(`${this.projectId}:${id}`),
     );
   }
 
@@ -102,7 +134,7 @@ export class FeedbackStore {
     );
   }
 
-  async commitFeedback(record) {
+  async commitFeedback(record, draftId = "draft") {
     const value = {
       ...record,
       key: `${this.projectId}:${record.id}`,
@@ -111,10 +143,10 @@ export class FeedbackStore {
     return this.run("readwrite", (store) => {
       if (store) {
         store.put(value);
-        return store.delete(`${this.projectId}:draft`);
+        return store.delete(`${this.projectId}:${draftId}`);
       }
       this.memory.set(value.key, value);
-      this.memory.delete(`${this.projectId}:draft`);
+      this.memory.delete(`${this.projectId}:${draftId}`);
     });
   }
 

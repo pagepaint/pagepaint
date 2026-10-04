@@ -1,0 +1,25 @@
+# ABOUTME: Collects reproducible Pagepaint bugs without requesting private feedback data.
+# ABOUTME: Records browser and distribution information alongside expected behavior.
+name: Bug report
+description: Report a reproducible capture, recording, storage, or interface problem.
+body:
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Pagepaint version, browser/version, OS, and CDN or extension.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction
+      description: Minimal page and steps. Redact private URLs, images, and recordings.
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Expected and actual behavior
+    validations:
+      required: true

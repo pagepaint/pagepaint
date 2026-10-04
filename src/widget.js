@@ -11,6 +11,8 @@ import { icon } from "./icons.js";
 import { styles } from "./styles.js";
 import { RepositoryStore, selectorAt } from "./repository.js";
 import { ACCENTS } from "./appearance.js";
+import { defaultProjectName } from "./projects.js";
+import { VideoRecorder } from "./recording.js";
 import {
   HOTKEYS,
   hotkeySettings,
@@ -52,7 +54,9 @@ export class ReviewWidget {
     this.preferences = {};
     this.hotkeys = hotkeySettings(this.options.hotkeys);
     this.events = new AbortController();
-    this.store = new FeedbackStore(this.options.projectId);
+    this.store =
+      this.options.store || new FeedbackStore(this.options.projectId);
+    this.mediaUrls = new Set();
     this.repository = new RepositoryStore(
       this.store,
       this.options.repo !== false,
@@ -79,18 +83,22 @@ export class ReviewWidget {
     return this.root.getElementById(id);
   }
 
+  context() {
+    return this.options.context?.() || captureContext();
+  }
+
   template() {
     return `<style>${styles}</style>
       <button id="fab" class="fab" aria-expanded="false" aria-controls="panel" data-action="toggle">${icon("chat")}<span>Feedback</span></button>
       <section id="panel" class="panel" role="dialog" aria-labelledby="panel-title" hidden>
         <header class="panel-header"><div id="panel-handle" class="brand" role="button" tabindex="0" aria-label="Move feedback menu" title="Drag to move. Arrow keys move; Shift moves faster."><span class="brand-mark">${icon("chat")}</span><div><h2 id="panel-title">Leave a little feedback</h2><p class="subtitle">A note. A screenshot. A clearer next step.</p></div></div><div class="header-actions"><button id="settings" class="icon-button" data-action="settings" aria-label="Feedback settings">${icon("settings")}</button><button class="icon-button" data-action="close" aria-label="Close feedback">${icon("close")}</button></div></header>
-        <section id="appearance" class="appearance" aria-label="Feedback appearance" hidden><p class="appearance-intro">Pick an accent for your feedback tools. You can change it in Settings anytime.</p><div class="accent-options" role="group" aria-label="Accent color">${ACCENTS.map(({ id, name, color }) => `<button class="accent-option" data-accent="${id}" style="--choice:${color}" aria-pressed="${id === this.accent}"><span class="accent-dot">${icon("check")}</span><span>${name}</span></button>`).join("")}</div><div class="shortcut-info"><strong>Keyboard shortcuts</strong><p>Click a field and press your combination. Backspace clears it. Mod means Ctrl or Command. Browser shortcuts may take priority.</p><div class="shortcut-fields">${HOTKEYS.map(([action, label]) => `<label class="shortcut-row"><span>${label}</span><input data-hotkey="${action}" aria-label="${label} shortcut" readonly placeholder="Disabled" /></label>`).join("")}</div><div class="repo-actions"><button class="storage-button" data-action="reset-hotkeys">Reset shortcuts</button><button class="storage-button" data-action="reset-panel">Reset menu position</button></div><p id="shortcut-error" role="alert" hidden></p></div><div class="repo-info"><strong>Save into your app’s repo</strong><p id="repo-status"></p><div class="repo-actions"><button id="choose-repo" class="storage-button" data-action="choose-repo">Choose repo folder</button><button id="write-repo" class="storage-button" data-action="write-repo">Save notes to repo</button><button id="agent-instructions" class="storage-button" data-action="agent-instructions">Add agent instructions</button></div><p class="storage-hint">Files go into .annotations/. Your agent can mark items resolved in the JSON.</p></div><div class="storage-info"><strong>Saved on this device</strong><p id="storage-usage">Checking browser storage…</p><p id="storage-protection"></p><button id="persist-storage" class="storage-button" data-action="persist-storage">Keep data on this device</button><p class="storage-hint">Clearing site data removes feedback. Download a ZIP to keep a copy or share it.</p></div><div class="appearance-actions"><button class="secondary" data-action="cancel-appearance">Cancel</button><button id="save-appearance" class="primary" data-action="save-appearance">Use this color ${icon("check")}</button></div></section>
+        <section id="appearance" class="appearance" aria-label="Feedback appearance" hidden><label class="project-setting">Project name<input id="project-name" maxlength="120" /></label><p class="appearance-intro">Pick an accent for your feedback tools. You can change it in Settings anytime.</p><div class="accent-options" role="group" aria-label="Accent color">${ACCENTS.map(({ id, name, color }) => `<button class="accent-option" data-accent="${id}" style="--choice:${color}" aria-pressed="${id === this.accent}"><span class="accent-dot">${icon("check")}</span><span>${name}</span></button>`).join("")}</div><div class="shortcut-info"><strong>Keyboard shortcuts</strong><p>Click a field and press your combination. Backspace clears it. Mod means Ctrl or Command. Browser shortcuts may take priority.</p><div class="shortcut-fields">${HOTKEYS.map(([action, label]) => `<label class="shortcut-row"><span>${label}</span><input data-hotkey="${action}" aria-label="${label} shortcut" readonly placeholder="Disabled" /></label>`).join("")}</div><div class="repo-actions"><button class="storage-button" data-action="reset-hotkeys">Reset shortcuts</button><button class="storage-button" data-action="reset-panel">Reset menu position</button></div><p id="shortcut-error" role="alert" hidden></p></div><button id="open-library" class="storage-button" data-action="open-library" hidden>Open Pagepaint library</button><div class="repo-info"><strong>Save into your app’s repo</strong><p id="repo-status"></p><div class="repo-actions"><button id="choose-repo" class="storage-button" data-action="choose-repo">Choose repo folder</button><button id="write-repo" class="storage-button" data-action="write-repo">Save notes to repo</button><button id="agent-instructions" class="storage-button" data-action="agent-instructions">Add agent instructions</button></div><p class="storage-hint">Files go into .annotations/. Your agent can mark items resolved in the JSON.</p></div><div class="storage-info"><strong>Saved on this device</strong><p id="storage-usage">Checking browser storage…</p><p id="storage-protection"></p><button id="persist-storage" class="storage-button" data-action="persist-storage">Keep data on this device</button><p class="storage-hint">Clearing site data removes feedback. Download a ZIP to keep a copy or share it.</p></div><div class="appearance-actions"><button class="secondary" data-action="cancel-appearance">Cancel</button><button id="save-appearance" class="primary" data-action="save-appearance">Use this color ${icon("check")}</button></div></section>
         <div class="context-bar">${icon("link")}<span id="page-path" class="page-path"></span></div>
         <p id="notice" class="notice" role="alert" hidden></p>
-        <div id="messages" class="messages" role="log" aria-label="Feedback conversation" aria-live="polite"></div>
+        <nav id="thread-nav" class="thread-nav"><button class="storage-button" data-action="new-thread">New issue</button><span id="thread-label">Issues</span><button id="resolve-thread" class="storage-button" data-action="resolve-thread" hidden>Resolve issue</button><button id="all-threads" class="storage-button" data-action="all-threads" hidden>All issues</button></nav><div id="messages" class="messages" role="log" aria-label="Feedback conversation" aria-live="polite"></div>
         <form id="composer" class="composer">
           <div id="attachment" class="attachment" hidden><button class="attachment-preview" data-action="edit" type="button" aria-label="Edit attached screenshot"><img id="attachment-image" alt="Attached screenshot"/></button><div class="attachment-copy"><strong>Screenshot attached</strong><p id="attachment-detail">Click to edit your marks</p></div><button class="icon-button" data-action="remove-capture" type="button" aria-label="Remove attached screenshot">${icon("close")}</button></div>
-          <div class="input-box"><label class="input-label" for="message">YOUR FEEDBACK</label><textarea id="message" rows="3" maxlength="10000" placeholder="What should we change?" aria-describedby="composer-hint"></textarea><div class="composer-actions"><div class="capture-actions"><button id="draw-button" class="capture-button" data-action="draw-page" type="button">${icon("pen")}<span>Draw & capture</span></button><button id="capture-button" class="icon-button" data-action="capture" type="button" aria-label="Capture screen" title="Capture screen without drawing on the page">${icon("camera")}</button></div><button id="send" class="primary" type="submit" disabled>Send ${icon("send")}</button></div></div>
+          <div id="video-attachment" class="attachment" hidden><button class="storage-button" data-action="preview-video" type="button">Preview recording</button><span id="video-detail" class="attachment-copy"></span><button class="icon-button" data-action="remove-video" type="button" aria-label="Remove recording">${icon("close")}</button></div><label id="area-label" class="area-label">Area (optional)<input id="area" maxlength="80" placeholder="e.g. Checkout" /></label><div class="input-box"><label class="input-label" for="message">YOUR FEEDBACK</label><textarea id="message" rows="3" maxlength="10000" placeholder="What should we change?" aria-describedby="composer-hint"></textarea><div class="composer-actions"><div class="capture-actions"><button id="draw-button" class="capture-button" data-action="draw-page" type="button">${icon("pen")}<span>Draw & capture</span></button><button id="capture-button" class="icon-button" data-action="capture" type="button" aria-label="Capture screen" title="Capture screen without drawing on the page">${icon("camera")}</button><button id="record-button" class="icon-button" data-action="record-video" type="button" aria-label="Record video" title="Record up to one minute">${icon("video")}</button></div><button id="send" class="primary" type="submit" disabled>Send ${icon("send")}</button></div></div>
           <span id="composer-hint" class="sr-only">Attach a screenshot or send a message. Press Control or Command and Enter to send.</span>
         </form>
         <footer class="panel-footer"><span id="save-status" class="save-status" role="status"><span class="status-dot"></span><span id="status-text">Loading feedback…</span></span><button id="export" class="export-button" data-action="export">${icon("download")}Download ZIP</button></footer>
@@ -116,7 +124,7 @@ export class ReviewWidget {
         <footer class="editor-footer"><p class="editor-hint">Draw attention to the details.<br>Every mark saves automatically.</p><div class="editor-actions"><button class="secondary" data-action="recapture">${icon("camera")}Retake</button><button class="primary" data-action="finish-editor">Attach screenshot ${icon("check")}</button></div></footer>
       </div></dialog>
       <dialog id="page-dialog" class="page-dialog" aria-labelledby="page-title"><canvas id="page-canvas" class="page-canvas" tabindex="0" aria-label="Draw directly over the page. Choose a tool, then drag to make a mark."></canvas><div class="page-toolbar"><div class="page-toolbar-heading"><div><h2 id="page-title">Draw on this page</h2><p id="page-drawing-status">Draw, then capture.</p></div><div class="page-drawing-actions"><button class="secondary" data-action="cancel-page">Cancel</button><button id="finish-page" class="primary" data-action="finish-page">${icon("camera")}Capture & attach</button></div></div><div id="page-tools-slot"></div></div></dialog>
-      <dialog id="viewer-dialog" aria-labelledby="viewer-title"><div class="viewer"><div class="viewer-header"><h2 id="viewer-title">Annotated screenshot</h2><button class="icon-button" data-action="close-viewer" aria-label="Close screenshot">${icon("close")}</button></div><img id="viewer-image" alt="Full annotated screenshot"/></div></dialog>`;
+      <div id="recording-bar" class="recording-bar" role="status" hidden><span class="recording-dot"></span><span id="recording-time">Recording 0:00 / 1:00</span><button class="primary" data-action="stop-video">Stop & attach</button></div><dialog id="video-dialog" aria-label="Video recording"><div class="viewer-header"><h2>Recording</h2><button class="icon-button" data-action="close-video" aria-label="Close recording">${icon("close")}</button></div><video id="video-player" controls playsinline></video></dialog><dialog id="viewer-dialog" aria-labelledby="viewer-title"><div class="viewer"><div class="viewer-header"><h2 id="viewer-title">Annotated screenshot</h2><button class="icon-button" data-action="close-viewer" aria-label="Close screenshot">${icon("close")}</button></div><img id="viewer-image" alt="Full annotated screenshot"/></div></dialog>`;
   }
 
   bind() {
@@ -142,6 +150,15 @@ export class ReviewWidget {
             .forEach((color) =>
               color.setAttribute("aria-pressed", String(color === button)),
             );
+        } else if (button.dataset.thread) {
+          this.switchThread(button.dataset.thread).catch((error) =>
+            this.notice(error.message),
+          );
+        } else if (button.dataset.video) {
+          this.previewVideo(
+            this.records.find((item) => item.id === button.dataset.video)
+              ?.video,
+          ).catch((error) => this.notice(error.message));
         } else if (button.dataset.record) {
           const record = this.records.find(
             (item) => item.id === button.dataset.record,
@@ -170,6 +187,16 @@ export class ReviewWidget {
         this.updateSend();
         this.queueDraft();
       },
+      settings,
+    );
+    this.element("area").addEventListener(
+      "input",
+      () => this.queueDraft(),
+      settings,
+    );
+    this.element("video-dialog").addEventListener(
+      "close",
+      () => this.element("video-player").pause(),
       settings,
     );
     this.element("editor-dialog").addEventListener(
@@ -259,6 +286,27 @@ export class ReviewWidget {
 
   async act(action) {
     switch (action) {
+      case "open-library":
+        return this.options.openLibrary?.();
+      case "record-video":
+        return this.recordVideo();
+      case "stop-video":
+        return this.stopVideo();
+      case "preview-video":
+        return this.previewVideo(this.draftVideo);
+      case "close-video":
+        this.element("video-dialog").close();
+        break;
+      case "remove-video":
+        this.draftVideo = null;
+        this.updateAttachment();
+        return this.queueDraft();
+      case "new-thread":
+        return this.switchThread(null);
+      case "all-threads":
+        return this.switchThread(null);
+      case "resolve-thread":
+        return this.resolveThread();
       case "toggle":
         return this.element("panel").hidden ? this.open() : this.close();
       case "close":
@@ -327,9 +375,12 @@ export class ReviewWidget {
   }
 
   dialogOpen() {
-    return ["editor-dialog", "page-dialog", "viewer-dialog"].some(
-      (id) => this.element(id).open,
-    );
+    return [
+      "editor-dialog",
+      "page-dialog",
+      "viewer-dialog",
+      "video-dialog",
+    ].some((id) => this.element(id).open);
   }
 
   handleHotkey(event) {
@@ -526,6 +577,16 @@ export class ReviewWidget {
       if (this.destroyed) return this;
       this.records = records;
       this.preferences = preferences || {};
+      this.projectName =
+        preferences?.projectName ||
+        this.options.projectName?.trim().slice(0, 120) ||
+        defaultProjectName(this.context());
+      if (!preferences?.projectName)
+        await this.savePreferences({ projectName: this.projectName });
+      this.element("project-name").value = this.projectName;
+      this.element("open-library").hidden = !this.options.openLibrary;
+      this.root.querySelector(".storage-info").hidden =
+        !!this.options.openLibrary;
       this.hotkeys = hotkeySettings({
         ...this.options.hotkeys,
         ...preferences?.hotkeys,
@@ -545,9 +606,12 @@ export class ReviewWidget {
         this.element("message").value = draft.text || "";
         this.draftCapture = draft.capture || null;
         this.draftContext = draft.context;
+        this.draftVideo = draft.video || null;
+        this.element("area").value = draft.area || "";
       }
       this.renderMessages();
       this.updateAttachment();
+      await this.receivePendingVideo();
       this.localStatus();
       if (!this.store.persistent)
         this.notice(
@@ -569,7 +633,7 @@ export class ReviewWidget {
 
   showConversation() {
     this.setView("conversation");
-    const context = captureContext();
+    const context = this.context();
     this.element("page-path").textContent =
       `${context.pathname}${context.search}${context.hash}`;
     this.element("page-path").title = context.url;
@@ -591,7 +655,7 @@ export class ReviewWidget {
         ? this.preferencesSaved
           ? "Feedback settings"
           : "Make it your color"
-        : "Leave a little feedback";
+        : this.projectName || "Pagepaint";
     this.element("save-appearance").innerHTML =
       `${this.preferencesSaved ? "Save settings" : "Use this color"} ${icon("check")}`;
     this.root.querySelector(".subtitle").textContent =
@@ -606,6 +670,7 @@ export class ReviewWidget {
   showAppearance() {
     if (this.destroyed) return;
     this.applyAccent(this.accent);
+    this.element("project-name").value = this.projectName;
     this.showHotkeys(this.hotkeys);
     this.shortcutError("");
     this.setView("appearance");
@@ -646,7 +711,15 @@ export class ReviewWidget {
         this.shortcutError(error.message);
         return;
       }
-      await this.savePreferences({ accent: this.pendingAccent, hotkeys });
+      const projectName =
+        this.element("project-name").value.trim() ||
+        defaultProjectName(this.context());
+      await this.savePreferences({
+        accent: this.pendingAccent,
+        hotkeys,
+        projectName,
+      });
+      this.projectName = projectName;
       this.hotkeys = hotkeys;
       this.updateHotkeyHints();
       if (this.destroyed) return;
@@ -659,6 +732,7 @@ export class ReviewWidget {
   }
 
   async refreshStorage() {
+    if (this.options.openLibrary) return;
     try {
       const [estimate, protectedData] = await Promise.all([
         navigator.storage?.estimate?.(),
@@ -777,10 +851,20 @@ export class ReviewWidget {
   }
 
   updateSend() {
+    const busy = !!(this.sending || this.capturing || this.switchingThread);
+    this.element("record-button").disabled = busy || !!this.recording;
+    this.element("area").disabled = busy;
+    for (const button of this.root.querySelectorAll(
+      "[data-thread], #thread-nav button",
+    ))
+      button.disabled = !!(this.sending || this.switchingThread);
     this.element("send").disabled =
+      this.switchingThread ||
       this.sending ||
       this.capturing ||
-      (!this.element("message").value.trim() && !this.draftCapture);
+      (!this.element("message").value.trim() &&
+        !this.draftCapture &&
+        !this.draftVideo);
   }
 
   updateAttachment() {
@@ -790,23 +874,30 @@ export class ReviewWidget {
       this.element("attachment-detail").textContent =
         `${this.draftCapture.annotations.length} marks · Click to edit`;
     } else this.element("attachment-image").removeAttribute("src");
+    this.element("video-attachment").hidden = !this.draftVideo;
+    if (this.draftVideo)
+      this.element("video-detail").textContent =
+        `${Math.ceil(this.draftVideo.durationMs / 1000)} sec · ${(this.draftVideo.size / 1048576).toFixed(1)} MB`;
     this.updateSend();
   }
 
   draftRecord() {
     return {
-      id: "draft",
+      id: this.activeThreadId ? `draft:${this.activeThreadId}` : "draft",
+      threadId: this.activeThreadId || null,
+      area: this.element("area").value.trim(),
+      video: this.draftVideo || null,
       schemaVersion: 1,
       author: this.options.author,
       text: this.element("message").value,
       capture: this.draftCapture,
-      context: this.draftContext || captureContext(),
+      context: this.draftContext || this.context(),
       updatedAt: new Date().toISOString(),
     };
   }
 
   queueDraft() {
-    this.draftContext = captureContext();
+    this.draftContext = this.context();
     const draft = structuredClone(this.draftRecord());
     this.saveQueue = this.saveQueue
       .catch(() => {})
@@ -828,7 +919,9 @@ export class ReviewWidget {
     if (
       this.sending ||
       this.capturing ||
-      (!this.element("message").value.trim() && !this.draftCapture)
+      (!this.element("message").value.trim() &&
+        !this.draftCapture &&
+        !this.draftVideo)
     )
       return;
     this.sending = true;
@@ -850,13 +943,21 @@ export class ReviewWidget {
         schemaVersion: 1,
         id: makeId(),
         projectId: this.options.projectId,
+        projectName: this.projectName,
+        threadId: this.activeThreadId || null,
+        area: this.activeThreadId
+          ? this.records.find((item) => item.id === this.activeThreadId)
+              ?.area || ""
+          : this.element("area").value.trim(),
+        video: this.draftVideo || null,
         createdAt: new Date().toISOString(),
         author: this.options.author,
         text: this.element("message").value.trim(),
         capture: this.draftCapture,
-        context: captureContext(),
+        context: this.context(),
         status: "open",
       };
+      record.threadId ||= record.id;
       if (repoReady) {
         try {
           await this.repository.save(record);
@@ -866,15 +967,17 @@ export class ReviewWidget {
         }
       }
       try {
-        await this.store.commitFeedback(record);
+        await this.store.commitFeedback(record, this.draftRecord().id);
       } catch (error) {
         if (!record.repoSaved) throw error;
         repoError = `Saved in repo. Browser copy failed: ${error.message}`;
-        await this.store.clearDraft().catch(() => {});
+        await this.store.remove(this.draftRecord().id).catch(() => {});
       }
       this.records.push(record);
       this.element("message").value = "";
       this.draftCapture = null;
+      this.draftVideo = null;
+      this.element("area").value = "";
       this.updateAttachment();
       this.renderMessages();
       this.notice(
@@ -896,14 +999,173 @@ export class ReviewWidget {
     }
   }
 
+  async switchThread(threadId) {
+    if (
+      this.sending ||
+      this.capturing ||
+      this.recording ||
+      this.switchingThread
+    )
+      return;
+    this.switchingThread = true;
+    this.element("message").disabled = true;
+    this.element("area").disabled = true;
+    this.updateSend();
+    try {
+      await this.queueDraft();
+      const draft = await this.store.draft(threadId);
+      this.activeThreadId = threadId;
+      this.element("message").value = draft?.text || "";
+      this.element("area").value = draft?.area || "";
+      this.draftCapture = draft?.capture || null;
+      this.draftVideo = draft?.video || null;
+      this.draftContext = draft?.context;
+      this.renderMessages();
+      this.updateAttachment();
+      this.showConversation();
+    } finally {
+      this.switchingThread = false;
+      this.element("message").disabled = false;
+      this.element("area").disabled = false;
+      this.updateSend();
+      this.element("message").focus();
+    }
+  }
+
+  async resolveThread() {
+    const record = this.records.find((item) => item.id === this.activeThreadId);
+    if (!record) return;
+    const status = record.status === "resolved" ? "open" : "resolved";
+    if (record.repoSaved) {
+      if (this.options.openLibrary)
+        throw new Error(
+          "Open Pagepaint library to update this issue's repo status.",
+        );
+      if (!(await this.repository.prepare()))
+        throw new Error(
+          "Folder permission is needed to update this issue's repo status.",
+        );
+      await this.repository.setStatus(record, status);
+    }
+    await this.store.put({ ...record, status });
+    record.status = status;
+    this.renderMessages();
+  }
+
+  async recordVideo() {
+    if (this.recording || this.sending || this.capturing) return;
+    const context = this.context();
+    this.recordingTick(0);
+    if (this.options.startRecording) {
+      await this.queueDraft();
+      await this.options.startRecording({
+        context,
+        threadId: this.activeThreadId,
+        projectName: this.projectName,
+      });
+      this.recording = true;
+      this.updateSend();
+      this.close();
+      this.element("recording-bar").hidden = false;
+      return;
+    }
+    if (!navigator.mediaDevices?.getDisplayMedia || !globalThis.MediaRecorder)
+      throw new Error(
+        "Recording needs HTTPS and a browser with screen sharing support.",
+      );
+    // Screen selection must be requested in the button's user gesture.
+    const stream = await navigator.mediaDevices.getDisplayMedia({
+      video: true,
+      audio: false,
+    });
+    this.recording = true;
+    this.updateSend();
+    this.close();
+    this.element("recording-bar").hidden = false;
+    this.recorder = new VideoRecorder({
+      onTick: (seconds) => this.recordingTick(seconds),
+    });
+    try {
+      const video = await this.recorder.start(stream);
+      if (!this.destroyed) await this.acceptVideo({ ...video, context });
+    } finally {
+      this.recording = false;
+      if (!this.destroyed) {
+        this.element("recording-bar").hidden = true;
+        this.updateSend();
+        this.showConversation();
+      }
+    }
+  }
+
+  recordingTick(seconds) {
+    this.element("recording-time").textContent =
+      `Recording ${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")} / 1:00`;
+  }
+
+  async stopVideo() {
+    if (this.options.stopRecording) return this.options.stopRecording();
+    return this.recorder?.stop();
+  }
+
+  async acceptVideo(video) {
+    this.draftVideo = video;
+    this.updateAttachment();
+    await this.queueDraft();
+  }
+
+  async receivePendingVideo() {
+    const pending = await this.store.pendingVideos();
+    const item = pending.find(
+      (entry) => (entry.threadId || null) === (this.activeThreadId || null),
+    );
+    if (item && !this.draftVideo) {
+      await this.acceptVideo(item.video);
+      await this.store.remove(item.id);
+    }
+  }
+
+  async previewVideo(video) {
+    if (video && this.options.resolveVideo)
+      video = await this.options.resolveVideo(video);
+    if (!video?.blob) return;
+    if (this.previewUrl) {
+      URL.revokeObjectURL(this.previewUrl);
+      this.mediaUrls.delete(this.previewUrl);
+    }
+    this.previewUrl = URL.createObjectURL(video.blob);
+    this.mediaUrls.add(this.previewUrl);
+    this.element("video-player").src = this.previewUrl;
+    this.element("video-dialog").showModal();
+  }
+
   renderMessages() {
     const messages = this.element("messages");
     messages.replaceChildren();
-    if (!this.records.length) {
+    const visible = this.activeThreadId
+      ? this.records.filter(
+          (item) => (item.threadId || item.id) === this.activeThreadId,
+        )
+      : this.records.filter(
+          (item) => !item.threadId || item.threadId === item.id,
+        );
+    const root = this.records.find((item) => item.id === this.activeThreadId);
+    this.element("thread-label").textContent = this.activeThreadId
+      ? "Issue thread"
+      : "Issues";
+    this.element("all-threads").hidden = !this.activeThreadId;
+    this.element("resolve-thread").hidden = !root;
+    this.element("resolve-thread").textContent =
+      root?.status === "resolved" ? "Reopen issue" : "Resolve issue";
+    this.element("area-label").hidden = !!this.activeThreadId;
+    this.element("message").placeholder = this.activeThreadId
+      ? "Add a reply…"
+      : "What should we change?";
+    if (!visible.length) {
       messages.innerHTML = `<div class="empty"><div class="empty-illustration">${icon("pen")}</div><h3>Good feedback starts here.</h3><p>Tell us what’s on your mind, or capture the page and mark it up.</p></div>`;
       return;
     }
-    for (const record of this.records) {
+    for (const record of visible) {
       const article = document.createElement("article");
       article.className = "message";
       const meta = document.createElement("div");
@@ -950,13 +1212,54 @@ export class ReviewWidget {
       path.textContent = `${record.context.pathname}${record.context.search}${record.context.hash}`;
       path.title = record.context.url;
       article.append(meta, bubble, path);
+      if (record.video) {
+        const preview = document.createElement("button");
+        preview.className = "storage-button";
+        preview.dataset.video = record.id;
+        preview.textContent = `Play recording · ${Math.ceil(record.video.durationMs / 1000)} sec`;
+        bubble.append(preview);
+      }
+      if (!this.activeThreadId) {
+        const thread = document.createElement("button");
+        thread.className = "storage-button";
+        thread.dataset.thread = record.id;
+        const count = this.records.filter(
+          (item) => item.id !== record.id && item.threadId === record.id,
+        ).length;
+        thread.textContent = `${record.area ? record.area + " · " : ""}Open thread${count ? ` · ${count} replies` : ""}`;
+        article.append(thread);
+      }
       messages.append(article);
     }
     messages.scrollTop = messages.scrollHeight;
   }
 
   async renderViewport() {
-    const context = captureContext();
+    const context = this.context();
+    if (this.options.captureViewport) {
+      const visibility = this.host.style.visibility;
+      this.host.style.setProperty("visibility", "hidden", "important");
+      const dialogs = Array.from(this.root.querySelectorAll("dialog[open]"));
+      for (const dialog of dialogs) dialog.close();
+      try {
+        await new Promise((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(resolve)),
+        );
+        const image = await this.options.captureViewport();
+        return {
+          ...image,
+          annotated: image.original,
+          annotations: [],
+          libraryVersion,
+          renderer: "browser-tab",
+          context,
+          capturedAt: context.capturedAt,
+        };
+      } finally {
+        this.host.style.visibility = visibility;
+        for (const dialog of dialogs) if (!this.destroyed) dialog.showModal();
+      }
+    }
     const canvas = await html2canvas(document.documentElement, {
       x: context.scroll.x,
       y: context.scroll.y,
@@ -1193,7 +1496,9 @@ export class ReviewWidget {
   refreshRepo() {
     const repo = this.repository;
     this.element("repo-status").textContent = !repo.supported
-      ? "Folder access is unavailable here. Use ZIP export, or Chrome / Edge over HTTPS."
+      ? this.options.openLibrary
+        ? "Connect your repo in the Pagepaint library. ZIP export is also available here."
+        : "Folder access is unavailable here. Use ZIP export, or Chrome / Edge over HTTPS."
       : repo.handle
         ? `Selected: ${repo.handle.name}/.annotations/`
         : "Choose your app’s folder on first save, or connect it here.";
@@ -1262,11 +1567,25 @@ export class ReviewWidget {
     this.element("export").disabled = true;
     try {
       await this.saveQueue.catch(() => {});
+      const records = await Promise.all(
+        this.records.map((record) => this.resolveRecordVideo(record)),
+      );
+      const drafts = [
+        ...(await this.store.drafts()).filter(
+          (item) => item.id !== this.draftRecord().id,
+        ),
+        this.draftRecord(),
+        ...(await this.store.pendingVideos()),
+      ];
+      const resolvedDrafts = await Promise.all(
+        drafts.map((record) => this.resolveRecordVideo(record)),
+      );
       const blob = await createArchive(
-        this.records,
+        records,
         this.options.projectId,
         "blob",
-        this.draftRecord(),
+        resolvedDrafts,
+        this.projectName,
       );
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -1279,6 +1598,11 @@ export class ReviewWidget {
       this.exporting = false;
       if (!this.destroyed) this.element("export").disabled = false;
     }
+  }
+
+  async resolveRecordVideo(record) {
+    if (!record.video || !this.options.resolveVideo) return record;
+    return { ...record, video: await this.options.resolveVideo(record.video) };
   }
 
   async getFeedback() {
@@ -1300,10 +1624,14 @@ export class ReviewWidget {
     if (this.destroyed) return;
     this.destroyed = true;
     this.events.abort();
+    this.recorder?.stop()?.catch(() => {});
+    this.element("video-player").pause();
+    for (const url of this.mediaUrls) URL.revokeObjectURL(url);
     this.annotation?.destroy();
     this.element("editor-dialog").close();
     this.element("page-dialog").close();
     this.element("viewer-dialog").close();
+    this.element("video-dialog").close();
     this.host.remove();
     Promise.allSettled([this.ready, this.saveQueue, this.preferenceQueue]).then(
       () => this.store.close(),

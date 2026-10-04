@@ -1,6 +1,16 @@
 // ABOUTME: Styles the isolated feedback panel and responsive screenshot editor.
 // ABOUTME: Uses scoped tokens and explicit control styles to withstand host page CSS.
 export const styles = `
+  .project-setting, .area-label { display: grid; gap: 5px; font-size: 11px; color: var(--muted); margin-bottom: 12px; }
+  .project-setting input, .area-label input { padding: 7px 9px; border: 1px solid var(--line); border-radius: 6px; color: var(--ink); background: var(--wash); width: 100%; }
+  .thread-nav { display: flex; padding: 0 20px; gap: 10px; align-items: center; border-bottom: 1px solid var(--line); flex-shrink: 0; }
+  #panel-title { max-width: 185px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #thread-label { color: var(--muted); font-size: 11px; margin-right: auto; }
+  .panel[data-view=appearance] > .thread-nav { display: none; }
+  .recording-bar { pointer-events: auto; position: fixed; top: 16px; left: 50%; transform: translateX(-50%); display: flex; gap: 12px; align-items: center; background: var(--paper); padding: 12px; border: 1px solid var(--accent); border-radius: 14px; max-width: calc(100vw - 24px); color: var(--ink); }
+  .recording-dot { width: 9px; height: 9px; background: #ef4444; border-radius: 50%; }
+  #video-player { display: block; width: 100%; max-height: 75dvh; background: #000; }
+
   :host { all: initial; --ink: #f1f3e8; --muted: #abb19e; --line: #353a2e; --paper: #191c16; --wash: #22261d; --accent: #edff3a; --on-accent: #171b0b; --accent-hover: color-mix(in srgb, var(--accent) 88%, #000); --accent-wash: color-mix(in srgb, var(--accent) 13%, var(--paper)); --accent-line: color-mix(in srgb, var(--accent) 40%, var(--paper)); font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: var(--ink); color-scheme: dark; }
   *, *::before, *::after { box-sizing: border-box; }
   [hidden] { display: none !important; }

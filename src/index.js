@@ -22,12 +22,16 @@ export function getInstance() {
 }
 
 if (typeof window !== "undefined") {
-  window.ReviewTool = { init, getInstance, version };
+  window.Pagepaint = window.ReviewTool = { init, getInstance, version };
   const script = document.currentScript;
-  if (script?.hasAttribute("data-review-tool")) {
+  if (
+    script?.hasAttribute("data-review-tool") ||
+    script?.hasAttribute("data-pagepaint")
+  ) {
     const start = () =>
       init({
         projectId: script.dataset.project || "default",
+        projectName: script.dataset.projectName,
         position: script.dataset.position || "bottom-right",
         offset:
           script.dataset.offset === undefined

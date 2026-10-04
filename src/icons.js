@@ -1,6 +1,8 @@
 // ABOUTME: Defines a consistent set of small SVG icons for the feedback widget.
 // ABOUTME: Keeps icons decorative while their parent controls provide accessible names.
 const paths = {
+  video:
+    '<rect x="2" y="5" width="14" height="14" rx="3"/><path d="m16 10 6-4v12l-6-4"/>',
   settings:
     '<path d="m9 3-1 3-3 1-2 3 2 2v3l3 2 1 3h5l1-3 3-2v-3l2-2-2-3-3-1-1-3Z"/><circle cx="11.5" cy="11.5" r="3"/>',
   chat: '<path d="M21 11.5a8.4 8.4 0 0 1-8.5 8.5H5l-4 3V11.5A8.5 8.5 0 0 1 9.5 3h3a8.5 8.5 0 0 1 8.5 8.5Z"/><path d="M7 10h8M7 14h5"/>',

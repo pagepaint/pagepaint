@@ -10,7 +10,20 @@ const assets = path.join(worker, "assets");
 await mkdir(path.join(assets, `v${version}`), { recursive: true });
 await cp("index.html", path.join(assets, "index.html"));
 await cp("demo", path.join(assets, "demo"), { recursive: true });
+await cp("LICENSE", path.join(assets, "LICENSE"));
+await cp(
+  "dist/pagepaint-extension.zip",
+  path.join(assets, "pagepaint-extension.zip"),
+);
+await cp(
+  "dist/pagepaint-extension.zip",
+  path.join(assets, `v${version}`, "pagepaint-extension.zip"),
+);
 for (const file of [
+  "pagepaint.js",
+  "pagepaint.mjs",
+  "pagepaint.js.LEGAL.txt",
+  "pagepaint.mjs.LEGAL.txt",
   "review-tool.js",
   "review-tool.mjs",
   "review-tool.js.LEGAL.txt",
@@ -20,7 +33,7 @@ for (const file of [
   await cp(path.join("dist", file), path.join(assets, `v${version}`, file));
 }
 // Retain published versioned URLs when deploying a new release.
-const retainedVersions = ["0.2.0", "0.2.1"];
+const retainedVersions = ["0.2.0", "0.2.1", "0.2.2"];
 await Promise.all(
   retainedVersions.map(async (release) => {
     const directory = path.join(assets, `v${release}`);
@@ -56,6 +69,12 @@ await writeFile(
 /review-tool.js
   Cache-Control: public, max-age=300
 /review-tool.mjs
+  Cache-Control: public, max-age=300
+/pagepaint.js
+  Cache-Control: public, max-age=300
+/pagepaint.mjs
+  Cache-Control: public, max-age=300
+/pagepaint-extension.zip
   Cache-Control: public, max-age=300
 /*.mjs
   Content-Type: text/javascript; charset=utf-8

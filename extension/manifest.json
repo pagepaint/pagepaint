@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "Pagepaint",
+  "version": "0.3.0",
+  "description": "Draw, capture, record, and save local feedback for any app.",
+  "minimum_chrome_version": "116",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "tabCapture",
+    "offscreen"
+  ],
+  "background": { "service_worker": "service-worker.js", "type": "module" },
+  "action": { "default_title": "Open Pagepaint on this page" },
+  "commands": {
+    "_execute_action": { "suggested_key": { "default": "Alt+Shift+P" } }
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}

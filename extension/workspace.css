@@ -1,0 +1,49 @@
+/* ABOUTME: Styles the extension's local project library and recording recovery controls. */
+/* ABOUTME: Keeps the shared feedback widget as the project's primary editing interface. */
+:root {
+  color-scheme: dark;
+  font-family: system-ui, sans-serif;
+  color: #f1f3e8;
+  background: #141710;
+}
+body {
+  margin: 0;
+}
+main {
+  max-width: 560px;
+  padding: 70px 32px;
+}
+.eyebrow {
+  color: #edff3a;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+}
+h1 {
+  font-size: 42px;
+  letter-spacing: -0.04em;
+}
+p {
+  color: #abb19e;
+  line-height: 1.7;
+}
+label {
+  display: grid;
+  gap: 10px;
+  margin: 30px 0;
+}
+select,
+button {
+  font: inherit;
+  padding: 12px;
+  border: 1px solid #454d32;
+  border-radius: 9px;
+  background: #22261d;
+  color: #f1f3e8;
+}
+button {
+  cursor: pointer;
+  margin: 8px 0;
+}
+#error {
+  color: #f4d68b;
+}

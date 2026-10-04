@@ -1,0 +1,32 @@
+<!-- ABOUTME: Presents locally stored extension projects and their recording drafts. -->
+<!-- ABOUTME: Provides a normal browser page for folder permissions and ZIP downloads. -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Pagepaint library</title>
+    <link rel="stylesheet" href="workspace.css" />
+  </head>
+  <body>
+    <main>
+      <span class="eyebrow">PAGEPAINT · LOCAL LIBRARY</span>
+      <h1>A clearer next step.</h1>
+      <p>
+        Your feedback stays in this browser profile. Open a project to review
+        issues, connect its repo folder, or download everything.
+      </p>
+      <label
+        >Project<select id="projects">
+          <option value="">Choose a project</option>
+        </select></label
+      >
+      <p id="empty" hidden>
+        Click the Pagepaint extension on an app to create its first project.
+      </p>
+      <section id="pending" aria-label="Unattached recordings"></section>
+      <p id="error" role="alert"></p>
+    </main>
+    <script type="module" src="workspace.js"></script>
+  </body>
+</html>

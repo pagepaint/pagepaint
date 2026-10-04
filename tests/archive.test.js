@@ -67,3 +67,15 @@ test("archives include unsent text and capture drafts without persistence intern
   assert.equal(manifest.feedback[1].id, "draft");
   assert.ok(zip.file("captures/draft/original.png"));
 });
+
+test("reply drafts export portable filenames with their thread identity", async () => {
+  const record = feedback();
+  const draft = { ...record, id: `draft:${record.id}`, threadId: record.id };
+  const zip = await JSZip.loadAsync(
+    await createArchive([], "app", "nodebuffer", [draft]),
+  );
+  assert.ok(Object.keys(zip.files).every((file) => !file.includes(":")));
+  const manifest = JSON.parse(await zip.file("feedback.json").async("string"));
+  assert.equal(manifest.feedback[0].threadId, record.id);
+  assert.ok(zip.file(manifest.feedback[0].capture.annotated));
+});

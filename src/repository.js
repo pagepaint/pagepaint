@@ -3,6 +3,7 @@
 const AGENT_INSTRUCTION =
   "Check `.annotations/` for open items; set status to resolved when done.";
 const RECORD_ID = /^[0-9a-f-]{36}$/i;
+import { videoExtension } from "./recording.js";
 
 async function writeFile(directory, name, body) {
   const file = await directory.getFileHandle(name, { create: true });
@@ -126,6 +127,12 @@ export class RepositoryStore {
     }
     const { key, synced, repoSaved, ...data } = record;
     const shapes = data.capture?.annotations || [];
+    if (data.video) {
+      const { blob, ...video } = data.video;
+      const file = `${record.id}.${videoExtension(video)}`;
+      await writeFile(directory, file, blob);
+      data.video = { ...video, file };
+    }
     if (data.capture) {
       const { original, annotated, annotations, ...capture } = data.capture;
       await writeFile(directory, `${record.id}.webp`, await webp(annotated));
@@ -190,6 +197,23 @@ export class RepositoryStore {
       }
     }
     return changes;
+  }
+
+  async setStatus(record, status) {
+    if (!RECORD_ID.test(record.id) || !["open", "resolved"].includes(status))
+      throw new Error("Invalid annotation status.");
+    const directory = await this.directory();
+    const file = await (
+      await directory.getFileHandle(`${record.id}.json`)
+    ).getFile();
+    const data = JSON.parse(await file.text());
+    if (data.id !== record.id)
+      throw new Error("Annotation identifier does not match its file.");
+    await writeFile(
+      directory,
+      `${record.id}.json`,
+      JSON.stringify({ ...data, status }, null, 2),
+    );
   }
   async addInstructions() {
     const existing = [];

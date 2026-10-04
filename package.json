@@ -1,23 +1,25 @@
 {
-  "name": "@devplant/review-tool",
-  "version": "0.2.2",
-  "description": "A drop-in feedback widget with annotated viewport captures and browser storage.",
+  "name": "pagepaint",
+  "version": "0.3.0",
+  "description": "Local-first page feedback: draw, capture, record, and save to your repository.",
   "type": "module",
-  "main": "dist/review-tool.js",
-  "module": "dist/review-tool.mjs",
+  "main": "dist/pagepaint.js",
+  "module": "dist/pagepaint.mjs",
   "exports": {
     ".": {
-      "import": "./dist/review-tool.mjs",
-      "default": "./dist/review-tool.js"
+      "import": "./dist/pagepaint.mjs",
+      "default": "./dist/pagepaint.js"
     }
   },
   "files": [
     "dist",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "PRIVACY.md",
+    "CONTRIBUTING.md"
   ],
   "scripts": {
-    "build": "node scripts/build.js",
+    "build": "node scripts/build.js && npm run build:extension",
     "test": "node --test tests/*.test.js",
     "test:e2e": "playwright test",
     "check": "npm run build && npm test && npm run test:e2e",
@@ -25,7 +27,8 @@
     "format:check": "prettier --check .",
     "prepack": "npm run build",
     "build:cdn": "npm run build && node scripts/build-cdn.js",
-    "deploy": "npm run build:cdn && cf deploy --prebuilt"
+    "deploy": "npm run build:cdn && cf deploy --prebuilt",
+    "build:extension": "node scripts/build-extension.js"
   },
   "engines": {
     "node": ">=22"
@@ -39,5 +42,6 @@
     "esbuild": "0.28.2",
     "prettier": "3.8.5"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "private": true
 }

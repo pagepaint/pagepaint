@@ -669,6 +669,31 @@ test("repo saving writes real files, remembers the handle, and reads agent resol
     await page
       .getByRole("button", { name: "Capture & attach", exact: true })
       .click();
+    await page.evaluate(() => {
+      const canvas = document.createElement("canvas");
+      canvas.width = 320;
+      canvas.height = 180;
+      const ctx = canvas.getContext("2d");
+      let frame = 0;
+      window.repoVideoTimer = setInterval(() => {
+        ctx.fillStyle = frame++ % 2 ? "#edff3a" : "#285b49";
+        ctx.fillRect(0, 0, 320, 180);
+      }, 70);
+      navigator.mediaDevices.getDisplayMedia = async () =>
+        canvas.captureStream(15);
+    });
+    await page
+      .getByRole("button", { name: "Record video", exact: true })
+      .click();
+    await expect(page.locator("#recording-time")).toHaveText(
+      "Recording 0:01 / 1:00",
+    );
+    await page
+      .getByRole("button", { name: "Stop & attach", exact: true })
+      .click();
+    await expect(
+      page.getByRole("button", { name: "Preview recording", exact: true }),
+    ).toBeVisible();
     await page.getByLabel("YOUR FEEDBACK").fill("Fix this marked area.");
     await page.getByRole("button", { name: "Send", exact: true }).click();
     await expect(
@@ -696,10 +721,16 @@ test("repo saving writes real files, remembers the handle, and reads agent resol
         metadata,
         bytes,
         originalBytes: original.size,
+        videoBytes: (
+          await (await directory.getFileHandle(metadata.video.file)).getFile()
+        ).size,
         remembered: window.testReview.repository.handle.name,
       };
     });
     expect(result.metadata.status).toBe("open");
+    expect(result.metadata.video.blob).toBeUndefined();
+    expect(result.metadata.video.file).toMatch(/\.webm$/);
+    expect(result.videoBytes).toBe(result.metadata.video.size);
     expect(result.metadata.comment).toBe("Fix this marked area.");
     expect(result.metadata.url).toContain("127.0.0.1");
     expect(result.metadata.viewport.width).toBe(1440);
@@ -1026,4 +1057,124 @@ test("dragging the menu persists, stays within the viewport, and supports keyboa
   expect(
     await page.evaluate(() => testReview.preferences.panelPosition),
   ).toBeNull();
+});
+
+test("Pagepaint names a project once and keeps separate issue threads and drafts", async ({
+  page,
+}) => {
+  await page.evaluate(() => {
+    document.title = "Local studio";
+  });
+  const projectId = await initialize(page);
+  await open(page);
+  await expect(page.locator("#panel-title")).toHaveText("Local studio");
+  await page.getByLabel("Area (optional)").fill("Checkout");
+  await page.getByLabel("YOUR FEEDBACK").fill("Make checkout clearer");
+  await page.getByRole("button", { name: "Send", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Checkout · Open thread", exact: true })
+    .click();
+  await page.getByLabel("YOUR FEEDBACK").fill("Unsent reply");
+  await page.getByRole("button", { name: "All issues", exact: true }).click();
+  await page.getByLabel("YOUR FEEDBACK").fill("A second issue");
+  await page.getByRole("button", { name: "Send", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Checkout · Open thread", exact: true })
+    .click();
+  await expect(page.getByLabel("YOUR FEEDBACK")).toHaveValue("Unsent reply");
+  await page.getByRole("button", { name: "Send", exact: true }).click();
+  await expect(page.getByText("Unsent reply", { exact: true })).toBeVisible();
+  await page
+    .getByRole("button", { name: "Resolve issue", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Reopen issue", exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Feedback settings", exact: true })
+    .click();
+  await page.getByLabel("Project name", { exact: true }).fill("My studio");
+  await page
+    .getByRole("button", { name: "Save settings", exact: true })
+    .click();
+  await expect(page.locator("#panel-title")).toHaveText("My studio");
+  await page.reload();
+  await initialize(page, { projectId });
+  await open(page);
+  await expect(page.locator("#panel-title")).toHaveText("My studio");
+  const records = await page.evaluate(() => window.testReview.getFeedback());
+  expect(records).toHaveLength(3);
+  expect(records[0].status).toBe("resolved");
+  expect(records[0].area).toBe("Checkout");
+  expect(records[2].threadId).toBe(records[0].id);
+  const zip = await archive(page);
+  const data = JSON.parse(await zip.file("feedback.json").async("string"));
+  expect(data.projectName).toBe("My studio");
+  expect(data.feedback).toHaveLength(3);
+});
+
+test("records an actual playable video, recovers its draft, and exports the bytes", async ({
+  page,
+}) => {
+  const projectId = await initialize(page);
+  await open(page);
+  await page.evaluate(() => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 480;
+    canvas.height = 270;
+    const ctx = canvas.getContext("2d");
+    let frame = 0;
+    window.videoTimer = setInterval(() => {
+      ctx.fillStyle = frame++ % 2 ? "#edff3a" : "#285b49";
+      ctx.fillRect(0, 0, 480, 270);
+    }, 70);
+    // Only the browser's selection prompt is substituted; encoding is real MediaRecorder.
+    navigator.mediaDevices.getDisplayMedia = async () =>
+      canvas.captureStream(15);
+  });
+  await page.getByRole("button", { name: "Record video", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Stop & attach", exact: true }),
+  ).toBeVisible();
+  await expect(page.locator("#recording-time")).toHaveText(
+    "Recording 0:01 / 1:00",
+  );
+  await page
+    .getByRole("button", { name: "Stop & attach", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Preview recording", exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Preview recording", exact: true })
+    .click();
+  await expect
+    .poll(() =>
+      page.locator("#video-player").evaluate((video) => video.videoWidth),
+    )
+    .toBe(480);
+  await page
+    .getByRole("button", { name: "Close recording", exact: true })
+    .click();
+  await page.reload();
+  await initialize(page, { projectId });
+  await open(page);
+  await expect(
+    page.getByRole("button", { name: "Preview recording", exact: true }),
+  ).toBeVisible();
+  await page
+    .getByLabel("YOUR FEEDBACK")
+    .fill("The interaction in this clip needs work");
+  await page.getByRole("button", { name: "Send", exact: true }).click();
+  await expect(
+    page.getByText("The interaction in this clip needs work", { exact: true }),
+  ).toBeVisible();
+  const zip = await archive(page);
+  const data = JSON.parse(await zip.file("feedback.json").async("string"));
+  const video = data.feedback[0].video;
+  expect(video.blob).toBeUndefined();
+  expect(video.context.url).toContain("4319");
+  const bytes = await zip.file(video.file).async("nodebuffer");
+  expect([...bytes.subarray(0, 4)]).toEqual([0x1a, 0x45, 0xdf, 0xa3]);
+  expect(bytes.length).toBe(video.size);
 });
