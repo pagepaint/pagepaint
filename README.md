@@ -6,7 +6,7 @@ A plain JavaScript feedback widget for AI-built apps. Load one CDN script, draw 
 
 ```html
 <script
-  src="https://review-tool.timo-bejan.workers.dev/v0.2.0/review-tool.js"
+  src="https://review-tool.timo-bejan.workers.dev/v0.2.1/review-tool.js"
   data-review-tool
   data-project="my-app"
   defer
@@ -15,10 +15,10 @@ A plain JavaScript feedback widget for AI-built apps. Load one CDN script, draw 
 
 The dependencies are bundled. The script runs in the app's origin, so each domain and localhost port has its own browser storage and folder permission. Use a different `data-project` for separate apps sharing an origin. Your site's CSP must allow the CDN script, the widget's inline styles, and data/blob images.
 
-The hosted playground is at <https://review-tool.timo-bejan.workers.dev/>. The unversioned `/review-tool.js` URL follows the current release; the versioned URL pins this release. ES modules are available at `/v0.2.0/review-tool.mjs`.
+The hosted playground is at <https://review-tool.timo-bejan.workers.dev/>. The unversioned `/review-tool.js` URL follows the current release; the versioned URL pins this release. ES modules are available at `/v0.2.1/review-tool.mjs`.
 
 ```js
-import { init } from "https://review-tool.timo-bejan.workers.dev/v0.2.0/review-tool.mjs";
+import { init } from "https://review-tool.timo-bejan.workers.dev/v0.2.1/review-tool.mjs";
 
 const review = init({
   projectId: "my-app",

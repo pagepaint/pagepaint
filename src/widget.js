@@ -1,6 +1,7 @@
 // ABOUTME: Embeds a feedback conversation with capture, annotation, and ZIP download.
 // ABOUTME: Isolates the interface in Shadow DOM and keeps feedback on the current device.
 import html2canvas from "html2canvas-pro";
+import { waitForCaptureStyles } from "./capture-styles.js";
 import { AnnotationCanvas } from "./annotations.js";
 import { createArchive } from "./archive.js";
 import { captureContext, makeId, validProjectId } from "./context.js";
@@ -737,6 +738,7 @@ export class ReviewWidget {
       allowTaint: false,
       logging: false,
       imageTimeout: 8000,
+      onclone: waitForCaptureStyles,
       ignoreElements: (element) =>
         element.hasAttribute("data-review-tool-root") ||
         element.hasAttribute("data-review-tool-ignore"),

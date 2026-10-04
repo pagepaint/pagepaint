@@ -21,7 +21,7 @@ export function getInstance() {
 }
 
 if (typeof window !== "undefined") {
-  window.ReviewTool = { init, getInstance, version: "0.2.0" };
+  window.ReviewTool = { init, getInstance, version: "0.2.1" };
   const script = document.currentScript;
   if (script?.hasAttribute("data-review-tool")) {
     const start = () =>

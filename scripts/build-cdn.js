@@ -19,6 +19,35 @@ for (const file of [
   await cp(path.join("dist", file), path.join(assets, file));
   await cp(path.join("dist", file), path.join(assets, `v${version}`, file));
 }
+// Retain published versioned URLs when deploying a new release.
+const retainedVersions = ["0.2.0"];
+await Promise.all(
+  retainedVersions.map(async (release) => {
+    const directory = path.join(assets, `v${release}`);
+    await mkdir(directory, { recursive: true });
+    await Promise.all(
+      [
+        "review-tool.js",
+        "review-tool.mjs",
+        "review-tool.js.LEGAL.txt",
+        "review-tool.mjs.LEGAL.txt",
+      ].map(async (file) => {
+        const response = await fetch(
+          `https://review-tool.timo-bejan.workers.dev/v${release}/${file}`,
+          { signal: AbortSignal.timeout(30000) },
+        );
+        if (!response.ok)
+          throw new Error(
+            `Cannot preserve release ${release}: ${file} returned ${response.status}`,
+          );
+        await writeFile(
+          path.join(directory, file),
+          new Uint8Array(await response.arrayBuffer()),
+        );
+      }),
+    );
+  }),
+);
 await writeFile(
   path.join(assets, "_headers"),
   `/*
@@ -30,8 +59,7 @@ await writeFile(
   Cache-Control: public, max-age=300
 /*.mjs
   Content-Type: text/javascript; charset=utf-8
-/v${version}/*
-  Cache-Control: public, max-age=31536000, immutable
+${[...retainedVersions, version].map((release) => `/v${release}/*\n  Cache-Control: public, max-age=31536000, immutable`).join("\n")}
 `,
 );
 await writeFile(

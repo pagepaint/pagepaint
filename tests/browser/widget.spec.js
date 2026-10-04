@@ -807,3 +807,32 @@ test("canceling repo picker keeps feedback in browser and ZIP, with an explicit 
       .text,
   ).toBe("Do not lose this note.");
 });
+
+test("capture waits for external stylesheets in the cloned document", async ({
+  page,
+}) => {
+  await initialize(page);
+  await page.route("**/demo/demo.css", async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    await route.continue();
+  });
+  await open(page);
+  await page
+    .getByRole("button", { name: "Capture screen", exact: true })
+    .click();
+  await expect(
+    page.getByRole("dialog", { name: "Show what you mean", exact: true }),
+  ).toBeVisible();
+  const pixel = await page.evaluate(async () => {
+    const image = new Image();
+    image.src = window.testReview.draftCapture.original;
+    await image.decode();
+    const canvas = document.createElement("canvas");
+    canvas.width = image.width;
+    canvas.height = image.height;
+    const context = canvas.getContext("2d");
+    context.drawImage(image, 0, 0);
+    return [...context.getImageData(5, 5, 1, 1).data];
+  });
+  expect(pixel).toEqual([247, 247, 239, 255]);
+});

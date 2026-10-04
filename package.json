@@ -1,6 +1,6 @@
 {
   "name": "@devplant/review-tool",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "A drop-in feedback widget with annotated viewport captures and browser storage.",
   "type": "module",
   "main": "dist/review-tool.js",
