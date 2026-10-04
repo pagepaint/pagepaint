@@ -36,8 +36,12 @@ export class FeedbackStore {
       transaction.oncomplete = () => resolve(request?.result);
       transaction.onerror = transaction.onabort = () =>
         reject(
-          transaction.error ||
-            new Error("Browser storage could not save this feedback."),
+          transaction.error?.name === "QuotaExceededError"
+            ? new Error(
+                "Browser storage is full. Download a ZIP backup before clearing site data.",
+              )
+            : transaction.error ||
+                new Error("Browser storage could not save this feedback."),
         );
     });
   }
@@ -60,7 +64,8 @@ export class FeedbackStore {
     return all
       .filter(
         (record) =>
-          record.projectId === this.projectId && record.id !== "draft",
+          record.projectId === this.projectId &&
+          !["draft", "preferences", "folder"].includes(record.id),
       )
       .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
   }
@@ -70,6 +75,22 @@ export class FeedbackStore {
       store
         ? store.get(`${this.projectId}:draft`)
         : this.memory.get(`${this.projectId}:draft`),
+    );
+  }
+
+  async folder() {
+    return this.run("readonly", (store) =>
+      store
+        ? store.get(`${this.projectId}:folder`)
+        : this.memory.get(`${this.projectId}:folder`),
+    );
+  }
+
+  async preferences() {
+    return this.run("readonly", (store) =>
+      store
+        ? store.get(`${this.projectId}:preferences`)
+        : this.memory.get(`${this.projectId}:preferences`),
     );
   }
 

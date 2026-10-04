@@ -13,7 +13,7 @@ for (const format of ["iife", "esm"]) {
     target: ["es2020"],
     legalComments: "external",
     banner: {
-      js: "// ABOUTME: Embeds a feedback chat and screenshot annotation widget.\n// ABOUTME: Includes browser persistence, backend sync, and ZIP export.",
+      js: "// ABOUTME: Embeds a feedback chat and screenshot annotation widget.\n// ABOUTME: Includes browser persistence, saved appearance, and ZIP export.",
     },
   });
 }

@@ -21,13 +21,12 @@ export function getInstance() {
 }
 
 if (typeof window !== "undefined") {
-  window.ReviewTool = { init, getInstance, version: "0.1.0" };
+  window.ReviewTool = { init, getInstance, version: "0.2.0" };
   const script = document.currentScript;
   if (script?.hasAttribute("data-review-tool")) {
     const start = () =>
       init({
         projectId: script.dataset.project || "default",
-        endpoint: script.dataset.endpoint || null,
         position: script.dataset.position || "bottom-right",
         offset:
           script.dataset.offset === undefined
@@ -35,7 +34,6 @@ if (typeof window !== "undefined") {
             : Number(script.dataset.offset),
         label: script.dataset.label || "Feedback",
         author: script.dataset.author || "You",
-        token: script.dataset.token,
       });
     if (document.readyState === "loading")
       document.addEventListener("DOMContentLoaded", start, { once: true });

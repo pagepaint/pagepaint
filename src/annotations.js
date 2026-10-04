@@ -6,7 +6,7 @@ export class AnnotationCanvas {
     image,
     annotations = [],
     onChange = () => {},
-    { showBackground = true } = {},
+    { showBackground = true, getTarget = () => null } = {},
   ) {
     this.canvas = canvas;
     this.image = image;
@@ -16,6 +16,7 @@ export class AnnotationCanvas {
     this.color = "#ef4444";
     this.onChange = onChange;
     this.showBackground = showBackground;
+    this.getTarget = getTarget;
     this.listeners = new AbortController();
     canvas.width = image.naturalWidth;
     canvas.height = image.naturalHeight;
@@ -67,6 +68,7 @@ export class AnnotationCanvas {
     const scale = this.canvas.width / this.canvas.getBoundingClientRect().width;
     this.active = {
       tool: this.tool,
+      selector: this.getTarget(event.clientX, event.clientY),
       color: this.color,
       width: (this.tool === "highlight" ? 22 : 3) * scale,
       points: [this.point(event)],

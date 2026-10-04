@@ -7,3 +7,8 @@ playwright-report/
 .playwright-mcp/
 *.tgz
 .DS_Store
+
+.cloudflare/
+.env
+.env.*
+.annotations/

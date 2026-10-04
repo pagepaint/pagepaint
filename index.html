@@ -1,5 +1,5 @@
 <!-- ABOUTME: Provides an interactive sample app for testing the embedded review widget. -->
-<!-- ABOUTME: Demonstrates script loading, positioning, page context, and local backend sync. -->
+<!-- ABOUTME: Demonstrates script loading, positioning, page context, and browser storage. -->
 <!doctype html>
 <html lang="en">
   <head>
@@ -32,7 +32,7 @@
         >fieldnote<span class="wordmark-divider"></span
         ><span class="wordmark-note">a feedback toolkit</span></a
       >
-      <div class="header-status"><span></span>Local playground</div>
+      <div class="header-status"><span></span>Live playground</div>
     </header>
     <main>
       <section class="intro">
@@ -232,7 +232,9 @@
                 it.</span
               >
             </li>
-            <li><span>Send a note. Reload to see it’s still here.</span></li>
+            <li>
+              <span>Save a note. Choose your repo folder when prompted.</span>
+            </li>
             <li>
               <span>Download a ZIP with notes, images, and page context.</span>
             </li>
@@ -240,8 +242,9 @@
           <div class="local-note">
             <span class="small-dot"></span>
             <p>
-              <strong>Your feedback stays local.</strong>Drafts save in this
-              browser. Sent notes also sync to the Node backend on this machine.
+              <strong>Your feedback stays local.</strong>Choose a repo folder to
+              save notes and screenshots for your agent. Drafts stay in this
+              browser; ZIP export works everywhere.
             </p>
           </div>
         </aside>

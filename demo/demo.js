@@ -2,11 +2,10 @@
 // ABOUTME: Demonstrates live positioning and URL context changes without a framework.
 const widget = window.ReviewTool.init({
   projectId: "playground",
-  endpoint: location.origin,
   author: "You",
 });
 window.demoReview = widget;
-const snippet = `<script\n  src="${location.origin}/review-tool.js"\n  data-review-tool\n  data-project="my-app"\n  data-endpoint="${location.origin}"\n  defer\n></script>`;
+const snippet = `<script\n  src="${location.origin}/review-tool.js"\n  data-review-tool\n  data-project="my-app"\n  defer\n></script>`;
 document.getElementById("embed-code").textContent = snippet;
 document
   .getElementById("open-feedback")

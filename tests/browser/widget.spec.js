@@ -1,26 +1,41 @@
 // ABOUTME: Exercises the embeddable library with actual browser capture and pointer drawing.
-// ABOUTME: Verifies local recovery, offline sync, archive contents, positioning, and modules.
-import { test, expect } from "@playwright/test";
-import { readFile } from "node:fs/promises";
+// ABOUTME: Verifies local recovery, offline storage, archive contents, positioning, and modules.
+import { test, expect, chromium } from "@playwright/test";
+import { readFile, mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import { randomUUID } from "node:crypto";
 import JSZip from "jszip";
 
 async function initialize(
   page,
-  { projectId = `browser-${randomUUID()}`, endpoint = true } = {},
+  { projectId = `browser-${randomUUID()}`, onboarding = false } = {},
 ) {
   await page.evaluate(
-    async ({ projectId, endpoint }) => {
+    async ({ projectId }) => {
       window.ReviewTool.getInstance()?.destroy();
       window.testReview = window.ReviewTool.init({
         projectId,
-        endpoint: endpoint ? location.origin : null,
         author: "Timo",
+        repo: false,
       });
       await window.testReview.ready;
     },
-    { projectId, endpoint },
+    { projectId },
   );
+  if (
+    !onboarding &&
+    (await page
+      .getByRole("button", { name: "Use this color", exact: true })
+      .isVisible())
+  ) {
+    await page
+      .getByRole("button", { name: "Use this color", exact: true })
+      .click();
+    await page
+      .getByRole("button", { name: "Close feedback", exact: true })
+      .click();
+  }
   return projectId;
 }
 async function open(page) {
@@ -84,7 +99,6 @@ test("sample loads its fonts and widget without external requests", async ({
 
 test("conversation sends, persists through reload, and keeps the full URL context", async ({
   page,
-  request,
 }) => {
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
@@ -105,18 +119,11 @@ test("conversation sends, persists through reload, and keeps the full URL contex
     page.getByText("The primary action needs more emphasis.", { exact: true }),
   ).toBeVisible();
   await expect
-    .poll(
-      async () =>
-        (
-          await (
-            await request.get(`/api/feedback?projectId=${projectId}`)
-          ).json()
-        ).feedback.length,
+    .poll(() =>
+      page.evaluate(async () => (await window.testReview.getFeedback()).length),
     )
     .toBe(1);
-  const [record] = (
-    await (await request.get(`/api/feedback?projectId=${projectId}`)).json()
-  ).feedback;
+  const [record] = await page.evaluate(() => window.testReview.getFeedback());
   expect(record.context.query).toEqual([
     ["filter", "review"],
     ["tag", "ui"],
@@ -134,7 +141,6 @@ test("conversation sends, persists through reload, and keeps the full URL contex
 
 test("captures current view, draws all tools and colors, supports history, and exports everything", async ({
   page,
-  request,
 }) => {
   const projectId = await initialize(page);
   await open(page);
@@ -176,18 +182,11 @@ test("captures current view, draws all tools and colors, supports history, and e
     .fill("Please fix the highlighted details.");
   await page.getByRole("button", { name: "Send", exact: true }).click();
   await expect
-    .poll(
-      async () =>
-        (
-          await (
-            await request.get(`/api/feedback?projectId=${projectId}`)
-          ).json()
-        ).feedback.length,
+    .poll(() =>
+      page.evaluate(async () => (await window.testReview.getFeedback()).length),
     )
     .toBe(1);
-  const [record] = (
-    await (await request.get(`/api/feedback?projectId=${projectId}`)).json()
-  ).feedback;
+  const [record] = await page.evaluate(() => window.testReview.getFeedback());
   expect(record.capture.original).not.toBe(record.capture.annotated);
   expect(record.capture.width).toBe(1440);
   expect(record.capture.height).toBe(960);
@@ -226,7 +225,7 @@ test("captures current view, draws all tools and colors, supports history, and e
 test("restores an unsent draft with drawings after reload and can clear or retake it", async ({
   page,
 }) => {
-  const projectId = await initialize(page, { endpoint: false });
+  const projectId = await initialize(page, {});
   await open(page);
   await page.getByLabel("YOUR FEEDBACK").fill("Keep my draft.");
   await page
@@ -236,7 +235,7 @@ test("restores an unsent draft with drawings after reload and can clear or retak
   await page.keyboard.press("Escape");
   await page.evaluate(() => window.testReview.saveQueue);
   await page.reload();
-  await initialize(page, { projectId, endpoint: false });
+  await initialize(page, { projectId });
   await open(page);
   await expect(page.getByLabel("YOUR FEEDBACK")).toHaveValue("Keep my draft.");
   await page
@@ -271,43 +270,27 @@ test("restores an unsent draft with drawings after reload and can clear or retak
   expect(await page.evaluate(() => window.testReview.draftCapture)).toBeNull();
 });
 
-test("offline feedback stays local, exports, and syncs once the backend returns", async ({
+test("offline feedback saves and exports without any network requests", async ({
   page,
-  request,
+  context,
 }) => {
-  await page.route("**/api/**", (route) => route.abort());
-  const projectId = await initialize(page);
+  await initialize(page);
+  const requests = [];
+  page.on("request", (request) => requests.push(request.url()));
+  await context.setOffline(true);
   await open(page);
   await page.getByLabel("YOUR FEEDBACK").fill("A note written offline.");
   await page.getByRole("button", { name: "Send", exact: true }).click();
   await expect(
-    page.getByText("A note written offline.", { exact: true }),
-  ).toBeVisible();
-  await expect(
-    page.getByText("Saved locally · Backend unavailable", { exact: true }),
+    page.getByText("Saved in this browser", { exact: true }),
   ).toBeVisible();
   const zip = await archive(page);
   expect(
     JSON.parse(await zip.file("feedback.json").async("string")).feedback[0]
       .text,
   ).toBe("A note written offline.");
-  await page.unroute("**/api/**");
-  await page.reload();
-  await initialize(page, { projectId });
-  await open(page);
-  await expect
-    .poll(
-      async () =>
-        (
-          await (
-            await request.get(`/api/feedback?projectId=${projectId}`)
-          ).json()
-        ).feedback.length,
-    )
-    .toBe(1);
-  await expect(
-    page.getByText("Saved locally · Backend connected", { exact: true }),
-  ).toBeVisible();
+  expect(requests).toEqual([]);
+  await context.setOffline(false);
 });
 
 test("viewport crop respects scroll, fixed content, and excludes the widget", async ({
@@ -319,7 +302,7 @@ test("viewport crop respects scroll, fixed content, and excludes the widget", as
     '<html><head><title>Capture fixture</title><style>body{margin:0}section{height:600px}.first{background:rgb(240,20,20)}.second{background:rgb(20,40,240)}header{position:fixed;top:0;width:100%;height:40px;background:rgb(20,20,20)}</style></head><body><section class="first"></section><section class="second"></section><header></header></body></html>',
   );
   await page.addScriptTag({ url: "/review-tool.js" });
-  await initialize(page, { endpoint: false });
+  await initialize(page, {});
   await page.evaluate(() => window.scrollTo(0, 600));
   await page.evaluate(() => window.testReview.capture());
   const pixels = await page.evaluate(async () => {
@@ -352,7 +335,6 @@ test("viewport crop respects scroll, fixed content, and excludes the widget", as
 
 test("draws transparently on the live page and captures the latest view with the marks", async ({
   page,
-  request,
 }) => {
   await page.setViewportSize({ width: 800, height: 600 });
   await page.evaluate(() => window.ReviewTool.getInstance()?.destroy());
@@ -416,13 +398,8 @@ test("draws transparently on the live page and captures the latest view with the
   expect(result.query).toBe("?draw=live");
   await page.getByRole("button", { name: "Send", exact: true }).click();
   await expect
-    .poll(
-      async () =>
-        (
-          await (
-            await request.get(`/api/feedback?projectId=${projectId}`)
-          ).json()
-        ).feedback.length,
+    .poll(() =>
+      page.evaluate(async () => (await window.testReview.getFeedback()).length),
     )
     .toBe(1);
 });
@@ -430,7 +407,7 @@ test("draws transparently on the live page and captures the latest view with the
 test("canceling direct drawing preserves the previous attachment and scroll resumes", async ({
   page,
 }) => {
-  await initialize(page, { endpoint: false });
+  await initialize(page, {});
   await open(page);
   await page
     .getByRole("button", { name: "Capture screen", exact: true })
@@ -480,7 +457,7 @@ for (const viewport of [
     page,
   }) => {
     await page.setViewportSize(viewport);
-    await initialize(page, { endpoint: false });
+    await initialize(page, {});
     await open(page);
     for (const position of [
       "bottom-right",
@@ -567,4 +544,266 @@ test("declarative script and ES module entry points initialize and clean up inde
   ).toBeVisible();
   await page.evaluate(() => window.testReview.destroy());
   await expect(page.locator("[data-review-tool-root]")).toHaveCount(0);
+});
+
+test("first-load color choice persists, settings preserves drafts, and preferences stay out of exports", async ({
+  page,
+}) => {
+  const projectId = await initialize(page, { onboarding: true });
+  await expect(
+    page.getByRole("heading", { name: "Make it your color", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("group", { name: "Accent color" }).getByRole("button"),
+  ).toHaveCount(6);
+  await page
+    .getByRole("button", { name: "Electric blue", exact: true })
+    .click();
+  const accent = () =>
+    page
+      .locator("#fab")
+      .evaluate((fab) => getComputedStyle(fab).backgroundColor);
+  const selectedColor = "rgb(122, 184, 255)";
+  await expect.poll(accent).toBe(selectedColor);
+  await page
+    .getByRole("button", { name: "Use this color", exact: true })
+    .click();
+  await page
+    .getByLabel("YOUR FEEDBACK")
+    .fill("Keep this draft while changing settings.");
+  await page
+    .getByRole("button", { name: "Feedback settings", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Coral", exact: true }).click();
+  await expect.poll(accent).toBe("rgb(255, 150, 134)");
+  await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect.poll(accent).toBe(selectedColor);
+  await expect(page.getByLabel("YOUR FEEDBACK")).toHaveValue(
+    "Keep this draft while changing settings.",
+  );
+  await page
+    .getByRole("button", { name: "Feedback settings", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Pink", exact: true }).click();
+  const savedColor = "rgb(255, 145, 200)";
+  await expect.poll(accent).toBe(savedColor);
+  await page
+    .getByRole("button", { name: "Use this color", exact: true })
+    .click();
+  await expect(page.getByLabel("YOUR FEEDBACK")).toBeVisible();
+  await page.reload();
+  await initialize(page, { projectId, onboarding: true });
+  await expect(
+    page.getByRole("heading", { name: "Make it your color", exact: true }),
+  ).not.toBeVisible();
+  await expect.poll(accent).toBe(savedColor);
+  await open(page);
+  const zip = await archive(page);
+  const manifest = JSON.parse(await zip.file("feedback.json").async("string"));
+  expect(manifest.feedback).toHaveLength(1);
+  expect(manifest.feedback[0].id).toBe("draft");
+  await initialize(page, { onboarding: true });
+  await expect(
+    page.getByRole("heading", { name: "Make it your color", exact: true }),
+  ).toBeVisible();
+});
+
+test("failed storage writes keep the draft exportable and do not pretend it was saved", async ({
+  page,
+}) => {
+  await initialize(page);
+  await open(page);
+  await page.evaluate(() => {
+    window.testReview.store.put = async () => {
+      throw new DOMException("Storage quota reached", "QuotaExceededError");
+    };
+  });
+  await page
+    .getByLabel("YOUR FEEDBACK")
+    .fill("Keep this when storage is full.");
+  await expect(
+    page.getByText("Could not save draft", { exact: true }),
+  ).toBeVisible();
+  const zip = await archive(page);
+  expect(
+    JSON.parse(await zip.file("feedback.json").async("string")).feedback[0]
+      .text,
+  ).toBe("Keep this when storage is full.");
+});
+
+test("repo saving writes real files, remembers the handle, and reads agent resolution without overwriting it", async () => {
+  const profile = await mkdtemp(path.join(tmpdir(), "review-repo-browser-"));
+  const context = await chromium.launchPersistentContext(profile, {
+    headless: true,
+    channel: "chromium",
+    viewport: { width: 1440, height: 960 },
+    baseURL: "http://127.0.0.1:4319",
+  });
+  const page = await context.newPage();
+  try {
+    await page.goto("/");
+    await page.evaluate(async () => {
+      const root = await navigator.storage.getDirectory();
+      const folder = await root.getDirectoryHandle("repo-fixture", {
+        create: true,
+      });
+      const file = await folder.getFileHandle("CLAUDE.md", { create: true });
+      const stream = await file.createWritable();
+      await stream.write("# Existing agent guidance\n");
+      await stream.close();
+      window.showDirectoryPicker = async () => folder;
+      window.ReviewTool.getInstance()?.destroy();
+      window.testReview = window.ReviewTool.init({
+        projectId: "repository",
+        author: "Timo",
+      });
+      await window.testReview.ready;
+    });
+    await page
+      .getByRole("button", { name: "Use this color", exact: true })
+      .click();
+    await page
+      .getByRole("button", { name: "Draw & capture", exact: true })
+      .click();
+    await draw(page, "Rectangle", [0.4, 0.35], [0.6, 0.45], "page-canvas");
+    await page
+      .getByRole("button", { name: "Capture & attach", exact: true })
+      .click();
+    await page.getByLabel("YOUR FEEDBACK").fill("Fix this marked area.");
+    await page.getByRole("button", { name: "Send", exact: true }).click();
+    await expect(
+      page.getByText("Saved in repo", { exact: true }),
+    ).toBeVisible();
+    const result = await page.evaluate(async () => {
+      const record = (await window.testReview.getFeedback())[0];
+      const folder = await (
+        await navigator.storage.getDirectory()
+      ).getDirectoryHandle("repo-fixture");
+      const directory = await folder.getDirectoryHandle(".annotations");
+      const metadata = JSON.parse(
+        await (
+          await (await directory.getFileHandle(`${record.id}.json`)).getFile()
+        ).text(),
+      );
+      const image = await (
+        await directory.getFileHandle(`${record.id}.webp`)
+      ).getFile();
+      const original = await (
+        await directory.getFileHandle(`${record.id}.original.webp`)
+      ).getFile();
+      const bytes = [...new Uint8Array(await image.arrayBuffer()).slice(0, 12)];
+      return {
+        metadata,
+        bytes,
+        originalBytes: original.size,
+        remembered: window.testReview.repository.handle.name,
+      };
+    });
+    expect(result.metadata.status).toBe("open");
+    expect(result.metadata.comment).toBe("Fix this marked area.");
+    expect(result.metadata.url).toContain("127.0.0.1");
+    expect(result.metadata.viewport.width).toBe(1440);
+    expect(result.metadata.shapes).toHaveLength(1);
+    expect(result.metadata.selector).toBeTruthy();
+    expect(String.fromCharCode(...result.bytes.slice(0, 4))).toBe("RIFF");
+    expect(String.fromCharCode(...result.bytes.slice(8))).toBe("WEBP");
+    expect(result.originalBytes).toBeGreaterThan(0);
+    expect(result.remembered).toBe("repo-fixture");
+    await page
+      .getByRole("button", { name: "Feedback settings", exact: true })
+      .click();
+    await page
+      .getByRole("button", { name: "Add agent instructions", exact: true })
+      .click();
+    await expect(page.locator("#repo-status")).toContainText(
+      "Agent instructions added",
+    );
+    expect(
+      await page.evaluate(async () => {
+        const folder = await (
+          await navigator.storage.getDirectory()
+        ).getDirectoryHandle("repo-fixture");
+        return (
+          await (await folder.getFileHandle("CLAUDE.md")).getFile()
+        ).text();
+      }),
+    ).toBe(
+      "# Existing agent guidance\n\nCheck `.annotations/` for open items; set status to resolved when done.\n",
+    );
+    await page.evaluate(async () => {
+      const record = (await window.testReview.getFeedback())[0];
+      const directory = await (
+        await (
+          await navigator.storage.getDirectory()
+        ).getDirectoryHandle("repo-fixture")
+      ).getDirectoryHandle(".annotations");
+      const file = await directory.getFileHandle(`${record.id}.json`);
+      const metadata = JSON.parse(await (await file.getFile()).text());
+      metadata.status = "resolved";
+      metadata.agentNote = "Fixed in the app.";
+      const stream = await file.createWritable();
+      await stream.write(JSON.stringify(metadata));
+      await stream.close();
+    });
+    await page
+      .getByRole("button", { name: "Save notes to repo", exact: true })
+      .click();
+    await expect(page.locator("#repo-status")).toContainText("Saved 1 notes");
+    await page.getByRole("button", { name: "Cancel", exact: true }).click();
+    await expect(page.getByText("Resolved", { exact: true })).toBeVisible();
+    await page.reload();
+    await page.evaluate(async () => {
+      window.ReviewTool.getInstance()?.destroy();
+      window.testReview = window.ReviewTool.init({ projectId: "repository" });
+      await window.testReview.ready;
+    });
+    expect(
+      await page.evaluate(() => window.testReview.repository.handle.name),
+    ).toBe("repo-fixture");
+    await open(page);
+    await expect(page.getByText("Resolved", { exact: true })).toBeVisible();
+    expect(
+      await page.evaluate(async () => {
+        const record = (await window.testReview.getFeedback())[0];
+        const directory = await window.testReview.repository.directory();
+        return JSON.parse(
+          await (
+            await (await directory.getFileHandle(`${record.id}.json`)).getFile()
+          ).text(),
+        ).agentNote;
+      }),
+    ).toBe("Fixed in the app.");
+  } finally {
+    await context.close();
+    await rm(profile, { recursive: true, force: true });
+  }
+});
+
+test("canceling repo picker keeps feedback in browser and ZIP, with an explicit fallback", async ({
+  page,
+}) => {
+  await page.evaluate(async () => {
+    window.showDirectoryPicker = async () => {
+      throw new DOMException("Canceled", "AbortError");
+    };
+    window.ReviewTool.getInstance()?.destroy();
+    window.testReview = window.ReviewTool.init({ projectId: "canceled-repo" });
+    await window.testReview.ready;
+  });
+  await page
+    .getByRole("button", { name: "Use this color", exact: true })
+    .click();
+  await page.getByLabel("YOUR FEEDBACK").fill("Do not lose this note.");
+  await page.getByRole("button", { name: "Send", exact: true }).click();
+  await expect(
+    page.getByText("Saved in this browser", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole("alert")).toContainText(
+    "Choose a repo folder in Settings",
+  );
+  const zip = await archive(page);
+  expect(
+    JSON.parse(await zip.file("feedback.json").async("string")).feedback[0]
+      .text,
+  ).toBe("Do not lose this note.");
 });

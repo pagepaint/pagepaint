@@ -1,142 +1,105 @@
 # Review Tool
 
-A framework-free JavaScript feedback widget for reviewing AI-built apps. A floating button opens a conversation; reviewers can capture the current viewport, draw on it, and attach it to a note. Browser drafts and messages persist in IndexedDB. The included Node.js backend also saves sent feedback as local JSON and PNG files.
+A plain JavaScript feedback widget for AI-built apps. Load one CDN script, draw over the page, capture the viewport, and save notes directly into a selected local repository. No backend or local Node server is required to use it.
 
-## Run the sample
-
-Requires Node.js 22 or newer.
-
-```sh
-npm install
-npm run dev
-```
-
-Open [the playground](http://localhost:4318). The sample is the root `index.html`; it loads the same standalone library you embed in another app. No frontend framework or runtime build is required in the host app.
-
-The demo fonts are bundled locally, with their SIL Open Font Licenses in `demo/fonts/`. The library and playground make no external dependency or font requests.
-
-## Embed with one script
+## Add it to an app
 
 ```html
 <script
-  src="http://localhost:4318/review-tool.js"
+  src="https://review-tool.timo-bejan.workers.dev/v0.2.0/review-tool.js"
   data-review-tool
   data-project="my-app"
-  data-endpoint="http://localhost:4318"
   defer
 ></script>
 ```
 
-`npm run build` produces `dist/review-tool.js` and `dist/review-tool.mjs`. Capture and ZIP dependencies are bundled. Serve `review-tool.js` from your own CDN, static hosting, or the included backend; there are no runtime CDN dependency requests. For HTTPS apps, use an HTTPS backend. This project has not been published to a public CDN or npm registry.
+The dependencies are bundled. The script runs in the app's origin, so each domain and localhost port has its own browser storage and folder permission. Use a different `data-project` for separate apps sharing an origin. Your site's CSP must allow the CDN script, the widget's inline styles, and data/blob images.
 
-Omit `data-endpoint` for browser-only storage. Script attributes also support `data-position`, `data-offset`, `data-label`, `data-author`, and `data-token`. Load the script once per page; repeated initialization returns the active widget.
-
-## JavaScript / ES modules
+The hosted playground is at <https://review-tool.timo-bejan.workers.dev/>. The unversioned `/review-tool.js` URL follows the current release; the versioned URL pins this release. ES modules are available at `/v0.2.0/review-tool.mjs`.
 
 ```js
-// With a script tag, use window.ReviewTool.init(options).
-import { init } from "./dist/review-tool.mjs";
+import { init } from "https://review-tool.timo-bejan.workers.dev/v0.2.0/review-tool.mjs";
 
 const review = init({
   projectId: "my-app",
-  endpoint: "http://localhost:4318", // Optional; backend base URL.
   position: "bottom-right",
   offset: 24,
   label: "Feedback",
-  author: "Timo",
-  // token: 'your-backend-access-token',
+  author: "You",
+  // repo: false, // Optional: use browser storage and ZIP export only.
 });
 
 await review.ready;
 review.open();
 review.close();
-await review.drawOnPage(); // Draw over the real page, then capture and attach.
+await review.drawOnPage();
 await review.capture();
 await review.exportZip();
 const feedback = await review.getFeedback();
-review.setPosition("top-left");
 review.setPosition({ bottom: 100, right: 32 });
 review.destroy();
 ```
 
-The default is bottom right, 24px from the edges. All four corners work. Custom positions use one vertical and one horizontal numeric pixel offset. The widget clamps its position on smaller screens. Styles are isolated in Shadow DOM; the screenshot editor uses a native modal dialog.
+Script attributes also support `data-position`, `data-offset`, `data-label`, and `data-author`. Positions are `bottom-right`, `bottom-left`, `top-right`, and `top-left`; custom numeric offsets are available through JavaScript. Repeated initialization returns the active instance.
 
-`review-tool:feedback` and `review-tool:error` events bubble to `document`, with details in `event.detail`. Error actions are `capture` and `sync`.
+## Repo files and agent workflow
 
-## Drawing and chat
+On the first saved note in a supported browser, choose the app's repository folder. The directory handle is remembered in IndexedDB. The browser may require renewed permission on a later visit; saving or a Settings button supplies the necessary user gesture.
 
-- **Draw & capture** opens a transparent canvas over the live page. Doodle first, then choose **Capture & attach** to capture the current page and composite your marks. The drawing toolbar is excluded. No browser extension is required.
-- Scrolling and page interaction pause during drawing. A recovery capture saves completed strokes before the final capture. Cancel restores the previous attachment; a viewport resize attaches the existing recovery capture to preserve alignment.
-- The camera button captures immediately and opens a separate screenshot editor. Attached screenshots can be reopened and edited.
-- Freehand pen, translucent highlighter, rectangle, and circle/ellipse.
-- Eight preset colors, undo, redo, and clear.
-- Draw with a mouse, pen, or touch. Undo with Ctrl/⌘ Z; redo with Ctrl/⌘ Shift Z.
-- A screenshot can be sent by itself or with text. Ctrl/⌘ Enter sends a note.
-- Draft text, attachments, and each completed stroke autosave in this browser.
-- Each note records its own full URL, origin, path, query string, repeated query entries, hash, title, viewport, pixel ratio, scroll, browser, language, timezone, and timestamp. A screenshot records the page context at capture time, even if the URL changes before sending.
-- The conversation is feedback between reviewers sharing a project. It does not call an AI model. Use the exported bundle as context for a coding agent.
-
-## Storage and exports
-
-Browser storage: IndexedDB database `review-tool`, keyed by project. Data remains on that browser/origin. The backend joins sent notes from different browsers using `projectId`; open conversations refresh every 15 seconds. Drafts remain private to their browser. Offline notes retry on reopening the widget, reconnecting, and periodic refresh. If browser persistence is unavailable, the widget reports memory-only storage and ZIP export still works.
-
-Backend storage defaults to:
+Each saved note produces:
 
 ```text
-data/<projectId>/<feedback-id>/feedback.json
-data/<projectId>/<feedback-id>/original.png
-data/<projectId>/<feedback-id>/annotated.png
+.annotations/<id>.json
+.annotations/<id>.webp           # Annotated capture, when attached
+.annotations/<id>.original.webp  # Unannotated reference, when attached
 ```
 
-Writes are atomic and retries are idempotent. Existing entries cannot be overwritten by a different message. `data/` is ignored by Git.
+JSON includes `id`, `projectId`, `status: "open"`, `comment`, `url`, `viewport`, `selector`, and `shapes`, plus complete message and capture context. Shapes use capture-pixel coordinates. Selectors are best-effort targets from live drawing; screenshot-editor marks may have a null selector. The metadata is written last. Retries preserve existing JSON, including agent changes.
 
-**Download ZIP** includes all locally known project messages, merges backend messages when available, and includes an unsent draft. It contains `feedback.json`, `transcript.md`, original and annotated PNGs, and per-capture annotation JSON. PNG coordinates refer to the image pixel dimensions. The server export contains all sent backend entries, excluding browser drafts.
+In Settings, **Add agent instructions** appends the following line to existing `AGENTS.md` and/or `CLAUDE.md`, or creates `AGENTS.md` if neither exists. It preserves existing content and avoids duplicate instructions:
 
-## Backend configuration
+> Check `.annotations/` for open items; set status to resolved when done.
 
-| Variable          | Default           | Purpose                                                   |
-| ----------------- | ----------------- | --------------------------------------------------------- |
-| `HOST`            | `127.0.0.1`       | Bind address                                              |
-| `PORT`            | `4318`            | Server port                                               |
-| `DATA_DIR`        | `./data`          | Local feedback directory                                  |
-| `ALLOWED_ORIGINS` | Localhost origins | Comma-separated app origins allowed to access the backend |
-| `REVIEW_TOKEN`    | Unset             | Optional bearer token for all API routes                  |
+An agent on the same filesystem can inspect the images and JSON, make the requested change, and change the JSON status to `"resolved"`. Reopening feedback refreshes statuses for notes in this browser's history. **Save notes to repo** also refreshes statuses and copies browser-only notes into the selected folder. Changing folders requires explicitly saving existing notes to the new folder.
 
-```sh
-ALLOWED_ORIGINS=https://preview.example.com,https://feedback.example.com \
-REVIEW_TOKEN=your-access-token \
-HOST=0.0.0.0 \
-DATA_DIR=/absolute/path/to/feedback \
-npm start
-```
+Add `.annotations/` to your app's `.gitignore` if you want feedback excluded from commits. The widget does not change `.gitignore` automatically. Remote agents need access to these files through your usual workspace or file-transfer mechanism.
 
-Include the backend's own origin in `ALLOWED_ORIGINS` when hosting it on a custom hostname. Use `ALLOWED_ORIGINS='*'` only if you intentionally want access from every origin. Tokens supplied to a browser widget are visible to that browser; this is a project access gate, not individual-user authentication. For public deployment, put the backend behind HTTPS and your access controls. Nothing is deployed automatically.
+Folder saving uses the File System Access API. It requires HTTPS or localhost and a browser with `showDirectoryPicker`, typically desktop Chrome or Edge. Firefox, Safari, unsupported webviews, canceled pickers, and denied permissions use browser storage and ZIP export. The user must choose the directory; a website cannot silently discover or access a repository.
 
-| Route                                | Behavior                                |
-| ------------------------------------ | --------------------------------------- |
-| `GET /api/health`                    | Server health                           |
-| `POST /api/feedback`                 | Save a version 1 feedback entry         |
-| `GET /api/feedback?projectId=my-app` | Get all sent feedback and PNG data URLs |
-| `GET /api/export?projectId=my-app`   | Download the full backend project ZIP   |
+## Drawing, appearance, and browser storage
 
-Payloads are limited to 32 MiB; each PNG to 8 MiB. The frontend caps capture scale at 2× and approximately 6 million pixels. Identifiers, page context, PNG dimensions, and annotation coordinates are validated. Static routes expose only the demo and distribution files.
+- **Draw & capture** opens a transparent canvas over the live page. Use pen, highlighter, rectangle, or circle/ellipse, with eight drawing colors and undo/redo. **Capture & attach** captures the latest view and composites the marks, excluding the widget.
+- The camera button opens the screenshot editor. Draft text and completed strokes autosave. Cancel restores the previous attachment. A viewport resize retains the recovery capture.
+- First load offers six accent colors on a dark interface. The choice is saved per project in IndexedDB and can be changed in Settings.
+- Each note and screenshot keeps its own full URL, path, repeated query parameters, hash, viewport, scroll position, title, browser context, and timestamp.
+- Feedback, drafts, appearance, and folder handles remain in the current browser's IndexedDB database `review-tool`. Feedback is not uploaded. Settings shows the origin's estimated storage usage/quota and offers persistent storage where supported. Estimates include other data stored by the app and are not guaranteed free disk space.
+- Browser data can be cleared or evicted. Repo files are ordinary files on the chosen disk and survive clearing browser data. This release does not rebuild browser history from a repository after browser data is cleared.
+- **Download ZIP** includes locally known notes and unsent drafts, `feedback.json`, `transcript.md`, original and annotated PNGs, and annotation coordinates. It remains available without folder access. Large histories and ZIP exports are held in memory, so practical capacity is lower than disk capacity.
+
+The conversation is a local feedback log, not an AI chat or multi-user service. `review-tool:feedback` and `review-tool:error` events bubble to `document`; capture errors include their message in `event.detail`.
 
 ## Capture limits
 
-Capture uses [html2canvas-pro](https://github.com/yorickshan/html2canvas-pro), a DOM-based renderer with support for modern CSS color functions. It captures only the visible viewport, excluding the widget. It does not request screen-recording permissions.
+[html2canvas-pro](https://github.com/yorickshan/html2canvas-pro) renders the visible DOM viewport without an extension or screen-recording permission. Cross-origin iframes, video, protected canvases, and images without CORS headers may be omitted; some CSS rendering can differ. Captures are capped at 2× scale and approximately six million pixels. Add `data-review-tool-ignore` or `data-html2canvas-ignore` to exclude page elements. URLs and visible content are deliberately included in exported feedback.
 
-DOM rendering can differ from the actual browser view. Cross-origin iframes, video frames, protected canvases, and images without suitable CORS headers may be omitted; some CSS effects may differ. Add `data-review-tool-ignore` or `data-html2canvas-ignore` to elements you want excluded. The original PNG means the unannotated DOM capture.
+## Library development and deployment
 
-Browser storage can be cleared or evicted by the browser. Keep the backend data directory or download a ZIP for a durable handoff. Full URLs and visible page content are deliberately included in feedback, including any sensitive query values or content visible to the reviewer.
-
-## Development checks
+Node is only a build/test dependency for library maintainers. Consumers use the CDN script directly.
 
 ```sh
+npm ci
 npx playwright install chromium
 npm run check
 npm run format:check
 ```
 
-The Node tests exercise persistence, validation, idempotent retries, CORS/authentication, project isolation, and ZIP contents. Browser tests exercise the standalone script, actual viewport capture, annotations, draft recovery, backend sync, offline feedback, exports, positions, and small-screen layout.
+Tests launch a temporary static fixture server, exercise real browser capture/drawing, IndexedDB recovery, offline ZIP exports, saved appearance, and repository file operations. The automated repo test substitutes an origin-private directory for the native picker; browser permission UI is not covered by that test.
 
-The source is plain JavaScript under `src/` and `server/`. `scripts/build.js` only bundles the distribution. `index.html` and `demo/` are separate sample assets.
+Build the public static assets and deploy with Cloudflare's `cf` CLI:
+
+```sh
+cf auth login
+CLOUDFLARE_ACCOUNT_ID=<your-account-id> npm run deploy
+```
+
+`scripts/build-cdn.js` produces Cloudflare Build Output in `.cloudflare/output/v0/`; `cf deploy --prebuilt` hosts only the bundled library, playground, and fonts. It uploads no feedback, repo folders, or backend. The deployment targets a Worker named `review-tool`. Build Output is a beta Cloudflare format; the dry-run check is `cf deploy --prebuilt --dry-run` after `npm run build:cdn`.

@@ -1,0 +1,91 @@
+// ABOUTME: Serves only the library and playground assets during local development.
+// ABOUTME: Keeps feedback entirely in the browser and exposes no storage API.
+import http from "node:http";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const staticFiles = new Map([
+  ["/", ["index.html", "text/html; charset=utf-8"]],
+  ["/index.html", ["index.html", "text/html; charset=utf-8"]],
+  ["/demo/demo.css", ["demo/demo.css", "text/css; charset=utf-8"]],
+  ["/demo/demo.js", ["demo/demo.js", "text/javascript; charset=utf-8"]],
+  ...[
+    "dm-sans-400.ttf",
+    "dm-sans-500.ttf",
+    "dm-sans-600.ttf",
+    "dm-sans-700.ttf",
+    "instrument-serif.ttf",
+    "instrument-serif-italic.ttf",
+  ].map((file) => [`/demo/fonts/${file}`, [`demo/fonts/${file}`, "font/ttf"]]),
+  ...[
+    "review-tool.js",
+    "review-tool.mjs",
+    "review-tool.js.map",
+    "review-tool.mjs.map",
+    "review-tool.js.LEGAL.txt",
+    "review-tool.mjs.LEGAL.txt",
+  ].flatMap((file) => [
+    [
+      `/${file}`,
+      [
+        `dist/${file}`,
+        file.endsWith(".map")
+          ? "application/json"
+          : file.endsWith(".txt")
+            ? "text/plain"
+            : "text/javascript; charset=utf-8",
+      ],
+    ],
+    [
+      `/dist/${file}`,
+      [
+        `dist/${file}`,
+        file.endsWith(".map")
+          ? "application/json"
+          : file.endsWith(".txt")
+            ? "text/plain"
+            : "text/javascript; charset=utf-8",
+      ],
+    ],
+  ]),
+]);
+
+export function createReviewServer() {
+  return http.createServer(async (request, response) => {
+    response.setHeader("X-Content-Type-Options", "nosniff");
+    response.setHeader("Access-Control-Allow-Origin", "*");
+    response.setHeader("Cache-Control", "no-cache");
+    const url = new URL(request.url, "http://localhost");
+    const file = staticFiles.get(url.pathname);
+    if (!["GET", "HEAD"].includes(request.method) || !file) {
+      response.writeHead(file ? 405 : 404);
+      response.end("Not found.");
+      return;
+    }
+    try {
+      const bytes = await readFile(path.join(root, file[0]));
+      response.writeHead(200, {
+        "Content-Type": file[1],
+        "Content-Length": bytes.length,
+      });
+      response.end(request.method === "HEAD" ? undefined : bytes);
+    } catch (error) {
+      response.writeHead(error.code === "ENOENT" ? 404 : 500);
+      response.end("Asset unavailable. Run npm run build first.");
+    }
+  });
+}
+if (
+  process.argv[1] &&
+  import.meta.url === pathToFileURL(process.argv[1]).href
+) {
+  const host = process.env.HOST || "127.0.0.1";
+  const port = Number(process.env.PORT || 4318);
+  const server = createReviewServer();
+  server.listen(port, host, () =>
+    console.log(`Review Tool playground: http://${host}:${port}`),
+  );
+  for (const signal of ["SIGINT", "SIGTERM"])
+    process.on(signal, () => server.close(() => process.exit(0)));
+}

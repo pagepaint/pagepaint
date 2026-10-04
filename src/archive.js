@@ -1,5 +1,5 @@
 // ABOUTME: Packages feedback, page context, and original and annotated captures in a ZIP.
-// ABOUTME: Shares one portable archive format between browser and backend exports.
+// ABOUTME: Includes page context and unsent drafts for a portable feedback handoff.
 import JSZip from "jszip";
 
 export async function createArchive(
@@ -14,7 +14,7 @@ export async function createArchive(
   if (draft && (draft.text || draft.capture))
     entries.push({ ...draft, id: "draft", draft: true });
   for (const record of entries) {
-    const { key, synced, ...entry } = record;
+    const { key, synced, repoSaved, ...entry } = record;
     if (entry.capture) {
       const { original, annotated, ...capture } = entry.capture;
       const directory = `captures/${entry.id}`;

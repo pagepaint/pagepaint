@@ -1,5 +1,5 @@
 // ABOUTME: Embeds a feedback conversation with capture, annotation, and ZIP download.
-// ABOUTME: Isolates the interface in Shadow DOM and syncs durable local feedback to a backend.
+// ABOUTME: Isolates the interface in Shadow DOM and keeps feedback on the current device.
 import html2canvas from "html2canvas-pro";
 import { AnnotationCanvas } from "./annotations.js";
 import { createArchive } from "./archive.js";
@@ -7,6 +7,8 @@ import { captureContext, makeId, validProjectId } from "./context.js";
 import { FeedbackStore } from "./storage.js";
 import { icon } from "./icons.js";
 import { styles } from "./styles.js";
+import { RepositoryStore, selectorAt } from "./repository.js";
+import { ACCENTS } from "./appearance.js";
 
 const COLORS = [
   ["Red", "#ef4444"],
@@ -28,29 +30,27 @@ export class ReviewWidget {
       offset: 24,
       label: "Feedback",
       author: "You",
-      endpoint: null,
       ...options,
     };
     if (!validProjectId(this.options.projectId))
       throw new Error(
         "projectId must be 1–80 letters, numbers, underscores, or hyphens, starting with a letter or number.",
       );
-    if (this.options.endpoint) {
-      const endpoint = new URL(this.options.endpoint, location.href);
-      if (!["http:", "https:"].includes(endpoint.protocol))
-        throw new Error("endpoint must be an HTTP or HTTPS URL.");
-      this.options.endpoint = endpoint.href.replace(/\/$/, "");
-    }
     this.records = [];
+    this.accent = ACCENTS[0].id;
     this.draftCapture = null;
     this.saveQueue = Promise.resolve();
     this.events = new AbortController();
     this.store = new FeedbackStore(this.options.projectId);
+    this.repository = new RepositoryStore(
+      this.store,
+      this.options.repo !== false,
+    );
     this.host = document.createElement("div");
     this.host.dataset.reviewToolRoot = "";
     this.host.dataset.html2canvasIgnore = "";
     this.host.style.cssText =
-      'all:initial!important;font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;color:#20332d!important;color-scheme:light!important;position:fixed!important;inset:0!important;pointer-events:none!important;z-index:2147483646!important;';
+      'all:initial!important;font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;color:var(--ink)!important;color-scheme:dark!important;position:fixed!important;inset:0!important;pointer-events:none!important;z-index:2147483646!important;';
     this.root = this.host.attachShadow({ mode: "open" });
     this.root.innerHTML = this.template();
     document.documentElement.append(this.host);
@@ -72,7 +72,8 @@ export class ReviewWidget {
     return `<style>${styles}</style>
       <button id="fab" class="fab" aria-expanded="false" aria-controls="panel" data-action="toggle">${icon("chat")}<span>Feedback</span></button>
       <section id="panel" class="panel" role="dialog" aria-labelledby="panel-title" hidden>
-        <header class="panel-header"><div class="brand"><span class="brand-mark">${icon("chat")}</span><div><h2 id="panel-title">Leave a little feedback</h2><p class="subtitle">A note. A screenshot. A clearer next step.</p></div></div><button class="icon-button" data-action="close" aria-label="Close feedback">${icon("close")}</button></header>
+        <header class="panel-header"><div class="brand"><span class="brand-mark">${icon("chat")}</span><div><h2 id="panel-title">Leave a little feedback</h2><p class="subtitle">A note. A screenshot. A clearer next step.</p></div></div><div class="header-actions"><button id="settings" class="icon-button" data-action="settings" aria-label="Feedback settings">${icon("settings")}</button><button class="icon-button" data-action="close" aria-label="Close feedback">${icon("close")}</button></div></header>
+        <section id="appearance" class="appearance" aria-label="Feedback appearance" hidden><p class="appearance-intro">Pick an accent for your feedback tools. You can change it in Settings anytime.</p><div class="accent-options" role="group" aria-label="Accent color">${ACCENTS.map(({ id, name, color }) => `<button class="accent-option" data-accent="${id}" style="--choice:${color}" aria-pressed="${id === this.accent}"><span class="accent-dot">${icon("check")}</span><span>${name}</span></button>`).join("")}</div><div class="repo-info"><strong>Save into your app’s repo</strong><p id="repo-status"></p><div class="repo-actions"><button id="choose-repo" class="storage-button" data-action="choose-repo">Choose repo folder</button><button id="write-repo" class="storage-button" data-action="write-repo">Save notes to repo</button><button id="agent-instructions" class="storage-button" data-action="agent-instructions">Add agent instructions</button></div><p class="storage-hint">Files go into .annotations/. Your agent can mark items resolved in the JSON.</p></div><div class="storage-info"><strong>Saved on this device</strong><p id="storage-usage">Checking browser storage…</p><p id="storage-protection"></p><button id="persist-storage" class="storage-button" data-action="persist-storage">Keep data on this device</button><p class="storage-hint">Clearing site data removes feedback. Download a ZIP to keep a copy or share it.</p></div><div class="appearance-actions"><button class="secondary" data-action="cancel-appearance">Cancel</button><button id="save-appearance" class="primary" data-action="save-appearance">Use this color ${icon("check")}</button></div></section>
         <div class="context-bar">${icon("link")}<span id="page-path" class="page-path"></span></div>
         <p id="notice" class="notice" role="alert" hidden></p>
         <div id="messages" class="messages" role="log" aria-label="Feedback conversation" aria-live="polite"></div>
@@ -114,7 +115,9 @@ export class ReviewWidget {
       (event) => {
         const button = event.target.closest("button");
         if (!button || button.disabled) return;
-        if (button.dataset.tool && this.annotation) {
+        if (button.dataset.accent) {
+          this.applyAccent(button.dataset.accent);
+        } else if (button.dataset.tool && this.annotation) {
           this.annotation.tool = button.dataset.tool;
           this.root
             .querySelectorAll("[data-tool]")
@@ -241,17 +244,6 @@ export class ReviewWidget {
       },
       settings,
     );
-    window.addEventListener("online", () => this.sync(), settings);
-    document.addEventListener(
-      "visibilitychange",
-      () => {
-        if (!document.hidden) this.sync();
-      },
-      settings,
-    );
-    this.poll = setInterval(() => {
-      if (!this.element("panel").hidden && !document.hidden) this.sync();
-    }, 15000);
   }
 
   async act(action) {
@@ -260,6 +252,26 @@ export class ReviewWidget {
         return this.element("panel").hidden ? this.open() : this.close();
       case "close":
         return this.close();
+      case "choose-repo":
+        return this.chooseRepo();
+      case "write-repo":
+        return this.writeRepo();
+      case "agent-instructions":
+        if (await this.repository.prepare()) {
+          await this.repository.addInstructions();
+          this.element("repo-status").textContent =
+            "Agent instructions added. Existing content preserved.";
+        }
+        break;
+      case "settings":
+        return this.showAppearance();
+      case "save-appearance":
+        return this.saveAppearance();
+      case "cancel-appearance":
+        this.applyAccent(this.accent);
+        return this.preferencesSaved ? this.showConversation() : this.close();
+      case "persist-storage":
+        return this.protectStorage();
       case "capture":
       case "recapture":
         return this.capture();
@@ -298,12 +310,23 @@ export class ReviewWidget {
   async load() {
     try {
       await this.store.ready;
-      const [records, draft] = await Promise.all([
+      await this.repository.load().catch(() => {
+        this.notice(
+          "Reconnect your repo folder in Settings. Browser feedback is still available.",
+        );
+      });
+      const [records, draft, preferences] = await Promise.all([
         this.store.list(),
         this.store.draft(),
+        this.store.preferences(),
       ]);
       if (this.destroyed) return this;
       this.records = records;
+      this.preferencesSaved = ACCENTS.some(
+        (item) => item.id === preferences?.accent,
+      );
+      this.accent = this.preferencesSaved ? preferences.accent : ACCENTS[0].id;
+      this.applyAccent(this.accent);
       if (draft) {
         this.element("message").value = draft.text || "";
         this.draftCapture = draft.capture || null;
@@ -316,7 +339,7 @@ export class ReviewWidget {
         this.notice(
           "Browser storage is unavailable. Download a ZIP before leaving this page.",
         );
-      this.sync();
+      if (!this.preferencesSaved) this.showAppearance();
     } catch (error) {
       this.notice(error.message);
     }
@@ -326,18 +349,125 @@ export class ReviewWidget {
   async open() {
     await this.ready;
     if (this.destroyed) return;
-    this.element("panel").hidden = false;
-    this.element("fab").setAttribute("aria-expanded", "true");
+    if (!this.preferencesSaved) return this.showAppearance();
+    this.showConversation();
+  }
+
+  showConversation() {
+    this.setView("conversation");
     const context = captureContext();
     this.element("page-path").textContent =
       `${context.pathname}${context.search}${context.hash}`;
     this.element("page-path").title = context.url;
     this.place();
     this.element("message").focus();
-    this.sync();
+    this.readRepoStatuses().catch((error) => this.notice(error.message));
+  }
+
+  setView(view) {
+    this.element("panel").dataset.view = view;
+    this.element("panel").toggleAttribute(
+      "data-onboarding",
+      !this.preferencesSaved,
+    );
+    this.element("appearance").hidden = view !== "appearance";
+    this.element("settings").hidden = view === "appearance";
+    this.element("panel-title").textContent =
+      view === "appearance"
+        ? this.preferencesSaved
+          ? "Feedback settings"
+          : "Make it your color"
+        : "Leave a little feedback";
+    this.root.querySelector(".subtitle").textContent =
+      view === "appearance"
+        ? "A little color. Your choice."
+        : "A note. A screenshot. A clearer next step.";
+    this.element("panel").hidden = false;
+    this.element("fab").setAttribute("aria-expanded", "true");
+    this.place();
+  }
+
+  showAppearance() {
+    if (this.destroyed) return;
+    this.applyAccent(this.accent);
+    this.setView("appearance");
+    this.refreshStorage();
+    this.refreshRepo();
+    this.root.querySelector(`[data-accent="${this.accent}"]`).focus();
+  }
+
+  applyAccent(id) {
+    const accent = ACCENTS.find((item) => item.id === id) || ACCENTS[0];
+    this.pendingAccent = accent.id;
+    this.host.style.setProperty("--accent", accent.color);
+    this.root
+      .querySelectorAll("[data-accent]")
+      .forEach((button) =>
+        button.setAttribute(
+          "aria-pressed",
+          String(button.dataset.accent === accent.id),
+        ),
+      );
+  }
+
+  async saveAppearance() {
+    const button = this.element("save-appearance");
+    button.disabled = true;
+    try {
+      await this.store.put({ id: "preferences", accent: this.pendingAccent });
+      if (this.destroyed) return;
+      this.accent = this.pendingAccent;
+      this.preferencesSaved = true;
+      this.showConversation();
+    } finally {
+      button.disabled = false;
+    }
+  }
+
+  async refreshStorage() {
+    try {
+      const [estimate, protectedData] = await Promise.all([
+        navigator.storage?.estimate?.(),
+        navigator.storage?.persisted?.(),
+      ]);
+      if (this.destroyed) return;
+      const size = (bytes) =>
+        new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 }).format(
+          bytes / (1024 * 1024),
+        );
+      this.element("storage-usage").textContent = estimate?.quota
+        ? `${size(estimate.usage || 0)} MiB used of ~${size(estimate.quota)} MiB available for this site.`
+        : "This browser does not report its storage limit.";
+      this.element("storage-protection").textContent = !this.store.persistent
+        ? "Storage is unavailable. Feedback stays in memory until you leave."
+        : protectedData
+          ? "Persistent storage enabled."
+          : "Browser may clear data when space is low.";
+      this.element("persist-storage").hidden =
+        !this.store.persistent || protectedData || !navigator.storage?.persist;
+      this.place();
+    } catch {
+      this.element("storage-usage").textContent =
+        "Storage estimate unavailable.";
+    }
+  }
+
+  async protectStorage() {
+    const button = this.element("persist-storage");
+    button.disabled = true;
+    try {
+      const granted = await navigator.storage?.persist?.();
+      await this.refreshStorage();
+      if (!granted)
+        this.element("storage-protection").textContent =
+          "Browser did not grant persistence. Your feedback still saves; keep a ZIP backup.";
+    } finally {
+      button.disabled = false;
+    }
   }
 
   close() {
+    this.applyAccent(this.accent);
     this.element("panel").hidden = true;
     this.element("fab").setAttribute("aria-expanded", "false");
     this.element("fab").focus();
@@ -445,8 +575,7 @@ export class ReviewWidget {
       .then(() => this.store.put(draft));
     this.saveQueue
       .then(() => {
-        if (!this.destroyed && !this.sending && !this.syncing)
-          this.localStatus();
+        if (!this.destroyed && !this.sending) this.localStatus();
       })
       .catch((error) => {
         if (!this.destroyed) {
@@ -458,7 +587,6 @@ export class ReviewWidget {
   }
 
   async send() {
-    await this.ready;
     if (
       this.sending ||
       this.capturing ||
@@ -471,7 +599,15 @@ export class ReviewWidget {
     this.element("draw-button").disabled = true;
     this.updateSend();
     try {
-      await this.saveQueue;
+      let repoReady = false;
+      let repoError = "";
+      try {
+        repoReady = await this.repository.prepare();
+      } catch (error) {
+        repoError = error.message;
+      }
+      await this.ready;
+      await this.saveQueue.catch(() => {});
       const record = {
         schemaVersion: 1,
         id: makeId(),
@@ -481,18 +617,37 @@ export class ReviewWidget {
         text: this.element("message").value.trim(),
         capture: this.draftCapture,
         context: captureContext(),
-        synced: false,
+        status: "open",
       };
-      await this.store.commitFeedback(record);
+      if (repoReady) {
+        try {
+          await this.repository.save(record);
+          record.repoSaved = true;
+        } catch (error) {
+          repoError = error.message;
+        }
+      }
+      try {
+        await this.store.commitFeedback(record);
+      } catch (error) {
+        if (!record.repoSaved) throw error;
+        repoError = `Saved in repo. Browser copy failed: ${error.message}`;
+        await this.store.clearDraft().catch(() => {});
+      }
       this.records.push(record);
       this.element("message").value = "";
       this.draftCapture = null;
       this.updateAttachment();
       this.renderMessages();
-      this.notice("");
+      this.notice(
+        repoError
+          ? `Repo or browser save needs attention: ${repoError}`
+          : this.repository.supported && !repoReady
+            ? "Saved in this browser. Choose a repo folder in Settings to write files for your agent."
+            : "",
+      );
       this.localStatus();
       this.emit("feedback", record);
-      this.sync();
     } finally {
       this.sending = false;
       this.element("message").disabled = false;
@@ -528,7 +683,10 @@ export class ReviewWidget {
         hour: "2-digit",
         minute: "2-digit",
       });
-      meta.append(avatar, author, document.createTextNode("·"), time);
+      const state = document.createElement("span");
+      state.className = "record-status";
+      state.textContent = record.status === "resolved" ? "Resolved" : "Open";
+      meta.append(avatar, author, document.createTextNode("·"), time, state);
       const bubble = document.createElement("div");
       bubble.className = "bubble";
       if (record.text) {
@@ -660,7 +818,10 @@ export class ReviewWidget {
       image,
       this.draftCapture.annotations,
       () => this.saveAnnotations(),
-      { showBackground: mode !== "page" },
+      {
+        showBackground: mode !== "page",
+        getTarget: mode === "page" ? (x, y) => selectorAt(x, y) : () => null,
+      },
     );
     this.annotation.tool = this.root.querySelector(
       "[data-tool][aria-pressed=true]",
@@ -775,85 +936,71 @@ export class ReviewWidget {
     this.closePage();
   }
 
-  async request(path, options = {}) {
-    const headers = { ...options.headers };
-    if (this.options.token)
-      headers.Authorization = `Bearer ${this.options.token}`;
-    const response = await fetch(`${this.options.endpoint}${path}`, {
-      ...options,
-      headers,
-      credentials: "omit",
-      signal: AbortSignal.timeout(8000),
-    });
-    if (!response.ok) {
-      const body = await response.json().catch(() => ({}));
-      throw new Error(body.error || `Backend returned ${response.status}`);
+  async chooseRepo() {
+    const previous = this.repository.handle;
+    if (!(await this.repository.choose())) return;
+    if (!previous || !(await previous.isSameEntry(this.repository.handle))) {
+      for (const record of this.records) {
+        record.repoSaved = false;
+        await this.store.put(record);
+      }
     }
-    return response.json();
+    this.refreshRepo();
+    this.localStatus();
   }
 
-  sync() {
-    if (!this.options.endpoint || this.destroyed) return Promise.resolve();
-    if (this.syncPromise) return this.syncPromise;
-    this.syncing = true;
-    this.syncPromise = (async () => {
-      try {
-        await this.store.ready;
-        this.status("Syncing to backend…");
-        // Recheck the queue so messages submitted during a sync are included.
-        let pending;
-        while ((pending = this.records.find((record) => !record.synced))) {
-          const { synced, key, ...record } = pending;
-          await this.request("/api/feedback", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(record),
-          });
-          pending.synced = true;
-          await this.store.put(pending);
-          if (this.destroyed) return;
-        }
-        const remote = await this.request(
-          `/api/feedback?projectId=${encodeURIComponent(this.options.projectId)}`,
-        );
-        let changed = false;
-        for (const record of remote.feedback) {
-          if (!this.records.some((local) => local.id === record.id)) {
-            const value = { ...record, synced: true };
-            await this.store.put(value);
-            this.records.push(value);
-            changed = true;
-          }
-        }
-        this.records.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
-        if (changed && !this.destroyed) this.renderMessages();
-        this.backendError = null;
-        if (!this.destroyed) this.localStatus();
-      } catch (error) {
-        this.backendError = error.message;
-        if (!this.destroyed)
-          this.status("Saved locally · Backend unavailable", true);
-        this.emit("error", { action: "sync", message: error.message });
-      } finally {
-        this.syncing = false;
-        this.syncPromise = null;
-      }
-    })();
-    return this.syncPromise;
+  refreshRepo() {
+    const repo = this.repository;
+    this.element("repo-status").textContent = !repo.supported
+      ? "Folder access is unavailable here. Use ZIP export, or Chrome / Edge over HTTPS."
+      : repo.handle
+        ? `Selected: ${repo.handle.name}/.annotations/`
+        : "Choose your app’s folder on first save, or connect it here.";
+    this.element("choose-repo").hidden = !repo.supported;
+    this.element("choose-repo").textContent = repo.handle
+      ? "Change repo folder"
+      : "Choose repo folder";
+    this.element("write-repo").hidden = !repo.supported || !this.records.length;
+    this.element("agent-instructions").hidden = !repo.supported || !repo.handle;
+    this.place();
+  }
+
+  async writeRepo() {
+    if (!(await this.repository.prepare()))
+      return this.notice(
+        "Folder permission was not granted. Your notes remain in this browser.",
+      );
+    for (const record of this.records) {
+      await this.repository.save(record);
+      record.repoSaved = true;
+      await this.store.put(record);
+    }
+    await this.readRepoStatuses();
+    this.element("repo-status").textContent =
+      `Saved ${this.records.length} notes in ${this.repository.handle.name}/.annotations/.`;
+    this.localStatus();
+  }
+
+  async readRepoStatuses() {
+    const changes = await this.repository.readStatuses(this.records);
+    for (const change of changes) {
+      const record = this.records.find((item) => item.id === change.id);
+      record.status = change.status;
+      await this.store.put(record);
+    }
+    if (changes.length && !this.destroyed) this.renderMessages();
   }
 
   localStatus() {
-    if (!this.store.persistent)
-      return this.status("Stored in memory · Download to keep", true);
-    if (!this.options.endpoint) return this.status("Saved in this browser");
-    const pending = this.records.some((record) => !record.synced);
+    const savedToRepo =
+      this.records.length && this.records.every((item) => item.repoSaved);
     this.status(
-      this.backendError
-        ? "Saved locally · Backend unavailable"
-        : pending
-          ? "Saved locally · Sync pending"
-          : "Saved locally · Backend connected",
-      Boolean(this.backendError),
+      savedToRepo
+        ? "Saved in repo"
+        : this.store.persistent
+          ? "Saved in this browser"
+          : "Stored in memory · Download to keep",
+      !this.store.persistent && !savedToRepo,
     );
   }
 
@@ -874,7 +1021,6 @@ export class ReviewWidget {
     this.element("export").disabled = true;
     try {
       await this.saveQueue.catch(() => {});
-      await this.sync();
       const blob = await createArchive(
         this.records,
         this.options.projectId,
@@ -912,15 +1058,14 @@ export class ReviewWidget {
   destroy() {
     if (this.destroyed) return;
     this.destroyed = true;
-    clearInterval(this.poll);
     this.events.abort();
     this.annotation?.destroy();
     this.element("editor-dialog").close();
     this.element("page-dialog").close();
     this.element("viewer-dialog").close();
     this.host.remove();
-    Promise.allSettled([this.ready, this.saveQueue, this.syncPromise]).then(
-      () => this.store.close(),
+    Promise.allSettled([this.ready, this.saveQueue]).then(() =>
+      this.store.close(),
     );
     this.options.onDestroy?.();
   }
