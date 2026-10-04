@@ -1,0 +1,9 @@
+node_modules/
+dist/
+data/
+.logs/
+test-results/
+playwright-report/
+.playwright-mcp/
+*.tgz
+.DS_Store
