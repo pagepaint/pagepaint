@@ -588,7 +588,7 @@ test("first-load color choice persists, settings preserves drafts, and preferenc
   const savedColor = "rgb(255, 145, 200)";
   await expect.poll(accent).toBe(savedColor);
   await page
-    .getByRole("button", { name: "Use this color", exact: true })
+    .getByRole("button", { name: "Save settings", exact: true })
     .click();
   await expect(page.getByLabel("YOUR FEEDBACK")).toBeVisible();
   await page.reload();
@@ -835,4 +835,195 @@ test("capture waits for external stylesheets in the cloned document", async ({
     return [...context.getImageData(5, 5, 1, 1).data];
   });
   expect(pixel).toEqual([247, 247, 239, 255]);
+});
+
+test("closed details stay collapsed in screenshots while open disclosures render", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 800, height: 500 });
+  await page.evaluate(() => window.ReviewTool.getInstance()?.destroy());
+  await page.setContent(
+    '<style>body{margin:0;background:rgb(20,40,240)}details{position:relative;height:100px}summary{height:30px;background:rgb(240,20,20)}.content{position:absolute;top:30px;width:300px;height:70px;background:rgb(20,240,40)}</style><details><summary>Closed</summary><div class="content">Hidden text</div>Hidden loose text</details><details open><summary>Open</summary><div class="content">Visible text</div></details>',
+  );
+  await page.addScriptTag({ url: "/review-tool.js" });
+  await initialize(page);
+  const pixels = await page.evaluate(async () => {
+    const capture = await testReview.renderViewport();
+    const image = new Image();
+    image.src = capture.original;
+    await image.decode();
+    const canvas = document.createElement("canvas");
+    canvas.width = 800;
+    canvas.height = 500;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(image, 0, 0);
+    return [20, 50, 150].map((y) => [...ctx.getImageData(200, y, 1, 1).data]);
+  });
+  expect(pixels).toEqual([
+    [240, 20, 20, 255],
+    [20, 40, 240, 255],
+    [20, 240, 40, 255],
+  ]);
+  expect(
+    await page
+      .locator("details")
+      .first()
+      .evaluate((el) => el.open),
+  ).toBe(false);
+  await expect(page.locator("details").first().locator(".content")).toHaveText(
+    "Hidden text",
+  );
+});
+
+test("custom shortcuts persist, send feedback, preserve appearance, and avoid host inputs", async ({
+  page,
+}) => {
+  const projectId = await initialize(page);
+  await open(page);
+  await page
+    .getByRole("button", { name: "Feedback settings", exact: true })
+    .click();
+  await page
+    .getByLabel("Open / close feedback shortcut")
+    .press("Control+Alt+KeyK");
+  await page.getByLabel("Send feedback shortcut").press("Control+Shift+Enter");
+  await page.getByLabel("Undo drawing shortcut").press("Alt+Shift+KeyU");
+  await page.getByLabel("Redo drawing shortcut").press("Alt+Shift+KeyR");
+  await page.getByRole("button", { name: "Mint", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Save settings", exact: true })
+    .click();
+  await expect(page.getByLabel("YOUR FEEDBACK")).toBeVisible();
+  await page.keyboard.press("Control+Alt+KeyK");
+  await expect(page.locator("#panel")).toBeHidden();
+  await page.reload();
+  await initialize(page, { projectId });
+  await page.keyboard.press("Control+Alt+KeyK");
+  await expect(page.locator("#panel")).toBeVisible();
+  await expect(page.locator("#fab")).toHaveCSS(
+    "background-color",
+    "rgb(99, 240, 183)",
+  );
+  await page.keyboard.press("Alt+Shift+KeyD");
+  await expect(page.locator("#page-dialog")).toBeVisible();
+  await draw(page, "Rectangle", [0.2, 0.2], [0.5, 0.4], "page-canvas");
+  await page.keyboard.press("Alt+Shift+KeyU");
+  expect(
+    await page.evaluate(() => testReview.annotation.annotations.length),
+  ).toBe(0);
+  await page.keyboard.press("Alt+Shift+KeyR");
+  expect(
+    await page.evaluate(() => testReview.annotation.annotations.length),
+  ).toBe(1);
+  await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  await page
+    .getByLabel("YOUR FEEDBACK")
+    .fill("Sent with my configured shortcut.");
+  await page.keyboard.press("Control+Shift+Enter");
+  await expect(
+    page.getByText("Sent with my configured shortcut.", { exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Close feedback", exact: true })
+    .click();
+  await page.evaluate(() => {
+    const field = document.createElement("input");
+    field.id = "host-input";
+    document.body.append(field);
+  });
+  await page.locator("#host-input").focus();
+  await page.keyboard.press("Control+Alt+KeyK");
+  await expect(page.locator("#panel")).toBeHidden();
+  await page.locator("#host-input").press("Tab");
+  await page.keyboard.press("Alt+Shift+KeyF");
+  await expect(page.locator("#panel")).toBeHidden();
+});
+
+test("shortcut conflicts keep settings open and cancellation discards edits", async ({
+  page,
+}) => {
+  await initialize(page);
+  await open(page);
+  await page
+    .getByRole("button", { name: "Feedback settings", exact: true })
+    .click();
+  await page.getByLabel("Screenshot shortcut").press("Control+KeyZ");
+  await page
+    .getByRole("button", { name: "Save settings", exact: true })
+    .click();
+  await expect(page.locator("#shortcut-error")).toContainText("assigned twice");
+  await expect(
+    page.getByRole("heading", { name: "Feedback settings", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Feedback settings", exact: true })
+    .click();
+  await expect(page.getByLabel("Screenshot shortcut")).toHaveValue(
+    "Alt+Shift+S",
+  );
+  await page.getByLabel("Screenshot shortcut").press("Backspace");
+  await page
+    .getByRole("button", { name: "Save settings", exact: true })
+    .click();
+  await expect
+    .poll(() => page.evaluate(() => testReview.hotkeys.capture))
+    .toBe("");
+});
+
+test("dragging the menu persists, stays within the viewport, and supports keyboard and reset", async ({
+  page,
+}) => {
+  const projectId = await initialize(page);
+  await open(page);
+  const before = await page.locator("#panel").boundingBox();
+  const handle = await page.locator("#panel-handle").boundingBox();
+  await page.mouse.move(handle.x + 30, handle.y + 15);
+  await page.mouse.down();
+  await page.mouse.move(handle.x - 300, handle.y - 40, { steps: 8 });
+  await page.mouse.up();
+  const moved = await page.locator("#panel").boundingBox();
+  expect(moved.x).toBeLessThan(before.x - 200);
+  await page.evaluate(() => testReview.preferenceQueue);
+  await page
+    .getByRole("button", { name: "Feedback settings", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Coral", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Save settings", exact: true })
+    .click();
+  await page.reload();
+  await initialize(page, { projectId });
+  await open(page);
+  const reloaded = await page.locator("#panel").boundingBox();
+  expect(reloaded.x).toBeCloseTo(moved.x, 0);
+  expect(reloaded.y).toBeCloseTo(moved.y, 0);
+  await page.locator("#panel-handle").focus();
+  await page.keyboard.press("ArrowLeft");
+  expect((await page.locator("#panel").boundingBox()).x).toBeCloseTo(
+    moved.x - 10,
+    0,
+  );
+  await page.setViewportSize({ width: 600, height: 750 });
+  await expect
+    .poll(async () => {
+      const box = await page.locator("#panel").boundingBox();
+      return box.x + box.width;
+    })
+    .toBeLessThanOrEqual(588);
+  const clamped = await page.locator("#panel").boundingBox();
+  expect(clamped.x).toBeGreaterThanOrEqual(12);
+  expect(clamped.x + clamped.width).toBeLessThanOrEqual(588);
+  expect(clamped.y).toBeGreaterThanOrEqual(12);
+  expect(clamped.y + clamped.height).toBeLessThanOrEqual(738);
+  await page
+    .getByRole("button", { name: "Feedback settings", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Reset menu position", exact: true })
+    .click();
+  await page.evaluate(() => testReview.preferenceQueue);
+  expect(
+    await page.evaluate(() => testReview.preferences.panelPosition),
+  ).toBeNull();
 });

@@ -34,4 +34,17 @@ export async function waitForCaptureStyles(document) {
   // Force layout so font faces introduced by the stylesheets begin loading.
   document.body.getBoundingClientRect();
   await document.fonts?.ready;
+  // Canvas renderers do not honor the browser's hidden disclosure content.
+  // Keep the first summary visible and suppress everything else in closed details.
+  for (const details of document.querySelectorAll("details:not([open])")) {
+    const summary = Array.from(details.children).find(
+      (child) => child.tagName === "SUMMARY",
+    );
+    for (const child of Array.from(details.childNodes)) {
+      if (child === summary) continue;
+      if (child.nodeType === 1)
+        child.style.setProperty("display", "none", "important");
+      else child.remove();
+    }
+  }
 }

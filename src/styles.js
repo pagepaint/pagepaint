@@ -8,13 +8,14 @@ export const styles = `
   button, textarea, input { font: inherit; }
   button { appearance: none; border: 0; padding: 0; color: inherit; background: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
   button:disabled { opacity: .4; cursor: not-allowed; }
-  button:focus-visible, textarea:focus-visible, a:focus-visible, canvas:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+  button:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visible, canvas:focus-visible, #panel-handle:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
   svg { flex: 0 0 auto; }
   .fab { position: fixed; min-width: 56px; height: 56px; padding: 0 19px; border: 1px solid var(--accent-line); border-radius: 18px; color: var(--on-accent); background: var(--accent); box-shadow: 0 5px 20px #11150830, 0 0 20px color-mix(in srgb, var(--accent) 15%, transparent); z-index: 2147483646; font-weight: 650; letter-spacing: -.1px; transition: background .15s, transform .15s; }
   .fab:hover { background: var(--accent-hover); transform: translateY(-2px); }
   .fab svg { width: 22px; height: 22px; }
   .panel { position: fixed; width: min(410px, calc(100vw - 32px)); height: min(670px, calc(100dvh - 110px)); min-height: 270px; display: flex; flex-direction: column; background: var(--paper); border: 1px solid #454d32; border-radius: 22px; box-shadow: 0 18px 80px #0a0d0740, 0 0 0 1px color-mix(in srgb, var(--accent) 5%, transparent); z-index: 2147483646; overflow: hidden; }
-  .panel-header { display: flex; align-items: center; justify-content: space-between; padding: 21px 22px 17px; }
+  .panel-header { display: flex; align-items: center; justify-content: space-between; padding: 21px 22px 17px; cursor: grab; touch-action: none; user-select: none; }
+  .panel-header[data-dragging] { cursor: grabbing; }
   .brand { display: flex; align-items: center; gap: 11px; }
   .brand-mark { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 11px; background: var(--accent-wash); color: var(--accent); }
   h2, h3, p { margin: 0; }
@@ -34,7 +35,14 @@ export const styles = `
   .accent-dot { width: 28px; height: 28px; border-radius: 50%; background: var(--choice); color: var(--on-accent); display: grid; place-items: center; }
   .accent-dot svg { visibility: hidden; width: 17px; height: 17px; }
   .accent-option[aria-pressed=true] svg { visibility: visible; }
-  .panel[data-onboarding] .repo-info, .panel[data-onboarding] .storage-info { display: none; }
+  .panel[data-onboarding] .repo-info, .panel[data-onboarding] .storage-info, .panel[data-onboarding] .shortcut-info { display: none; }
+  .shortcut-info { margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--line); font-size: 11px; color: var(--muted); }
+  .shortcut-info strong { color: var(--ink); font-size: 12px; }
+  .shortcut-info p { margin-top: 6px; }
+  .shortcut-fields { margin-top: 10px; display: grid; gap: 6px; }
+  .shortcut-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .shortcut-row input { width: 145px; padding: 7px 9px; border: 1px solid var(--line); border-radius: 6px; color: var(--ink); background: var(--wash); cursor: pointer; font-size: 11px; }
+  #shortcut-error { color: #f4d68b; }
   .repo-info { margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--line); font-size: 11px; color: var(--muted); }
   .repo-info strong { color: var(--ink); font-size: 12px; }
   .repo-info p { margin-top: 6px; }

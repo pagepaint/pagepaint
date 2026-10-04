@@ -1,6 +1,7 @@
 // ABOUTME: Embeds a feedback conversation with capture, annotation, and ZIP download.
 // ABOUTME: Isolates the interface in Shadow DOM and keeps feedback on the current device.
 import html2canvas from "html2canvas-pro";
+import { version as libraryVersion } from "../package.json";
 import { waitForCaptureStyles } from "./capture-styles.js";
 import { AnnotationCanvas } from "./annotations.js";
 import { createArchive } from "./archive.js";
@@ -10,6 +11,12 @@ import { icon } from "./icons.js";
 import { styles } from "./styles.js";
 import { RepositoryStore, selectorAt } from "./repository.js";
 import { ACCENTS } from "./appearance.js";
+import {
+  HOTKEYS,
+  hotkeySettings,
+  matchesHotkey,
+  shortcutFromEvent,
+} from "./hotkeys.js";
 
 const COLORS = [
   ["Red", "#ef4444"],
@@ -41,6 +48,9 @@ export class ReviewWidget {
     this.accent = ACCENTS[0].id;
     this.draftCapture = null;
     this.saveQueue = Promise.resolve();
+    this.preferenceQueue = Promise.resolve();
+    this.preferences = {};
+    this.hotkeys = hotkeySettings(this.options.hotkeys);
     this.events = new AbortController();
     this.store = new FeedbackStore(this.options.projectId);
     this.repository = new RepositoryStore(
@@ -73,8 +83,8 @@ export class ReviewWidget {
     return `<style>${styles}</style>
       <button id="fab" class="fab" aria-expanded="false" aria-controls="panel" data-action="toggle">${icon("chat")}<span>Feedback</span></button>
       <section id="panel" class="panel" role="dialog" aria-labelledby="panel-title" hidden>
-        <header class="panel-header"><div class="brand"><span class="brand-mark">${icon("chat")}</span><div><h2 id="panel-title">Leave a little feedback</h2><p class="subtitle">A note. A screenshot. A clearer next step.</p></div></div><div class="header-actions"><button id="settings" class="icon-button" data-action="settings" aria-label="Feedback settings">${icon("settings")}</button><button class="icon-button" data-action="close" aria-label="Close feedback">${icon("close")}</button></div></header>
-        <section id="appearance" class="appearance" aria-label="Feedback appearance" hidden><p class="appearance-intro">Pick an accent for your feedback tools. You can change it in Settings anytime.</p><div class="accent-options" role="group" aria-label="Accent color">${ACCENTS.map(({ id, name, color }) => `<button class="accent-option" data-accent="${id}" style="--choice:${color}" aria-pressed="${id === this.accent}"><span class="accent-dot">${icon("check")}</span><span>${name}</span></button>`).join("")}</div><div class="repo-info"><strong>Save into your app’s repo</strong><p id="repo-status"></p><div class="repo-actions"><button id="choose-repo" class="storage-button" data-action="choose-repo">Choose repo folder</button><button id="write-repo" class="storage-button" data-action="write-repo">Save notes to repo</button><button id="agent-instructions" class="storage-button" data-action="agent-instructions">Add agent instructions</button></div><p class="storage-hint">Files go into .annotations/. Your agent can mark items resolved in the JSON.</p></div><div class="storage-info"><strong>Saved on this device</strong><p id="storage-usage">Checking browser storage…</p><p id="storage-protection"></p><button id="persist-storage" class="storage-button" data-action="persist-storage">Keep data on this device</button><p class="storage-hint">Clearing site data removes feedback. Download a ZIP to keep a copy or share it.</p></div><div class="appearance-actions"><button class="secondary" data-action="cancel-appearance">Cancel</button><button id="save-appearance" class="primary" data-action="save-appearance">Use this color ${icon("check")}</button></div></section>
+        <header class="panel-header"><div id="panel-handle" class="brand" role="button" tabindex="0" aria-label="Move feedback menu" title="Drag to move. Arrow keys move; Shift moves faster."><span class="brand-mark">${icon("chat")}</span><div><h2 id="panel-title">Leave a little feedback</h2><p class="subtitle">A note. A screenshot. A clearer next step.</p></div></div><div class="header-actions"><button id="settings" class="icon-button" data-action="settings" aria-label="Feedback settings">${icon("settings")}</button><button class="icon-button" data-action="close" aria-label="Close feedback">${icon("close")}</button></div></header>
+        <section id="appearance" class="appearance" aria-label="Feedback appearance" hidden><p class="appearance-intro">Pick an accent for your feedback tools. You can change it in Settings anytime.</p><div class="accent-options" role="group" aria-label="Accent color">${ACCENTS.map(({ id, name, color }) => `<button class="accent-option" data-accent="${id}" style="--choice:${color}" aria-pressed="${id === this.accent}"><span class="accent-dot">${icon("check")}</span><span>${name}</span></button>`).join("")}</div><div class="shortcut-info"><strong>Keyboard shortcuts</strong><p>Click a field and press your combination. Backspace clears it. Mod means Ctrl or Command. Browser shortcuts may take priority.</p><div class="shortcut-fields">${HOTKEYS.map(([action, label]) => `<label class="shortcut-row"><span>${label}</span><input data-hotkey="${action}" aria-label="${label} shortcut" readonly placeholder="Disabled" /></label>`).join("")}</div><div class="repo-actions"><button class="storage-button" data-action="reset-hotkeys">Reset shortcuts</button><button class="storage-button" data-action="reset-panel">Reset menu position</button></div><p id="shortcut-error" role="alert" hidden></p></div><div class="repo-info"><strong>Save into your app’s repo</strong><p id="repo-status"></p><div class="repo-actions"><button id="choose-repo" class="storage-button" data-action="choose-repo">Choose repo folder</button><button id="write-repo" class="storage-button" data-action="write-repo">Save notes to repo</button><button id="agent-instructions" class="storage-button" data-action="agent-instructions">Add agent instructions</button></div><p class="storage-hint">Files go into .annotations/. Your agent can mark items resolved in the JSON.</p></div><div class="storage-info"><strong>Saved on this device</strong><p id="storage-usage">Checking browser storage…</p><p id="storage-protection"></p><button id="persist-storage" class="storage-button" data-action="persist-storage">Keep data on this device</button><p class="storage-hint">Clearing site data removes feedback. Download a ZIP to keep a copy or share it.</p></div><div class="appearance-actions"><button class="secondary" data-action="cancel-appearance">Cancel</button><button id="save-appearance" class="primary" data-action="save-appearance">Use this color ${icon("check")}</button></div></section>
         <div class="context-bar">${icon("link")}<span id="page-path" class="page-path"></span></div>
         <p id="notice" class="notice" role="alert" hidden></p>
         <div id="messages" class="messages" role="log" aria-label="Feedback conversation" aria-live="polite"></div>
@@ -162,16 +172,6 @@ export class ReviewWidget {
       },
       settings,
     );
-    this.element("message").addEventListener(
-      "keydown",
-      (event) => {
-        if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
-          event.preventDefault();
-          this.send().catch((error) => this.notice(error.message));
-        }
-      },
-      settings,
-    );
     this.element("editor-dialog").addEventListener(
       "cancel",
       (event) => {
@@ -211,27 +211,37 @@ export class ReviewWidget {
       },
       settings,
     );
+    document.addEventListener(
+      "keydown",
+      (event) => this.handleHotkey(event),
+      settings,
+    );
     this.root.addEventListener(
       "keydown",
       (event) => {
-        if (
-          (this.element("editor-dialog").open ||
-            this.element("page-dialog").open) &&
-          (event.ctrlKey || event.metaKey) &&
-          event.key.toLowerCase() === "z"
-        ) {
+        const field = event.target.closest("[data-hotkey]");
+        if (field) {
+          if (["Tab", "Escape"].includes(event.key)) return;
           event.preventDefault();
-          event.shiftKey ? this.annotation?.redo() : this.annotation?.undo();
-        } else if (
-          event.key === "Escape" &&
-          !this.element("editor-dialog").open &&
-          !this.element("viewer-dialog").open &&
-          !this.element("page-dialog").open
-        )
-          this.close();
+          try {
+            if (
+              ["Backspace", "Delete"].includes(event.key) &&
+              !event.ctrlKey &&
+              !event.metaKey &&
+              !event.altKey
+            )
+              field.dataset.chord = "";
+            else field.dataset.chord = shortcutFromEvent(event);
+            field.value = field.dataset.chord || "";
+            this.shortcutError("");
+          } catch (error) {
+            this.shortcutError(error.message);
+          }
+        } else if (event.key === "Escape" && !this.dialogOpen()) this.close();
       },
       settings,
     );
+    this.bindPanelDragging(settings);
     window.addEventListener(
       "resize",
       () => {
@@ -266,6 +276,14 @@ export class ReviewWidget {
         break;
       case "settings":
         return this.showAppearance();
+      case "reset-hotkeys":
+        this.showHotkeys(hotkeySettings(this.options.hotkeys));
+        this.shortcutError("");
+        break;
+      case "reset-panel":
+        this.panelPosition = null;
+        this.place();
+        return this.savePreferences({ panelPosition: null });
       case "save-appearance":
         return this.saveAppearance();
       case "cancel-appearance":
@@ -308,6 +326,190 @@ export class ReviewWidget {
     }
   }
 
+  dialogOpen() {
+    return ["editor-dialog", "page-dialog", "viewer-dialog"].some(
+      (id) => this.element(id).open,
+    );
+  }
+
+  handleHotkey(event) {
+    if (event.defaultPrevented || event.isComposing || event.repeat) return;
+    const target = event.composedPath()[0];
+    if (target?.closest?.("[data-hotkey]")) return;
+    const inWidget = event.composedPath().includes(this.host);
+    if (
+      !inWidget &&
+      (target?.isContentEditable ||
+        target?.closest?.(
+          "input,textarea,select,[contenteditable]:not([contenteditable=false])",
+        ))
+    )
+      return;
+    const action = HOTKEYS.find(([name]) =>
+      matchesHotkey(event, this.hotkeys[name]),
+    )?.[0];
+    if (!action) return;
+    const drawing =
+      this.element("editor-dialog").open || this.element("page-dialog").open;
+    if (["undo", "redo"].includes(action)) {
+      if (!drawing || this.capturing) return;
+    } else {
+      if (this.dialogOpen() || this.capturing || this.sending) return;
+      if (
+        action === "send" &&
+        (!inWidget ||
+          this.element("panel").hidden ||
+          this.element("panel").dataset.view !== "conversation")
+      )
+        return;
+      if (["capture", "draw-page"].includes(action) && !this.preferencesSaved)
+        return;
+      if (
+        !this.element("panel").hidden &&
+        this.element("panel").dataset.view === "appearance" &&
+        action !== "toggle"
+      )
+        return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    (action === "send" ? this.send() : this.act(action)).catch((error) =>
+      this.notice(error.message),
+    );
+  }
+
+  showHotkeys(hotkeys) {
+    for (const field of this.root.querySelectorAll("[data-hotkey]")) {
+      field.dataset.chord = hotkeys[field.dataset.hotkey];
+      field.value = field.dataset.chord;
+    }
+  }
+
+  shortcutError(message) {
+    this.element("shortcut-error").textContent = message;
+    this.element("shortcut-error").hidden = !message;
+  }
+
+  updateHotkeyHints() {
+    const controls = {
+      toggle: "fab",
+      "draw-page": "draw-button",
+      capture: "capture-button",
+      send: "send",
+      undo: "undo",
+      redo: "redo",
+    };
+    for (const [action, label] of HOTKEYS) {
+      const control = this.element(controls[action]);
+      const shortcut = this.hotkeys[action];
+      control.title = shortcut ? `${label} (${shortcut})` : label;
+      const ariaShortcut = shortcut
+        .replace(
+          /Mod/g,
+          /Mac|iPhone|iPad/.test(navigator.platform) ? "Meta" : "Control",
+        )
+        .replace(/Ctrl/g, "Control");
+      if (ariaShortcut) control.setAttribute("aria-keyshortcuts", ariaShortcut);
+      else control.removeAttribute("aria-keyshortcuts");
+    }
+    this.element("composer-hint").textContent =
+      `Attach a screenshot or send a message.${this.hotkeys.send ? ` Press ${this.hotkeys.send} to send.` : ""}`;
+  }
+
+  savePreferences(patch) {
+    this.preferences = { ...this.preferences, ...patch, id: "preferences" };
+    const record = structuredClone(this.preferences);
+    this.preferenceQueue = this.preferenceQueue
+      .catch(() => {})
+      .then(() => this.store.put(record));
+    return this.preferenceQueue;
+  }
+
+  bindPanelDragging(settings) {
+    const header = this.root.querySelector(".panel-header");
+    const handle = this.element("panel-handle");
+    const persist = () =>
+      this.savePreferences({ panelPosition: this.panelPosition }).catch(
+        (error) => this.notice(error.message),
+      );
+    header.addEventListener(
+      "pointerdown",
+      (event) => {
+        if (event.button !== 0 || event.target.closest("button")) return;
+        const bounds = this.element("panel").getBoundingClientRect();
+        this.panelDrag = {
+          id: event.pointerId,
+          x: event.clientX,
+          y: event.clientY,
+          left: bounds.left,
+          top: bounds.top,
+        };
+        header.setPointerCapture(event.pointerId);
+        header.dataset.dragging = "";
+        event.preventDefault();
+      },
+      settings,
+    );
+    header.addEventListener(
+      "pointermove",
+      (event) => {
+        if (event.pointerId !== this.panelDrag?.id) return;
+        this.panelPosition = {
+          x: this.panelDrag.left + event.clientX - this.panelDrag.x,
+          y: this.panelDrag.top + event.clientY - this.panelDrag.y,
+        };
+        this.place();
+        const bounds = this.element("panel").getBoundingClientRect();
+        this.panelPosition = { x: bounds.left, y: bounds.top };
+      },
+      settings,
+    );
+    header.addEventListener(
+      "lostpointercapture",
+      () => {
+        if (!this.panelDrag) return;
+        this.panelDrag = null;
+        delete header.dataset.dragging;
+        persist();
+      },
+      settings,
+    );
+    handle.addEventListener(
+      "keydown",
+      (event) => {
+        if (
+          !event.key.startsWith("Arrow") ||
+          event.ctrlKey ||
+          event.metaKey ||
+          event.altKey
+        )
+          return;
+        event.preventDefault();
+        const bounds = this.element("panel").getBoundingClientRect();
+        const distance = event.shiftKey ? 40 : 10;
+        this.panelPosition = {
+          x:
+            bounds.left +
+            (event.key === "ArrowLeft"
+              ? -distance
+              : event.key === "ArrowRight"
+                ? distance
+                : 0),
+          y:
+            bounds.top +
+            (event.key === "ArrowUp"
+              ? -distance
+              : event.key === "ArrowDown"
+                ? distance
+                : 0),
+        };
+        this.place();
+        persist();
+      },
+      settings,
+    );
+  }
+
   async load() {
     try {
       await this.store.ready;
@@ -323,6 +525,17 @@ export class ReviewWidget {
       ]);
       if (this.destroyed) return this;
       this.records = records;
+      this.preferences = preferences || {};
+      this.hotkeys = hotkeySettings({
+        ...this.options.hotkeys,
+        ...preferences?.hotkeys,
+      });
+      if (
+        Number.isFinite(preferences?.panelPosition?.x) &&
+        Number.isFinite(preferences?.panelPosition?.y)
+      )
+        this.panelPosition = preferences.panelPosition;
+      this.updateHotkeyHints();
       this.preferencesSaved = ACCENTS.some(
         (item) => item.id === preferences?.accent,
       );
@@ -379,6 +592,8 @@ export class ReviewWidget {
           ? "Feedback settings"
           : "Make it your color"
         : "Leave a little feedback";
+    this.element("save-appearance").innerHTML =
+      `${this.preferencesSaved ? "Save settings" : "Use this color"} ${icon("check")}`;
     this.root.querySelector(".subtitle").textContent =
       view === "appearance"
         ? "A little color. Your choice."
@@ -391,6 +606,8 @@ export class ReviewWidget {
   showAppearance() {
     if (this.destroyed) return;
     this.applyAccent(this.accent);
+    this.showHotkeys(this.hotkeys);
+    this.shortcutError("");
     this.setView("appearance");
     this.refreshStorage();
     this.refreshRepo();
@@ -415,7 +632,23 @@ export class ReviewWidget {
     const button = this.element("save-appearance");
     button.disabled = true;
     try {
-      await this.store.put({ id: "preferences", accent: this.pendingAccent });
+      let hotkeys;
+      try {
+        hotkeys = hotkeySettings(
+          Object.fromEntries(
+            Array.from(this.root.querySelectorAll("[data-hotkey]"), (field) => [
+              field.dataset.hotkey,
+              field.dataset.chord,
+            ]),
+          ),
+        );
+      } catch (error) {
+        this.shortcutError(error.message);
+        return;
+      }
+      await this.savePreferences({ accent: this.pendingAccent, hotkeys });
+      this.hotkeys = hotkeys;
+      this.updateHotkeyHints();
       if (this.destroyed) return;
       this.accent = this.pendingAccent;
       this.preferencesSaved = true;
@@ -532,9 +765,13 @@ export class ReviewWidget {
     const width = panel.offsetWidth;
     const height = panel.offsetHeight;
     const left =
-      edges.left !== undefined ? trigger.left : trigger.right - width;
+      this.panelPosition?.x ??
+      (edges.left !== undefined ? trigger.left : trigger.right - width);
     const top =
-      edges.top !== undefined ? trigger.bottom + 12 : trigger.top - height - 12;
+      this.panelPosition?.y ??
+      (edges.top !== undefined
+        ? trigger.bottom + 12
+        : trigger.top - height - 12);
     panel.style.left = `${Math.max(margin, Math.min(innerWidth - width - margin, left))}px`;
     panel.style.top = `${Math.max(margin, Math.min(innerHeight - height - margin, top))}px`;
   }
@@ -748,6 +985,8 @@ export class ReviewWidget {
       original,
       annotated: original,
       annotations: [],
+      libraryVersion,
+      renderer: "html2canvas-pro",
       width: canvas.width,
       height: canvas.height,
       context,
@@ -1066,8 +1305,8 @@ export class ReviewWidget {
     this.element("page-dialog").close();
     this.element("viewer-dialog").close();
     this.host.remove();
-    Promise.allSettled([this.ready, this.saveQueue]).then(() =>
-      this.store.close(),
+    Promise.allSettled([this.ready, this.saveQueue, this.preferenceQueue]).then(
+      () => this.store.close(),
     );
     this.options.onDestroy?.();
   }

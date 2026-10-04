@@ -20,7 +20,7 @@ for (const file of [
   await cp(path.join("dist", file), path.join(assets, `v${version}`, file));
 }
 // Retain published versioned URLs when deploying a new release.
-const retainedVersions = ["0.2.0"];
+const retainedVersions = ["0.2.0", "0.2.1"];
 await Promise.all(
   retainedVersions.map(async (release) => {
     const directory = path.join(assets, `v${release}`);

@@ -6,7 +6,7 @@ A plain JavaScript feedback widget for AI-built apps. Load one CDN script, draw 
 
 ```html
 <script
-  src="https://review-tool.timo-bejan.workers.dev/v0.2.1/review-tool.js"
+  src="https://review-tool.timo-bejan.workers.dev/v0.2.2/review-tool.js"
   data-review-tool
   data-project="my-app"
   defer
@@ -15,10 +15,10 @@ A plain JavaScript feedback widget for AI-built apps. Load one CDN script, draw 
 
 The dependencies are bundled. The script runs in the app's origin, so each domain and localhost port has its own browser storage and folder permission. Use a different `data-project` for separate apps sharing an origin. Your site's CSP must allow the CDN script, the widget's inline styles, and data/blob images.
 
-The hosted playground is at <https://review-tool.timo-bejan.workers.dev/>. The unversioned `/review-tool.js` URL follows the current release; the versioned URL pins this release. ES modules are available at `/v0.2.1/review-tool.mjs`.
+The hosted playground is at <https://review-tool.timo-bejan.workers.dev/>. The unversioned `/review-tool.js` URL follows the current release; the versioned URL pins this release. ES modules are available at `/v0.2.2/review-tool.mjs`.
 
 ```js
-import { init } from "https://review-tool.timo-bejan.workers.dev/v0.2.1/review-tool.mjs";
+import { init } from "https://review-tool.timo-bejan.workers.dev/v0.2.2/review-tool.mjs";
 
 const review = init({
   projectId: "my-app",
@@ -71,6 +71,8 @@ Folder saving uses the File System Access API. It requires HTTPS or localhost an
 - **Draw & capture** opens a transparent canvas over the live page. Use pen, highlighter, rectangle, or circle/ellipse, with eight drawing colors and undo/redo. **Capture & attach** captures the latest view and composites the marks, excluding the widget.
 - The camera button opens the screenshot editor. Draft text and completed strokes autosave. Cancel restores the previous attachment. A viewport resize retains the recovery capture.
 - First load offers six accent colors on a dark interface. The choice is saved per project in IndexedDB and can be changed in Settings.
+- Drag the menu header to move the feedback panel. Focus **Move feedback menu** and use arrow keys (Shift for larger steps) for keyboard movement. The position persists per project, stays within the viewport, and can be reset in Settings.
+- Settings lets you record or disable shortcuts for opening feedback, drawing, screenshots, sending, undo, and redo. Defaults are Alt+Shift+F, Alt+Shift+D, Alt+Shift+S, Mod+Enter, Mod+Z, and Mod+Shift+Z; Mod means Ctrl or Command. Escape closes or cancels the current view. Host-page text inputs retain their shortcuts. Browser shortcuts may take priority.
 - Each note and screenshot keeps its own full URL, path, repeated query parameters, hash, viewport, scroll position, title, browser context, and timestamp.
 - Feedback, drafts, appearance, and folder handles remain in the current browser's IndexedDB database `review-tool`. Feedback is not uploaded. Settings shows the origin's estimated storage usage/quota and offers persistent storage where supported. Estimates include other data stored by the app and are not guaranteed free disk space.
 - Browser data can be cleared or evicted. Repo files are ordinary files on the chosen disk and survive clearing browser data. This release does not rebuild browser history from a repository after browser data is cleared.
@@ -78,9 +80,13 @@ Folder saving uses the File System Access API. It requires HTTPS or localhost an
 
 The conversation is a local feedback log, not an AI chat or multi-user service. `review-tool:feedback` and `review-tool:error` events bubble to `document`; capture errors include their message in `event.detail`.
 
+JavaScript initialization also accepts a `hotkeys` object. Keys are `toggle`, `draw-page`, `capture`, `send`, `undo`, and `redo`. Use combinations such as `"Alt+Shift+F"` or `"Mod+Enter"`, and `""` to disable an action. Each combination needs Ctrl, Meta, Mod, or Alt; duplicate combinations are rejected. Saved user preferences take precedence over initialization defaults.
+
 ## Capture limits
 
 [html2canvas-pro](https://github.com/yorickshan/html2canvas-pro) renders the visible DOM viewport without an extension or screen-recording permission. Cross-origin iframes, video, protected canvases, and images without CORS headers may be omitted; some CSS rendering can differ. Captures are capped at 2× scale and approximately six million pixels. Add `data-review-tool-ignore` or `data-html2canvas-ignore` to exclude page elements. URLs and visible content are deliberately included in exported feedback.
+
+Capture cloning waits for external stylesheets and fonts, and suppresses the hidden contents of closed HTML disclosures (`details`). It does not change the live page. New captures include the library version and renderer in their metadata for troubleshooting. Older screenshots cannot be repaired from their PNGs; capture them again after updating the embedding script.
 
 ## Library development and deployment
 

@@ -1,6 +1,7 @@
 // ABOUTME: Exposes script-tag and ES module entry points for the review widget.
 // ABOUTME: Supports declarative initialization and one active widget per host page.
 import { ReviewWidget } from "./widget.js";
+import { version } from "../package.json";
 
 let instance;
 export function init(options = {}) {
@@ -21,7 +22,7 @@ export function getInstance() {
 }
 
 if (typeof window !== "undefined") {
-  window.ReviewTool = { init, getInstance, version: "0.2.1" };
+  window.ReviewTool = { init, getInstance, version };
   const script = document.currentScript;
   if (script?.hasAttribute("data-review-tool")) {
     const start = () =>
