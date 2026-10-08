@@ -249,13 +249,13 @@ video {
   border-radius: 0;
   padding: 12px 18px;
   margin-top: 2px;
-  background: var(--ink);
-  color: #fafafa;
+  background: var(--accent);
+  color: var(--ink);
   min-height: 48px;
   white-space: nowrap;
 }
 .try-button:hover {
-  background: #363636;
+  background: var(--accent-hover);
 }
 .synopsis .local-note {
   font-size: 12px;
