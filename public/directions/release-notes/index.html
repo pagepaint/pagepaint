@@ -1,0 +1,241 @@
+<!-- ABOUTME: Presents Pagepaint as a technical release sheet with a product film and install guide. -->
+<!-- ABOUTME: Explains the local feedback workflow and connects shared interactive controls. -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#171717" />
+    <meta
+      name="description"
+      content="Pagepaint is local-first visual feedback for developers and QA. Draw on your app, capture the bug, and save the context. Install with one script."
+    />
+    <title>Pagepaint — visual feedback for dev &amp; QA</title>
+    <link rel="stylesheet" href="/homepage/homepage.css" />
+    <link rel="stylesheet" href="./style.css" />
+    <script src="/homepage/homepage.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="masthead">
+      <div class="masthead-inner">
+        <a
+          class="wordmark"
+          href="/directions/"
+          aria-label="Pagepaint design directions"
+          >pagepaint</a
+        >
+        <nav aria-label="Main navigation">
+          <a href="#install">Install</a>
+          <a href="#use">Use</a>
+          <a href="https://github.com/pagepaint/pagepaint">Source ↗</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="lead" aria-labelledby="intro-title">
+        <div class="release-line">
+          <span>Visual feedback for dev &amp; QA</span>
+          <span>Open source · MIT · v0.4.0</span>
+        </div>
+        <h1 id="intro-title">Review the page.<br />Show the bug.</h1>
+
+        <div class="lead-grid">
+          <figure class="film">
+            <div class="film-frame">
+              <video
+                data-demo-video
+                autoplay
+                muted
+                loop
+                playsinline
+                preload="metadata"
+                width="1280"
+                height="720"
+                poster="/video/pagepaint-demo-poster.webp"
+                aria-label="Pagepaint demonstration: annotate a page, capture it, and save feedback locally"
+              >
+                <source src="/video/pagepaint-demo.mp4" type="video/mp4" />
+                <p>
+                  Your browser cannot play the demo. The workflow is explained
+                  below.
+                </p>
+              </video>
+            </div>
+            <figcaption class="film-caption">
+              <span>See the feedback workflow</span>
+              <div class="film-controls">
+                <button type="button" data-video-toggle>Pause demo</button>
+                <button type="button" data-video-sound aria-pressed="false">
+                  Sound off
+                </button>
+              </div>
+            </figcaption>
+          </figure>
+
+          <aside class="synopsis" aria-labelledby="synopsis-title">
+            <h2 id="synopsis-title">Feedback, right where the problem is.</h2>
+            <p>
+              Pagepaint adds a feedback toolbar to your app. Draw on the page,
+              capture a screenshot or video, and leave a comment.
+            </p>
+            <p>
+              Built for developers and QA reviewing AI-built apps. The URL and
+              viewport travel with every note.
+            </p>
+            <button class="try-button" type="button" data-open-feedback>
+              Try Pagepaint <span aria-hidden="true">↗</span>
+            </button>
+            <p class="local-note">
+              Your feedback stays on this device. No feedback server or account
+              required.
+            </p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="install" id="install" aria-labelledby="install-title">
+        <div class="install-heading">
+          <h2 id="install-title">One script.<br />Your app.</h2>
+          <p>
+            Add this before <code>&lt;/body&gt;</code>. Works with static pages,
+            client apps, and server-rendered HTML.
+          </p>
+        </div>
+        <div class="installer">
+          <div class="code-heading">
+            <span>index.html</span>
+            <button
+              type="button"
+              data-copy-install
+              data-copy-target="install-code"
+            >
+              Copy script
+            </button>
+          </div>
+          <pre
+            tabindex="0"
+            aria-label="Pagepaint installation script"
+          ><code id="install-code">&lt;script src="https://pagepaint.dev/v0.4.0/pagepaint.js" data-pagepaint defer&gt;&lt;/script&gt;</code></pre>
+          <p>
+            The versioned URL pins v0.4.0. No build step or local Node server
+            needed.
+          </p>
+        </div>
+      </section>
+
+      <section class="workflow" id="use" aria-labelledby="use-title">
+        <div class="section-heading">
+          <h2 id="use-title">A useful bug report, in three steps.</h2>
+          <p>
+            Open the toolbar in the app you’re testing. Keep the evidence and
+            the explanation together.
+          </p>
+        </div>
+        <ol class="steps">
+          <li>
+            <span class="step-number" aria-hidden="true">01</span>
+            <h3>Point it out.</h3>
+            <p>
+              Use a pen, highlighter, rectangle, or circle directly on the page.
+              Capture the view, or record a short video.
+            </p>
+          </li>
+          <li>
+            <span class="step-number" aria-hidden="true">02</span>
+            <h3>Say what happened.</h3>
+            <p>
+              Add a comment and send. Notes, drafts, and attachments save in
+              this origin’s browser storage (IndexedDB).
+            </p>
+          </li>
+          <li>
+            <span class="step-number" aria-hidden="true">03</span>
+            <h3>Hand over the context.</h3>
+            <p>
+              Choose your repo folder to save ordinary files in
+              <code>.annotations/</code>, or download everything as a ZIP.
+            </p>
+          </li>
+        </ol>
+      </section>
+
+      <section class="handoff" aria-labelledby="handoff-title">
+        <div>
+          <h2 id="handoff-title">Files your agent can read.</h2>
+          <p>
+            Repo saving writes the comment, full URL, viewport, shapes, and
+            status into JSON beside the capture or recording.
+          </p>
+          <pre
+            class="file-tree"
+            aria-label="Example annotation files"
+          ><code>.annotations/
+  &lt;id&gt;.json
+  &lt;id&gt;.webp
+  &lt;id&gt;.webm</code></pre>
+        </div>
+        <div class="agent-instructions">
+          <h3>Add a line to AGENTS.md or CLAUDE.md</h3>
+          <blockquote>
+            Check <code>.annotations/</code> for open items; set status to
+            resolved when done.
+          </blockquote>
+          <p>
+            Folder access needs desktop Chrome or Edge on HTTPS or localhost,
+            and your permission. Other browsers can use browser storage and ZIP
+            export.
+          </p>
+          <p class="storage-note">
+            Browser storage belongs to each origin, including localhost ports.
+            Clearing site data removes it; files you saved to your repo remain.
+          </p>
+        </div>
+      </section>
+
+      <details class="extension-guide">
+        <summary>
+          Prefer an extension? Use Pagepaint without changing the app.
+        </summary>
+        <div class="extension-content">
+          <p>
+            The Chrome / Edge extension uses the same tools, with native tab
+            screenshots. Its local history is separate from the CDN widget.
+          </p>
+          <ol>
+            <li>
+              <a href="/pagepaint-extension.zip" download
+                >Download the extension ZIP</a
+              >
+              and extract it.
+            </li>
+            <li>
+              Open <code>chrome://extensions</code> or
+              <code>edge://extensions</code> and enable
+              <strong>Developer mode</strong>.
+            </li>
+            <li>
+              Choose <strong>Load unpacked</strong>, select the extracted
+              folder, then click the Pagepaint extension icon in your app.
+            </li>
+          </ol>
+        </div>
+      </details>
+    </main>
+
+    <footer>
+      <div class="footer-brand">
+        <span>pagepaint</span>
+        <p>Local-first visual feedback.</p>
+      </div>
+      <nav aria-label="Footer navigation">
+        <a href="/directions/">All 5 directions</a>
+        <a href="https://github.com/pagepaint/pagepaint">GitHub</a>
+        <a href="/privacy/">Privacy</a>
+        <a href="/terms/">Terms</a>
+        <a href="/LICENSE">MIT license</a>
+      </nav>
+    </footer>
+  </body>
+</html>
