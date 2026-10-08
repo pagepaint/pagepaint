@@ -1,0 +1,1523 @@
+<!doctype html>
+<!-- ABOUTME: The Pagepaint demo scene: add the script, mark a clipped button on a sample page, comment, pick a repo, see the saved files. -->
+<!-- ABOUTME: The widget is rebuilt from src/widget.js markup and src/styles.js rules; times are in twelfths of a second (see STORYBOARD.md). -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Pagepaint demo scene</title>
+    <link rel="stylesheet" href="stage.css" />
+    <style>
+      @font-face {
+        font-family: "DM Sans";
+        font-weight: 500;
+        src: url(../../demo/fonts/dm-sans-500.ttf);
+      }
+      @font-face {
+        font-family: "DM Sans";
+        font-weight: 700;
+        src: url(../../demo/fonts/dm-sans-700.ttf);
+      }
+      :root {
+        --paper: #e8e8e6;
+        --card: #ffffff;
+        --ink: #0c0c0c;
+        --muted: #5e5e5c;
+        --line: #d4d4d2;
+        --brand: #0c0c0c;
+        --font: "DM Sans", system-ui, sans-serif;
+        --mono: ui-monospace, "SF Mono", Menlo, monospace;
+      }
+      .caption {
+        left: 110px;
+        width: 520px;
+        font-size: 80px;
+        font-weight: 700;
+      }
+
+      /* The code card for the embed snippet. */
+      .code {
+        left: 770px;
+        top: 330px;
+        width: 1080px;
+        padding: 30px 40px 38px;
+        background: #fff;
+        border-radius: 22px;
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.12);
+        font-family: var(--mono);
+        font-size: 33px;
+        line-height: 1.5;
+        white-space: pre;
+      }
+      .code .file {
+        font-family: var(--font);
+        font-size: 24px;
+        color: var(--muted);
+        margin-bottom: 14px;
+      }
+      .code .line {
+        position: relative;
+        display: block;
+      }
+      .code .attr {
+        color: #7a7a78;
+      }
+
+      /* The browser window that frames the sample app; .vp is its 860 x 700 viewport, scaled by the camera. */
+      .browser {
+        left: 760px;
+        top: 82px;
+        width: 1088px;
+        height: 936px;
+        border-radius: 20px;
+        background: #d9d9d7;
+        overflow: hidden;
+        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.18);
+      }
+      .chrome {
+        position: absolute;
+        inset: 0 0 auto;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0 20px;
+      }
+      .chrome i {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #b4b4b2;
+      }
+      .chrome .url {
+        margin-left: 14px;
+        flex: 1;
+        height: 34px;
+        border-radius: 17px;
+        background: #f6f6f5;
+        font-family: var(--font);
+        font-size: 20px;
+        color: #3a3a38;
+        display: flex;
+        align-items: center;
+        padding: 0 18px;
+      }
+      .chrome .fixture {
+        font-family: var(--font);
+        font-size: 19px;
+        color: #4a4a48;
+        border: 1.5px solid #9c9c9a;
+        border-radius: 9px;
+        padding: 2px 12px;
+      }
+      .content {
+        position: absolute;
+        left: 0;
+        top: 50px;
+        width: 1088px;
+        height: 886px;
+        overflow: hidden;
+        background: #f3f3f2;
+      }
+      .vp {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 860px;
+        height: 700px;
+        overflow: hidden;
+        transform-origin: 0 0;
+      }
+
+      /* The sample checkout fixture, in grayscale. */
+      .sp {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 860px;
+        height: 700px;
+        background: #f3f3f2;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: #1b1b1a;
+        overflow: hidden;
+      }
+      .sp * {
+        position: absolute;
+      }
+      .sp-nav {
+        left: 0;
+        top: 0;
+        width: 860px;
+        height: 56px;
+        background: #fff;
+        border-bottom: 1px solid #e0e0de;
+      }
+      .sp-logo {
+        left: 48px;
+        top: 16px;
+        width: 24px;
+        height: 24px;
+        border-radius: 7px;
+        background: #2a2a29;
+      }
+      .sp-brand {
+        left: 82px;
+        top: 17px;
+        font-size: 16px;
+        font-weight: 650;
+      }
+      .sp-link {
+        top: 19px;
+        font-size: 14px;
+        color: #7a7a78;
+      }
+      .sp-h1 {
+        left: 48px;
+        top: 78px;
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: -0.4px;
+      }
+      .sp-sub {
+        left: 48px;
+        top: 118px;
+        font-size: 13px;
+        color: #8a8a88;
+      }
+      .sp-card {
+        left: 48px;
+        top: 150px;
+        width: 400px;
+        height: 380px;
+        background: #fff;
+        border: 1px solid #dddddb;
+        border-radius: 14px;
+        overflow: hidden;
+      }
+      .sp-label {
+        left: 28px;
+        font-size: 13px;
+        color: #8a8a88;
+      }
+      .sp-field {
+        left: 28px;
+        width: 344px;
+        height: 40px;
+        border: 1px solid #dcdcda;
+        border-radius: 8px;
+        font-size: 14px;
+        color: #9a9a98;
+        padding: 10px 12px;
+      }
+      .sp-price {
+        left: 28px;
+        top: 48px;
+        font-size: 32px;
+        font-weight: 700;
+        letter-spacing: -0.6px;
+      }
+      .sp-price span {
+        position: static;
+        font-size: 15px;
+        font-weight: 400;
+        color: #8a8a88;
+        letter-spacing: 0;
+      }
+      .sp-pay {
+        left: 150px;
+        top: 300px;
+        width: 400px;
+        height: 46px;
+        border-radius: 10px;
+        background: #171716;
+        color: #fff;
+        font-size: 15px;
+        font-weight: 600;
+        line-height: 46px;
+        text-align: center;
+      }
+      .sp-summary {
+        left: 480px;
+        top: 150px;
+        width: 332px;
+        height: 210px;
+        background: #fff;
+        border: 1px solid #dddddb;
+        border-radius: 14px;
+      }
+      .sp-row {
+        left: 24px;
+        width: 284px;
+        font-size: 14px;
+        color: #5a5a58;
+      }
+      .sp-row b {
+        position: absolute;
+        right: 0;
+        font-weight: 500;
+        color: #1b1b1a;
+      }
+      .sp-rule {
+        left: 24px;
+        width: 284px;
+        height: 1px;
+        background: #e4e4e2;
+      }
+      /* A rectangle mark as AnnotationCanvas strokes it: 3 CSS px, round joins. */
+      .mark {
+        border: 3px solid #eab308;
+        border-radius: 2px;
+      }
+
+      /* Thumbnails of the capture: the fixture scaled down inside a fixed box. */
+      .thumb {
+        position: relative;
+        overflow: hidden;
+        background: #191c16;
+      }
+      .thumb .sp {
+        transform-origin: 0 0;
+      }
+
+      /* ── Pagepaint widget: rules copied from src/styles.js, with :host as .pp ── */
+      .pp {
+        --ink: #f1f3e8;
+        --muted: #abb19e;
+        --line: #353a2e;
+        --paper: #191c16;
+        --wash: #22261d;
+        --accent: #edff3a;
+        --on-accent: #171b0b;
+        --accent-wash: color-mix(in srgb, var(--accent) 13%, var(--paper));
+        --accent-line: color-mix(in srgb, var(--accent) 40%, var(--paper));
+        position: absolute;
+        inset: 0;
+        font:
+          14px/1.5 -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        color: var(--ink);
+        letter-spacing: normal;
+      }
+      .pp *,
+      .pp *::before,
+      .pp *::after {
+        box-sizing: border-box;
+      }
+      .pp .btn {
+        appearance: none;
+        border: 0;
+        padding: 0;
+        color: inherit;
+        background: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+      .pp svg {
+        flex: 0 0 auto;
+      }
+      .pp h2,
+      .pp h3,
+      .pp p {
+        margin: 0;
+      }
+      .pp .fab {
+        position: absolute;
+        right: 24px;
+        bottom: 24px;
+        min-width: 56px;
+        height: 56px;
+        padding: 0 19px;
+        border: 1px solid var(--accent-line);
+        border-radius: 18px;
+        color: var(--on-accent);
+        background: var(--accent);
+        box-shadow:
+          0 5px 20px #11150830,
+          0 0 20px color-mix(in srgb, var(--accent) 15%, transparent);
+        font-weight: 650;
+        letter-spacing: -0.1px;
+      }
+      .pp .fab svg {
+        width: 22px;
+        height: 22px;
+      }
+      .pp .panel {
+        position: absolute;
+        left: 426px;
+        top: 18px;
+        width: 410px;
+        height: 590px;
+        display: flex;
+        flex-direction: column;
+        background: var(--paper);
+        border: 1px solid #454d32;
+        border-radius: 22px;
+        box-shadow:
+          0 18px 80px #0a0d0740,
+          0 0 0 1px color-mix(in srgb, var(--accent) 5%, transparent);
+        overflow: hidden;
+        transform-origin: 70% 100%;
+      }
+      .pp .panel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 21px 22px 17px;
+      }
+      .pp .brand {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+      }
+      .pp .brand-mark {
+        display: grid;
+        place-items: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 11px;
+        background: var(--accent-wash);
+        color: var(--accent);
+      }
+      .pp h2 {
+        font-size: 16px;
+        line-height: 1.4;
+        font-weight: 650;
+        letter-spacing: -0.3px;
+      }
+      .pp .subtitle {
+        font-size: 11px;
+        color: var(--muted);
+      }
+      .pp .icon-button {
+        width: 36px;
+        height: 36px;
+        border-radius: 9px;
+        flex: 0 0 auto;
+      }
+      .pp .header-actions {
+        display: flex;
+        gap: 2px;
+      }
+      .pp .context-bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 22px;
+        background: var(--wash);
+        border-block: 1px solid var(--line);
+        font-size: 11px;
+        color: var(--muted);
+      }
+      .pp .context-bar svg {
+        width: 14px;
+        height: 14px;
+      }
+      .pp .thread-nav {
+        display: flex;
+        padding: 0 20px;
+        gap: 10px;
+        align-items: center;
+        border-bottom: 1px solid var(--line);
+        flex-shrink: 0;
+      }
+      .pp #thread-label {
+        color: var(--muted);
+        font-size: 11px;
+        margin-right: auto;
+      }
+      .pp .storage-button {
+        color: var(--accent);
+        font-size: 11px;
+        min-height: 34px;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+      .pp .messages {
+        position: relative;
+        flex: 1;
+        overflow: hidden;
+        padding: 20px;
+        min-height: 0;
+      }
+      .pp .empty {
+        height: 100%;
+        min-height: 160px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 16px;
+      }
+      .pp .empty-illustration {
+        position: relative;
+        display: grid;
+        place-items: center;
+        width: 67px;
+        height: 67px;
+        border: 1px solid var(--accent-line);
+        border-radius: 20px;
+        color: var(--accent);
+        background: var(--accent-wash);
+        margin-bottom: 16px;
+        transform: rotate(-6deg);
+      }
+      .pp .empty-illustration svg {
+        width: 28px;
+        height: 28px;
+      }
+      .pp .empty-illustration::after {
+        content: "";
+        position: absolute;
+        width: 13px;
+        height: 13px;
+        border-radius: 50%;
+        background: var(--accent);
+        border: 3px solid var(--paper);
+        right: -4px;
+        top: -4px;
+      }
+      .pp .empty h3 {
+        font-size: 16px;
+        font-weight: 600;
+        letter-spacing: -0.2px;
+        margin-bottom: 6px;
+      }
+      .pp .empty p {
+        color: var(--muted);
+        font-size: 13px;
+        max-width: 245px;
+      }
+      /* The thread after the first note, scrolled to its end as renderMessages leaves it. */
+      .pp .thread {
+        position: absolute;
+        left: 20px;
+        right: 20px;
+        bottom: 0;
+      }
+      .pp .message {
+        margin-bottom: 18px;
+      }
+      .pp .message-meta {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        color: var(--muted);
+        font-size: 10px;
+        margin-bottom: 6px;
+      }
+      .pp .avatar {
+        width: 22px;
+        height: 22px;
+        display: grid;
+        place-items: center;
+        border-radius: 7px;
+        background: var(--accent-wash);
+        color: var(--accent);
+        font-weight: 600;
+        font-size: 10px;
+      }
+      .pp .record-status {
+        margin-left: auto;
+        color: var(--accent);
+      }
+      .pp .bubble {
+        border-radius: 4px 13px 13px 13px;
+        background: var(--wash);
+        padding: 12px 14px;
+        border: 1px solid var(--line);
+      }
+      .pp .message-text {
+        white-space: pre-wrap;
+        font-size: 13px;
+      }
+      .pp .message-capture {
+        width: 100%;
+        height: 172px;
+        margin-top: 9px;
+        border-radius: 7px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        background: var(--paper);
+        display: grid;
+        place-items: center;
+      }
+      .pp .message-path {
+        color: var(--muted);
+        font-size: 10px;
+        margin-top: 7px;
+      }
+      .pp .composer {
+        padding: 14px 18px 16px;
+        border-top: 1px solid var(--line);
+        background: var(--paper);
+      }
+      .pp .area-label {
+        display: grid;
+        gap: 5px;
+        font-size: 11px;
+        color: var(--muted);
+        margin-bottom: 12px;
+      }
+      .pp .area-label .input {
+        padding: 7px 9px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: var(--wash);
+        color: #909881;
+        font-size: 13px;
+        line-height: 1.4;
+      }
+      .pp .input-box {
+        border: 1px solid #596246;
+        border-radius: 12px;
+        padding: 12px;
+        background: #141710;
+      }
+      .pp .input-box.focus {
+        border-color: var(--accent);
+      }
+      .pp .input-label {
+        display: block;
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--muted);
+        margin-bottom: 5px;
+      }
+      .pp .textarea {
+        display: block;
+        width: 100%;
+        color: var(--ink);
+        line-height: 1.5;
+        min-height: 60px;
+        font-size: 13px;
+        white-space: pre-wrap;
+      }
+      .pp .textarea .placeholder {
+        color: #909881;
+      }
+      .pp .caret {
+        display: inline-block;
+        width: 1.5px;
+        height: 16px;
+        margin-left: 1px;
+        vertical-align: -3px;
+        background: var(--accent);
+      }
+      .pp .composer-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 9px;
+        gap: 8px;
+      }
+      .pp .capture-button {
+        font-size: 11px;
+        color: var(--accent);
+        height: 34px;
+        padding-inline: 7px;
+        border-radius: 7px;
+      }
+      .pp .capture-button svg {
+        width: 17px;
+        height: 17px;
+      }
+      .pp .capture-actions {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+      }
+      .pp .capture-actions .icon-button {
+        width: 29px;
+        height: 32px;
+        color: var(--accent);
+      }
+      .pp .capture-actions .icon-button svg {
+        width: 17px;
+        height: 17px;
+      }
+      .pp .primary {
+        background: var(--accent);
+        color: var(--on-accent);
+        border-radius: 9px;
+        padding: 10px 15px;
+        font-weight: 650;
+        font-size: 12px;
+        min-height: 39px;
+      }
+      .pp .primary svg {
+        width: 16px;
+        height: 16px;
+      }
+      .pp .primary.disabled {
+        opacity: 0.4;
+      }
+      .pp .attachment {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+        background: var(--wash);
+        padding: 7px;
+        border-radius: 9px;
+      }
+      .pp .attachment-preview {
+        border-radius: 5px;
+        overflow: hidden;
+        width: 58px;
+        height: 41px;
+        background: var(--paper);
+        flex: 0 0 auto;
+        display: grid;
+        place-items: center;
+      }
+      .pp .attachment-copy {
+        flex: 1;
+        min-width: 0;
+      }
+      .pp .attachment-copy strong {
+        font-size: 11px;
+        font-weight: 600;
+      }
+      .pp .attachment-copy p {
+        font-size: 10px;
+        color: var(--muted);
+      }
+      .pp .panel-footer {
+        border-top: 1px solid var(--line);
+        background: #141710;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 11px 20px;
+      }
+      .pp .save-status {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 10px;
+        color: var(--muted);
+      }
+      .pp .status-dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: #b7da81;
+        flex: 0 0 auto;
+      }
+      .pp .export-button {
+        font-size: 10px;
+        gap: 5px;
+        color: var(--accent);
+        min-height: 30px;
+      }
+      .pp .export-button svg {
+        width: 13px;
+        height: 13px;
+      }
+      .pp .page-toolbar {
+        position: absolute;
+        bottom: 24px;
+        left: 100px;
+        width: 660px;
+        background: var(--paper);
+        border: 1px solid #454d32;
+        border-radius: 17px;
+        box-shadow: 0 8px 40px #0a0d0740;
+      }
+      .pp .page-toolbar-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 13px 16px 11px;
+      }
+      .pp .page-toolbar-heading h2 {
+        font-size: 13px;
+      }
+      .pp .page-toolbar-heading p {
+        font-size: 10px;
+        color: var(--muted);
+      }
+      .pp .page-drawing-actions {
+        display: flex;
+        gap: 8px;
+      }
+      .pp .secondary {
+        padding: 9px 13px;
+        font-size: 12px;
+        border-radius: 9px;
+        border: 1px solid #65704c;
+        min-height: 39px;
+      }
+      .pp .editor-toolbar {
+        display: flex;
+        gap: 9px;
+        flex-wrap: wrap;
+        align-items: center;
+        border-top: 1px solid var(--line);
+        padding: 9px 12px;
+      }
+      .pp .tool-group,
+      .pp .colors {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .pp .tool {
+        width: 38px;
+        height: 38px;
+        border-radius: 9px;
+        color: var(--muted);
+      }
+      .pp .tool.on {
+        background: var(--accent-wash);
+        color: var(--accent);
+        box-shadow: inset 0 0 0 1px var(--accent-line);
+      }
+      .pp .tool.disabled {
+        opacity: 0.4;
+      }
+      .pp .divider {
+        width: 1px;
+        height: 24px;
+        background: var(--line);
+      }
+      .pp .swatch {
+        width: 30px;
+        height: 34px;
+        border-radius: 7px;
+        position: relative;
+      }
+      .pp .swatch::before {
+        content: "";
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: var(--swatch);
+        border: 1px solid #9ba18b;
+      }
+      .pp .swatch.on {
+        background: var(--wash);
+        box-shadow: inset 0 0 0 1px var(--accent-line);
+      }
+      .pp .swatch.on::before {
+        box-shadow:
+          0 0 0 2px var(--paper),
+          0 0 0 3px var(--swatch);
+      }
+      .pp .history {
+        margin-left: auto;
+      }
+
+      /* The browser's folder picker, drawn plainly: the site only gets the folder the user picks. */
+      .picker {
+        left: 1004px;
+        top: 300px;
+        width: 600px;
+        padding: 26px 0 0;
+        background: #fafaf9;
+        border-radius: 18px;
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.32);
+        font-family: var(--font);
+        color: var(--ink);
+      }
+      .picker h4 {
+        margin: 0 30px 18px;
+        font-size: 30px;
+        font-weight: 700;
+      }
+      .picker .row {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        height: 64px;
+        padding: 0 30px;
+        font-size: 28px;
+      }
+      .picker .row svg {
+        width: 34px;
+        height: 34px;
+      }
+      .picker .row.on {
+        background: #1c1c1b;
+        color: #fff;
+      }
+      .picker .actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 14px;
+        padding: 22px 30px 26px;
+        border-top: 1px solid #e2e2e0;
+        margin-top: 12px;
+      }
+      .picker .actions span {
+        font-size: 26px;
+        padding: 10px 26px;
+        border-radius: 12px;
+        border: 1.5px solid #bdbdbb;
+      }
+      .picker .actions .select {
+        background: #1c1c1b;
+        border-color: #1c1c1b;
+        color: #fff;
+      }
+
+      /* The saved files: the folder and the JSON metadata. */
+      .files,
+      .json {
+        left: 740px;
+        width: 1120px;
+        background: #fff;
+        border-radius: 22px;
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.12);
+        font-family: var(--mono);
+        font-size: 27px;
+        line-height: 1.55;
+      }
+      .files {
+        top: 170px;
+        height: 330px;
+        padding: 28px 36px;
+      }
+      .files .entry {
+        position: absolute;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        white-space: pre;
+      }
+      .files .entry svg {
+        width: 30px;
+        height: 30px;
+      }
+      .files .dim {
+        color: #8a8a88;
+      }
+      .files .thumb {
+        position: absolute;
+        right: 36px;
+        top: 96px;
+        width: 258px;
+        height: 210px;
+        border-radius: 10px;
+      }
+      .json {
+        top: 530px;
+        height: 380px;
+        padding: 30px 36px;
+        white-space: pre;
+      }
+      .json .line {
+        position: relative;
+        display: block;
+      }
+      .json .k {
+        color: #7a7a78;
+      }
+      .json .open {
+        display: inline-block;
+        position: relative;
+        background: #0c0c0c;
+        color: #fff;
+        border-radius: 8px;
+        padding: 0 10px;
+      }
+
+      /* End card on a black stage. */
+      .lock-mark {
+        left: 860px;
+        top: 214px;
+        width: 200px;
+        height: 200px;
+        border-radius: 56px;
+        background: #edff3a;
+        display: grid;
+        place-items: center;
+        box-shadow: 0 0 60px rgba(237, 255, 58, 0.22);
+      }
+      .lock-word {
+        top: 452px;
+        font-weight: 700;
+        font-size: 150px;
+        letter-spacing: -0.04em;
+        color: #fff;
+      }
+      .lock-word .tld {
+        color: #8c8c8a;
+      }
+      .tagline {
+        top: 690px;
+        font-size: 52px;
+        font-weight: 700;
+        color: #fff;
+      }
+      .subline {
+        top: 776px;
+        left: 0;
+        width: 1920px;
+        text-align: center;
+        font-size: 36px;
+        color: #9a9a98;
+        visibility: visible;
+      }
+      .subline .w {
+        display: inline-block;
+        margin: 0 0.12em;
+      }
+      .cursor {
+        left: 0;
+        top: 0;
+        width: 46px;
+        height: 56px;
+        z-index: 20;
+        filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.25));
+        transform-origin: 6% 6%;
+      }
+    </style>
+  </head>
+  <body>
+    <script src="stage.js"></script>
+    <script>
+      // Every visible string of the film. Widget labels are copied from src/widget.js.
+      const TEXT = {
+        script: "Add *one* script.",
+        bug: "Find the *bug.*",
+        draw: "Draw right on the *page.*",
+        comment: "Capture it. Say what's *wrong.*",
+        repo: "Pick your *repo.*",
+        files: "Saved *locally,* with its context.",
+        note: "Pay button is cut off. Keep it inside the card.",
+        tagline: "Show the bug. Keep the context.",
+        subline: "Local feedback for AI-built apps.",
+      };
+      const ID = "6f1c2e9a-…-4b7d";
+      // src/icons.js paths, drawn the way icon() draws them.
+      const PATHS = {
+        video:
+          '<rect x="2" y="5" width="14" height="14" rx="3"/><path d="m16 10 6-4v12l-6-4"/>',
+        settings:
+          '<path d="m9 3-1 3-3 1-2 3 2 2v3l3 2 1 3h5l1-3 3-2v-3l2-2-2-3-3-1-1-3Z"/><circle cx="11.5" cy="11.5" r="3"/>',
+        chat: '<path d="M21 11.5a8.4 8.4 0 0 1-8.5 8.5H5l-4 3V11.5A8.5 8.5 0 0 1 9.5 3h3a8.5 8.5 0 0 1 8.5 8.5Z"/><path d="M7 10h8M7 14h5"/>',
+        close: '<path d="m6 6 12 12M18 6 6 18"/>',
+        camera:
+          '<path d="M4 6h4l2-3h4l2 3h4a2 2 0 0 1 2 2v12H2V8a2 2 0 0 1 2-2Z"/><circle cx="12" cy="13" r="4"/>',
+        send: '<path d="m21 3-7 18-4-7-7-4 18-7ZM10 14 21 3"/>',
+        download: '<path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/>',
+        pen: '<path d="m15 4 5 5M4 20l5-1L21 7a2 2 0 0 0-5-5L4 14l-1 7Z"/>',
+        highlight:
+          '<path d="m9 15 7-12 6 4-7 12-6-4ZM9 15l-4 3 5 3 5-2M2 22h12"/>',
+        rectangle: '<rect x="3" y="5" width="18" height="14" rx="1"/>',
+        ellipse: '<ellipse cx="12" cy="12" rx="9" ry="8"/>',
+        undo: '<path d="m9 4-6 6 6 6M3 10h10a7 7 0 0 1 7 7v3"/>',
+        redo: '<path d="m15 4 6 6-6 6m6-6H11a7 7 0 0 0-7 7v3"/>',
+        trash: '<path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/>',
+        link: '<path d="m10 14 4-4m-6 6-2 2a4 4 0 0 1-6-6l4-4a4 4 0 0 1 6 0m4 0 2-2a4 4 0 0 1 6 6l-4 4a4 4 0 0 1-6 0" transform="translate(2 -1)"/>',
+        folder:
+          '<path d="M3 6a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Z"/>',
+        file: '<path d="M6 3h8l4 4v14H6Z"/><path d="M14 3v4h4"/>',
+      };
+      const icon = (name, size = 20) =>
+        `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${PATHS[name]}</svg>`;
+      // src/widget.js COLORS, in order; the first is the default.
+      const COLORS = [
+        "#ef4444",
+        "#f97316",
+        "#eab308",
+        "#22c55e",
+        "#14b8a6",
+        "#3b82f6",
+        "#a855f7",
+        "#1f2937",
+      ];
+      const YELLOW = 2;
+
+      // The sample fixture's 860 x 700 page, also used scaled down as the capture image.
+      const RECT = { x: 182, y: 436, w: 284, h: 74 };
+      const samplePage = (marked) => `<div class="sp">
+          <div class="sp-nav"></div><div class="sp-logo"></div><div class="sp-brand">Acme Notes</div>
+          <div class="sp-link" style="left:676px">Plans</div><div class="sp-link" style="left:744px">Account</div>
+          <div class="sp-h1">Checkout</div><div class="sp-sub">Step 2 of 2 · Payment</div>
+          <div class="sp-card">
+            <div class="sp-label" style="top:26px">Pro plan</div>
+            <div class="sp-price">$24.00 <span>/ month</span></div>
+            <div class="sp-label" style="top:110px">Email</div><div class="sp-field" style="top:130px">sam@example.com</div>
+            <div class="sp-label" style="top:190px">Card number</div><div class="sp-field" style="top:210px">4242 4242 4242 4242</div>
+            <div class="sp-pay">Confirm and pay $24.00</div>
+          </div>
+          <div class="sp-summary">
+            <div class="sp-row" style="top:22px;font-weight:600;color:#1b1b1a">Order summary</div>
+            <div class="sp-row" style="top:66px">Pro plan, monthly<b>$24.00</b></div>
+            <div class="sp-row" style="top:100px">Tax<b>$0.00</b></div>
+            <div class="sp-rule" style="top:140px"></div>
+            <div class="sp-row" style="top:156px;font-weight:600;color:#1b1b1a">Total<b style="font-weight:700">$24.00</b></div>
+          </div>
+          ${marked ? `<div class="mark" style="left:${RECT.x}px;top:${RECT.y}px;width:${RECT.w}px;height:${RECT.h}px"></div>` : ""}
+        </div>`;
+      const thumb = (width, height, marked = true) => {
+        const scale = Math.min(width / 860, height / 700);
+        return `<div class="thumb" style="width:${width}px;height:${height}px"><div style="position:absolute;left:${(width - 860 * scale) / 2}px;top:${(height - 700 * scale) / 2}px;width:${860 * scale}px;height:${700 * scale}px;overflow:hidden">${samplePage(marked).replace('class="sp"', `class="sp" style="transform:scale(${scale})"`)}</div></div>`;
+      };
+
+      // ── Beat 1 · the script (0-29) ────────────────────────────────────────────────────────────────────
+      const CAPTION_TOP = 400;
+      caption(TEXT.script, CAPTION_TOP, 2, 26);
+      const code = el(
+        `<div class="a code"><div class="file">index.html</div></div>`,
+      );
+      actor(code, {
+        at: 3,
+        from: { y: 700, r: 3 },
+        dur: 6,
+        out: 27,
+        to: { y: -1000, r: -3 },
+        outDur: 5,
+        land: "tap",
+      });
+      cue(3, "slide", 0.8);
+      [
+        `&lt;script`,
+        `  <span class="attr">src=</span>"https://pagepaint.dev/v0.4.0/pagepaint.js"`,
+        `  <span class="attr">data-pagepaint</span>`,
+        `  <span class="attr">data-project=</span>"my-app"`,
+        `  <span class="attr">defer</span>`,
+        `&gt;&lt;/script&gt;`,
+      ].forEach((html, i) => {
+        actor(el(`<span class="a line">${html}</span>`, code), {
+          at: 7 + i * 1.4,
+          from: { x: -40 },
+          dur: 3,
+          e: "out",
+        });
+        cue(8 + i * 1.4, "tick", 0.3, 1 + i * 0.05);
+      });
+
+      // ── The browser window, its viewport and the widget (30-187) ──────────────────────────────────────
+      const browser = el(`<div class="a browser">
+          <div class="chrome"><i></i><i></i><i></i><div class="url">localhost:5173/checkout</div><div class="fixture">Sample fixture</div></div>
+          <div class="content"><div class="vp">${samplePage(false)}<div class="pp"></div></div></div>
+        </div>`);
+      actor(browser, {
+        at: 29,
+        from: { y: 1000 },
+        dur: 7,
+        out: 181,
+        to: { x: 1250, r: 4 },
+        outDur: 6,
+        land: "tap",
+        leave: "whoosh",
+      });
+      cue(29, "slide", 1);
+      const vp = browser.querySelector(".vp");
+      const pp = vp.querySelector(".pp");
+      const sp = vp.querySelector(".sp");
+
+      const fab = el(
+        `<button class="a btn fab">${icon("chat")}<span>Feedback</span></button>`,
+        pp,
+      );
+      actor(fab, { at: 39, from: { s: 0.2, y: 20 }, dur: 4, land: "pop" });
+
+      const panel = el(
+        `<section class="a panel">
+          <header class="panel-header"><div class="brand"><span class="brand-mark">${icon("chat")}</span><div><h2>Leave a little feedback</h2><p class="subtitle">A note. A screenshot. A clearer next step.</p></div></div>
+            <div class="header-actions"><span class="btn icon-button">${icon("settings")}</span><span class="btn icon-button">${icon("close")}</span></div></header>
+          <div class="context-bar">${icon("link")}<span>/checkout</span></div>
+          <nav class="thread-nav"><span class="btn storage-button">New issue</span><span id="thread-label">Issues</span></nav>
+          <div class="messages">
+            <div class="empty"><div class="empty-illustration">${icon("pen")}</div><h3>Good feedback starts here.</h3><p>Tell us what’s on your mind, or capture the page and mark it up.</p></div>
+            <div class="thread"><article class="message">
+              <div class="message-meta"><span class="avatar">Y</span><span>You</span>·<span>Oct 8, 14:32</span><span class="record-status">Open</span></div>
+              <div class="bubble"><p class="message-text">${TEXT.note}</p><div class="message-capture">${thumb(209, 170)}</div></div>
+              <p class="message-path">/checkout</p></article>
+              <span class="btn storage-button" style="margin:-12px 0 14px">Open thread</span></div>
+          </div>
+          <div class="composer">
+            <div class="attachment"><span class="attachment-preview">${thumb(50, 41)}</span><div class="attachment-copy"><strong>Screenshot attached</strong><p>Click to edit your marks</p></div><span class="btn icon-button">${icon("close")}</span></div>
+            <div class="area-label">Area (optional)<div class="input">e.g. Checkout</div></div>
+            <div class="input-box"><span class="input-label">YOUR FEEDBACK</span><div class="textarea"></div>
+              <div class="composer-actions"><div class="capture-actions"><span class="btn capture-button draw">${icon("pen")}<span>Draw &amp; capture</span></span><span class="btn icon-button">${icon("camera")}</span><span class="btn icon-button">${icon("video")}</span></div><span class="btn primary send">Send ${icon("send")}</span></div></div>
+          </div>
+          <footer class="panel-footer"><span class="save-status"><span class="status-dot"></span><span class="status-text">Saved in this browser</span></span><span class="btn export-button">${icon("download")}Download ZIP</span></footer>
+        </section>`,
+        pp,
+      );
+      const empty = panel.querySelector(".empty");
+      const thread = panel.querySelector(".thread");
+      const attachment = panel.querySelector(".attachment");
+      const textarea = panel.querySelector(".textarea");
+      const inputBox = panel.querySelector(".input-box");
+      const send = panel.querySelector(".send");
+      const statusText = panel.querySelector(".status-text");
+      // The panel opens from Feedback, hides for drawing, returns with the capture and stays through the save.
+      const panelOpen = (t) => (t >= 62 && t < 74) || t >= 114;
+      onFrame((t) => {
+        const k =
+          t < 74
+            ? progress(t, 62, 67, "back")
+            : t < 114
+              ? 1 - progress(t, 72, 75, "in")
+              : progress(t, 114, 119, "back");
+        panel.style.visibility = t >= 62 && k > 0.01 ? "inherit" : "hidden";
+        panel.style.opacity = String(Math.min(1, k * 1.4));
+        panel.style.transform = `translateY(${(1 - k) * 18}px) scale(${0.94 + 0.06 * k})`;
+        // Drawing hides Feedback; it comes back when the page dialog closes.
+        fab.style.opacity = t >= 72 && t < 116 ? "0" : "1";
+        attachment.style.display = t >= 113 && t < 177 ? "" : "none";
+        empty.style.display = t < 177 ? "" : "none";
+        thread.style.display = t >= 177 ? "" : "none";
+        thread.style.opacity = String(progress(t, 177, 180));
+        const typed = Math.round(
+          TEXT.note.length * progress(t, 122, 146, "lin"),
+        );
+        const caret =
+          t >= 62 && t < 152 && Math.floor(t / 6) % 2 === 0
+            ? '<span class="caret"></span>'
+            : "";
+        textarea.innerHTML =
+          t < 177 && typed
+            ? TEXT.note.slice(0, typed) + caret
+            : caret + '<span class="placeholder">What should we change?</span>';
+        inputBox.classList.toggle("focus", panelOpen(t) && t < 152);
+        send.classList.toggle("disabled", !(t >= 113 && t < 154));
+        statusText.textContent =
+          t >= 178 ? "Saved in repo" : "Saved in this browser";
+      });
+
+      // The page dialog: the toolbar from page-toolbar markup with the editor tools moved into it.
+      const toolbar = el(
+        `<div class="a page-toolbar">
+          <div class="page-toolbar-heading"><div><h2>Draw on this page</h2><p class="drawing-status">Draw, then capture.</p></div>
+            <div class="page-drawing-actions"><span class="btn secondary">Cancel</span><span class="btn primary finish">${icon("camera")}Capture &amp; attach</span></div></div>
+          <div class="editor-toolbar">
+            <div class="tool-group">${["pen", "highlight", "rectangle", "ellipse"].map((tool) => `<span class="btn tool" data-tool="${tool}">${icon(tool)}</span>`).join("")}</div>
+            <span class="divider"></span>
+            <div class="colors">${COLORS.map((color) => `<span class="btn swatch" style="--swatch:${color}"></span>`).join("")}</div>
+            <div class="tool-group history"><span class="btn tool disabled undo">${icon("undo")}</span><span class="btn tool disabled">${icon("redo")}</span><span class="btn tool disabled clear">${icon("trash")}</span></div>
+          </div>
+        </div>`,
+        pp,
+      );
+      actor(toolbar, {
+        at: 73,
+        from: { y: 160 },
+        dur: 6,
+        e: "out",
+        out: 111,
+        to: { y: 170 },
+        outDur: 4,
+      });
+      cue(73, "slide", 0.7);
+      const tools = [...toolbar.querySelectorAll("[data-tool]")];
+      const swatches = [...toolbar.querySelectorAll(".swatch")];
+      const drawingStatus = toolbar.querySelector(".drawing-status");
+      const mark = el(
+        `<div class="mark" style="position:absolute;left:${RECT.x}px;top:${RECT.y}px;visibility:hidden"></div>`,
+        vp,
+      );
+      vp.insertBefore(mark, pp);
+      onFrame((t) => {
+        const tool = t >= 83 ? "rectangle" : "pen";
+        tools.forEach((n) => n.classList.toggle("on", n.dataset.tool === tool));
+        swatches.forEach((n, i) =>
+          n.classList.toggle("on", i === (t >= 88 ? YELLOW : 0)),
+        );
+        toolbar
+          .querySelectorAll(".history .tool")
+          .forEach((n, i) =>
+            n.classList.toggle("disabled", i === 1 || t < 101),
+          );
+        drawingStatus.textContent =
+          t >= 110
+            ? "Capturing the page and your marks…"
+            : "Draw, then capture.";
+        const k = progress(t, 92, 101, "inOut");
+        mark.style.visibility = t >= 92 ? "inherit" : "hidden";
+        mark.style.width = `${Math.max(6, RECT.w * k)}px`;
+        mark.style.height = `${Math.max(6, RECT.h * k)}px`;
+      });
+      cue(92, "tick", 0.5, 0.8);
+      cue(96, "tick", 0.4, 1.1);
+      cue(100, "tick", 0.5, 1.4);
+
+      // ── The camera inside the window: overview, close on the panel, close on the drawing, back out ─────
+      const BASE = 1088 / 860;
+      const OVERVIEW = { s: BASE, x: 0, y: 0 };
+      const ON_PANEL = { s: 1.48, x: 125, y: 14 };
+      const ON_DRAWING = { s: 1.48, x: 95, y: 101 };
+      const MOVES = [
+        [63, 71, OVERVIEW, ON_PANEL],
+        [73, 81, ON_PANEL, ON_DRAWING],
+        [112, 120, ON_DRAWING, ON_PANEL],
+        [154, 162, ON_PANEL, OVERVIEW],
+      ];
+      function view(t) {
+        let view = OVERVIEW;
+        for (const [a, b, from, to] of MOVES)
+          if (t >= a) view = mix(from, to, progress(t, a, b, "inOut"));
+        return view;
+      }
+      onFrame((t) => {
+        const { s, x, y } = view(t);
+        vp.style.transform = `translate(${-x * s}px, ${-y * s}px) scale(${s})`;
+      });
+
+      // The folder picker the first Send opens.
+      const picker = el(`<div class="a picker"><h4>Select a folder</h4>
+          <div class="row">${icon("folder")}checkout-app</div><div class="row">${icon("folder")}design-notes</div><div class="row">${icon("folder")}marketing-site</div>
+          <div class="actions"><span>Cancel</span><span class="select">Select</span></div></div>`);
+      actor(picker, {
+        at: 155,
+        from: { y: 120, s: 0.92 },
+        dur: 6,
+        e: "out",
+        out: 173,
+        to: { y: 60, s: 0.96 },
+        outDur: 4,
+        land: "tap",
+        leave: "whoosh",
+      });
+      cue(155, "slide", 0.6);
+      const pickedRow = picker.querySelector(".row");
+      onFrame((t) => pickedRow.classList.toggle("on", t >= 166));
+      onFrame(
+        (t) => (picker.style.opacity = String(1 - progress(t, 173, 177))),
+      );
+
+      // ── The cursor: a path through the window's viewport and the picker ───────────────────────────────
+      // Positions are measured from the laid-out scene so the clicks land on the real controls.
+      const center = (node) => {
+        const r = node.getBoundingClientRect();
+        return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+      };
+      const vpRect = vp.getBoundingClientRect();
+      const inViewport = (node) => {
+        const c = center(node);
+        return { x: c.x - vpRect.left, y: c.y - vpRect.top };
+      };
+      const atView = (p) => ({ x: p.x, y: p.y, view: true });
+      const atStage = (node) => ({ ...center(node), view: false });
+      const toStage = (p, t) => {
+        if (!p.view) return p;
+        const { s, x, y } = view(t);
+        return { x: 760 + (p.x - x) * s, y: 132 + (p.y - y) * s };
+      };
+      const P = {
+        offstage: { x: 1980, y: 1140, view: false },
+        bug: atView({ x: 438, y: 474 }),
+        fab: atView(inViewport(fab)),
+        draw: atView(inViewport(panel.querySelector(".draw"))),
+        rectangle: atView(inViewport(tools[2])),
+        yellow: atView(inViewport(swatches[YELLOW])),
+        dragFrom: atView({ x: RECT.x, y: RECT.y }),
+        dragTo: atView({ x: RECT.x + RECT.w, y: RECT.y + RECT.h }),
+        finish: atView(inViewport(toolbar.querySelector(".finish"))),
+        rest: atView({ x: 330, y: 330 }),
+        send: atView(inViewport(send)),
+        folder: atStage(pickedRow),
+        select: atStage(picker.querySelector(".select")),
+      };
+      // [time, place]: the cursor glides between consecutive places.
+      const PATH = [
+        [40, P.offstage],
+        [48, P.bug],
+        [55, P.bug],
+        [61, P.fab],
+        [66, P.fab],
+        [71, P.draw],
+        [78, P.draw],
+        [83, P.rectangle],
+        [84, P.rectangle],
+        [88, P.yellow],
+        [89, P.yellow],
+        [92, P.dragFrom],
+        [101, P.dragTo],
+        [104, P.dragTo],
+        [110, P.finish],
+        [114, P.finish],
+        [121, P.rest],
+        [146, P.rest],
+        [152, P.send],
+        [156, P.send],
+        [165, P.folder],
+        [167, P.folder],
+        [172, P.select],
+        [174, P.select],
+        [182, P.offstage],
+      ];
+      const CLICKS = [62, 72, 83, 88, 110, 152, 166, 172];
+      CLICKS.forEach((t) => cue(t, "click", 0.9));
+      const cursor = el(
+        `<svg class="a cursor" viewBox="0 0 28 34"><path d="M3 2 L3 27 L9.5 21 L14 31 L18.5 29 L14 19.5 L23 19.5 Z" fill="#0c0c0c" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"/></svg>`,
+      );
+      onFrame((t) => {
+        const shown = t >= PATH[0][0] && t <= PATH[PATH.length - 1][0];
+        cursor.style.visibility = shown ? "inherit" : "hidden";
+        if (!shown) return;
+        let i = 0;
+        while (i < PATH.length - 2 && t >= PATH[i + 1][0]) i++;
+        const [a, from] = PATH[i];
+        const [b, to] = PATH[i + 1];
+        const k = progress(t, a, b, "inOut");
+        const p = toStage(from, t);
+        const q = toStage(to, t);
+        let x = p.x + (q.x - p.x) * k;
+        let y = p.y + (q.y - p.y) * k;
+        // A small loop around the clipped edge of the button.
+        if (t > 48 && t < 56) {
+          const angle = progress(t, 48, 56, "inOut") * Math.PI * 2;
+          x += Math.sin(angle) * 16;
+          y -= (1 - Math.cos(angle)) * 10;
+        }
+        const pressed =
+          CLICKS.some((c) => t >= c && t < c + 2) || (t >= 92 && t < 101);
+        cursor.style.transform = `translate(${x - 3}px, ${y - 2}px) scale(${pressed ? 0.86 : 1})`;
+      });
+      // A pressed control dips for two units, as the cursor does.
+      const PRESSES = [
+        [62, fab],
+        [72, panel.querySelector(".draw")],
+        [83, tools[2]],
+        [88, swatches[YELLOW]],
+        [110, toolbar.querySelector(".finish")],
+        [152, send],
+        [172, picker.querySelector(".select")],
+      ];
+      onFrame((t) =>
+        PRESSES.forEach(
+          ([c, node]) => (node.style.scale = t >= c && t < c + 2 ? "0.94" : ""),
+        ),
+      );
+
+      // ── Captions for the window beats ─────────────────────────────────────────────────────────────────
+      caption(TEXT.bug, CAPTION_TOP, 33, 58);
+      caption(TEXT.draw, CAPTION_TOP, 63, 108);
+      caption(TEXT.comment, CAPTION_TOP, 112, 153);
+      cue(146, "pop", 0.5);
+      for (let t = 123; t < 146; t += 2)
+        cue(t, "tick", 0.18, 1.3 + (t % 4) * 0.05);
+      caption(TEXT.repo, CAPTION_TOP, 158, 181);
+      cue(178, "pop", 0.8);
+
+      // ── Beat 6 · the saved files (184-227) ────────────────────────────────────────────────────────────
+      caption(TEXT.files, CAPTION_TOP, 186, 222);
+      const files = el(`<div class="a files"></div>`);
+      actor(files, {
+        at: 185,
+        from: { y: -500, r: -3 },
+        dur: 6,
+        out: 223,
+        to: { y: -900, r: -4 },
+        outDur: 5,
+        hold: { r: -0.6 },
+        land: "tap",
+      });
+      cue(185, "slide", 0.8);
+      [
+        [28, 28, "folder", "checkout-app/"],
+        [64, 82, "folder", ".annotations/"],
+        [104, 136, "file", `${ID}.webp`],
+        [104, 190, "file", `${ID}.original.webp`],
+        [104, 244, "file", `${ID}.json`],
+      ].forEach(([left, top, kind, name], i) => {
+        const entry = el(
+          `<div class="a entry" style="left:${36 + left}px;top:${top}px">${icon(kind, 30)}<span>${name}</span></div>`,
+          files,
+        );
+        actor(entry, { at: 188 + i * 1.6, from: { x: -30 }, dur: 3, e: "out" });
+        cue(189 + i * 1.6, "tick", 0.3, 0.9 + i * 0.08);
+      });
+      actor(el(thumb(258, 210), files), {
+        at: 193,
+        from: { s: 0.4, r: 6 },
+        dur: 4,
+        hold: { r: 2 },
+        land: "pop",
+      });
+
+      const json = el(`<div class="a json"></div>`);
+      actor(json, {
+        at: 195,
+        from: { y: 700, r: 3 },
+        dur: 6,
+        out: 223,
+        to: { y: -1300, r: 3 },
+        outDur: 5,
+        hold: { r: 0.4 },
+        land: "tap",
+        leave: "whoosh",
+      });
+      cue(195, "slide", 0.8);
+      [
+        `{  <span class="k">…</span>`,
+        `  <span class="k">"url":</span> "http://localhost:5173/checkout",`,
+        `  <span class="k">"viewport":</span> { "width": 860, "height": 700, <span class="k">…</span> },`,
+        `  <span class="k">"shapes":</span> [{ "tool": "rectangle", "color": "#eab308", <span class="k">…</span> }],`,
+        `  <span class="k">"comment":</span> "${TEXT.note}",`,
+        `  <span class="k">"status":</span> <span class="open">"open"</span>`,
+        `}`,
+      ].forEach((html, i) => {
+        const line = el(`<span class="a line">${html}</span>`, json);
+        actor(line, { at: 200 + i * 1.6, from: { x: -30 }, dur: 3, e: "out" });
+        if (i > 0 && i < 6) cue(201 + i * 1.6, "tick", 0.3, 1 + i * 0.06);
+      });
+      const status = json.querySelector(".open");
+      actor(status, {
+        at: 210,
+        from: { s: 1.6, r: -6 },
+        dur: 4,
+        land: "stamp",
+      });
+
+      // ── Beat 7 · the end card (228-263) ───────────────────────────────────────────────────────────────
+      onFrame((t) => {
+        const k = progress(t, 225, 231, "inOut");
+        const level = Math.round(232 - (232 - 11) * k);
+        stage.style.background = `rgb(${level}, ${level}, ${level - 2})`;
+      });
+      const lockMark = el(
+        `<div class="a lock-mark"><svg viewBox="0 0 24 24" width="128" height="128" fill="none" stroke="#171b0b" stroke-width="1.8"><path d="M5 5h14v11H9l-4 4V5Z"/><path d="M9 9h6M9 12h4"/></svg></div>`,
+      );
+      actor(lockMark, {
+        at: 229,
+        from: { s: 0.1, r: -30 },
+        dur: 6,
+        land: "stamp",
+      });
+      const lockWord = el(`<div class="a lock-word"></div>`);
+      [..."pagepaint.dev"].forEach((ch, i) => {
+        const span = el(
+          `<span class="${i >= 9 ? "tld" : ""}">${ch}</span>`,
+          lockWord,
+        );
+        actor(span, {
+          at: 234 + i,
+          from: { y: -70, r: i % 2 ? 10 : -10 },
+          dur: 3,
+        });
+        if (i % 2 === 0) cue(235 + i, "tap", 0.45, 0.9 + i * 0.05);
+      });
+      const tagline = el(`<div class="a tagline"></div>`);
+      words(tagline, TEXT.tagline).forEach((w, i) =>
+        actor(w, { at: 247 + i, from: { y: -30 }, dur: 3 }),
+      );
+      cue(248, "pop", 0.6);
+      const subline = el(`<div class="a subline"></div>`);
+      words(subline, TEXT.subline).forEach((w, i) =>
+        actor(w, { at: 252 + i * 0.8, from: { y: -24 }, dur: 3 }),
+      );
+
+      film({
+        length: 264,
+        poster: 104,
+        music: { end: 222, chord: 230 },
+        fonts: ["500 20px 'DM Sans'", "700 20px 'DM Sans'"],
+        paper: false,
+      });
+    </script>
+  </body>
+</html>

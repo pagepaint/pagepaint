@@ -1,0 +1,22 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:02.500
+Add one script: a script tag loading pagepaint.dev/v0.4.0/pagepaint.js.
+
+00:00:02.500 --> 00:00:05.170
+Find the bug: a sample checkout page where the pay button is shifted and cut off. A neon Feedback button sits in the corner.
+
+00:00:05.170 --> 00:00:09.330
+Draw right on the page: Feedback opens the Pagepaint panel, Draw and capture shows the page toolbar, and a yellow rectangle goes around the button.
+
+00:00:09.330 --> 00:00:13.170
+Capture it and say what's wrong: the screenshot is attached and the note reads "Pay button is cut off. Keep it inside the card." Then Send.
+
+00:00:13.170 --> 00:00:15.330
+Pick your repo: the browser's folder picker opens and checkout-app is selected. The panel reads Saved in repo.
+
+00:00:15.330 --> 00:00:19.000
+Saved locally with its context: the .annotations folder holds the screenshot, the original and a JSON file with the URL, viewport, shapes, comment and status open.
+
+00:00:19.000 --> 00:00:22.000
+pagepaint.dev. Show the bug. Keep the context. Local feedback for AI-built apps.

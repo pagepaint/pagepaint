@@ -1,0 +1,170 @@
+/* ABOUTME: Base styles for a demo scene at 1920 x 1080: the stage, cut-paper actors, captions, a phone and the end card. */
+/* ABOUTME: Brand colours and the font come from the custom properties the scene sets on :root. */
+
+:root {
+  --paper: #f1eadd;
+  --card: #fcfaf5;
+  --ink: #10162a;
+  --muted: #5d6478;
+  --line: #e7dfd0;
+  --brand: #1c42b1;
+  --font: system-ui, sans-serif;
+}
+* {
+  box-sizing: border-box;
+  margin: 0;
+}
+html,
+body {
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+  background: var(--paper);
+}
+body {
+  font-family: var(--font);
+  font-weight: 500;
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+#camera,
+#stage {
+  position: absolute;
+  inset: 0;
+}
+#stage {
+  overflow: hidden;
+  background: var(--paper);
+}
+
+/* Every actor is absolutely placed at its resting position and hidden until its entry. */
+.a {
+  position: absolute;
+  visibility: hidden;
+  transform-origin: 50% 50%;
+}
+/* Cut paper: hand-cut edges that lift off the backdrop with a crisp and a soft shadow. */
+.cut {
+  filter: url(#boil) drop-shadow(0 4px 0 rgba(16, 22, 42, 0.1))
+    drop-shadow(0 18px 20px rgba(16, 22, 42, 0.14));
+}
+.cut-soft {
+  filter: url(#boil-soft) drop-shadow(0 3px 0 rgba(16, 22, 42, 0.1))
+    drop-shadow(0 12px 14px rgba(16, 22, 42, 0.12));
+}
+.card {
+  background: var(--card);
+  border-radius: 22px;
+}
+.grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+}
+.vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at 50% 45%,
+    transparent 55%,
+    rgba(60, 40, 20, 0.22) 100%
+  );
+}
+
+/* Captions: big words on the left half, dropped in one after another; .hl is the highlighted word. */
+.caption {
+  left: 130px;
+  width: 860px;
+  font-weight: 800;
+  font-size: 92px;
+  line-height: 1.06;
+  letter-spacing: -0.03em;
+  visibility: visible;
+}
+.caption .w,
+.title .w {
+  display: inline-block;
+  margin-right: 0.24em;
+  position: relative;
+}
+.caption .hl,
+.title .hl {
+  color: #fff;
+  background: var(--brand);
+  padding: 0 0.16em 0.04em;
+  border-radius: 0.12em;
+}
+/* A centred title for the opening question. */
+.title {
+  top: 300px;
+  left: 0;
+  width: 1920px;
+  text-align: center;
+  font-size: 128px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+  visibility: visible;
+}
+
+/* A phone on the right half; build the app's screen inside .screen at a size that reads at 720p. */
+.phone {
+  left: 1110px;
+  top: 70px;
+  width: 500px;
+  height: 960px;
+  border-radius: 70px;
+  background: var(--ink);
+  padding: 16px;
+}
+.screen {
+  position: absolute;
+  inset: 16px;
+  border-radius: 56px;
+  background: var(--card);
+  overflow: hidden;
+}
+
+/* End card: the mark, the wordmark letter by letter, the tagline and the address. */
+.lock-word {
+  top: 600px;
+  left: 0;
+  width: 1920px;
+  text-align: center;
+  font-weight: 800;
+  font-size: 150px;
+  letter-spacing: -0.02em;
+  visibility: visible;
+}
+.lock-word span {
+  display: inline-block;
+  visibility: hidden;
+}
+.tagline {
+  top: 820px;
+  left: 0;
+  width: 1920px;
+  text-align: center;
+  font-size: 46px;
+  color: var(--muted);
+  visibility: visible;
+}
+.tagline .w {
+  display: inline-block;
+  margin: 0 0.12em;
+}
+.url {
+  left: 760px;
+  top: 912px;
+  width: 400px;
+  height: 70px;
+  border-radius: 35px;
+  background: var(--brand);
+  color: #fff;
+  font-weight: 800;
+  font-size: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

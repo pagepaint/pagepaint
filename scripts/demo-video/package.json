@@ -1,0 +1,14 @@
+{
+  "name": "pagepaint-demo-video",
+  "private": true,
+  "type": "module",
+  "description": "Renders the Pagepaint demo video from scene.html.",
+  "scripts": {
+    "stills": "node render.ts scene.html --out ../../.generated/demo-video --stills",
+    "render": "node render.ts scene.html --out ../../.generated/demo-video --name pagepaint-demo --web ../../public/video/pagepaint-demo.mp4 --poster ../../public/video/pagepaint-demo-poster.webp"
+  },
+  "devDependencies": {
+    "playwright-core": "1.63.0",
+    "sharp": "^0.34.0"
+  }
+}
