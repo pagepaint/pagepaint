@@ -1,6 +1,8 @@
 # Pagepaint Chrome Web Store submission
 
-Status: Timo completed developer registration, payment, and agreement acceptance. The updated package is prepared; store submission remains pending. Do not label a package as submitted or published until the dashboard confirms that state.
+Status: **Pending review**, confirmed by the Chrome Web Store dashboard on October 8, 2026. Version 0.4.2 is submitted as item `kdjggnmegnnhpdlnogdlbiaakbhgfcjh`, with automatic publication enabled after approval. Timo completed developer registration, payment, and agreement acceptance. Publisher contact verification, listing images, privacy disclosures, reviewer instructions, and free/public distribution are complete. The item is not yet published.
+
+Publisher dashboard: https://chrome.google.com/webstore/devconsole/446ea031-6771-4e92-b734-cd96aafc3445/kdjggnmegnnhpdlnogdlbiaakbhgfcjh/edit
 
 ## Listing
 
@@ -60,7 +62,7 @@ Permissions:
 
 Remote code: No. All code executing in extension contexts is bundled in the ZIP. Optional GitHub review opens a normal HTTPS web page; it does not execute remote code in an extension context.
 
-Data-handling categories to disclose: website content (screenshots, video, and comments), web history (the URL of pages the user activates and captures), personally identifiable information (the optional author name and GitHub account name), authentication information (optional GitHub OAuth, handled by the trusted HTTPS connection window). Pagepaint does not passively collect browsing history. Local handling must be disclosed even when the operator receives no feedback.
+Data-handling categories disclosed: website content (screenshots, video, and comments), web history (the URL of pages the user activates and captures), personally identifiable information (the optional author name and GitHub account name), authentication information (optional GitHub OAuth, handled by the trusted HTTPS connection window), personal communications (user-authored feedback messages), and user activity (explicit drawing coordinates and capture-time scroll position). Pagepaint does not passively collect browsing history or monitor activity. Local handling must be disclosed even when the operator receives no feedback.
 
 Certifications supported by the implementation: no data sales; no use or transfer unrelated to the extension’s visual feedback purpose; no creditworthiness or lending use.
 
@@ -79,6 +81,6 @@ Hosted GitHub OAuth is configured, and Timo verified sign-in in Edge. Core funct
 - Regenerate vector identity PNGs: `node scripts/brand-assets.js` after installing project dependencies and Playwright Chromium.
 - Capture screenshot workflow: `node scripts/store-screenshots.js`; it starts its own temporary fixture server and browser profile. Fixture permissions are never packaged.
 
-Google requires a registered developer account and review before public availability. Keep the store URL out of the site until the dashboard supplies a real listing ID. After approval, update the homepage install link, llms.txt, README, and this status.
+Google review is required before public availability. The real item ID is recorded above; keep a public store install button out of the site until approval and a working listing URL are verified. After approval, update the homepage install link, llms.txt, README, and this status. Reuse this existing item for subsequent releases.
 
 Official references: [publishing](https://developer.chrome.com/docs/webstore/publish), [listing images](https://developer.chrome.com/docs/webstore/images), [privacy disclosures](https://developer.chrome.com/docs/webstore/cws-dashboard-privacy), [local data handling](https://developer.chrome.com/docs/webstore/program-policies/user-data-faq).
