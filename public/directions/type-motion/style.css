@@ -14,11 +14,11 @@
 }
 :root {
   color-scheme: dark;
-  --paper: #f1f1ef;
+  --paper: #f0f0f0;
   --ink: #101010;
-  --text: #f5f5f3;
-  --muted: #b2b2af;
-  --line: #3b3b3a;
+  --text: #f4f4f4;
+  --muted: #b1b1b1;
+  --line: #3b3b3b;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 * {
@@ -108,7 +108,7 @@ blockquote {
   font-weight: 700;
 }
 .brand-symbol {
-  border: 1px solid #747473;
+  border: 1px solid #747474;
   padding: 0.15rem 0.35rem;
   line-height: 1.5;
   font-size: 0.85rem;
@@ -231,13 +231,13 @@ blockquote {
   border-color: var(--text);
 }
 .button-primary:hover {
-  background: #d2d2d0;
-  border-color: #d2d2d0;
+  background: #d1d1d1;
+  border-color: #d1d1d1;
 }
 .button-outline {
   background: transparent;
   color: var(--text);
-  border-color: #646463;
+  border-color: #646464;
 }
 .button-outline:hover {
   background: #252525;
@@ -315,11 +315,11 @@ video {
 }
 .install-intro p {
   max-width: 40ch;
-  color: #51514f;
+  color: #505050;
   font-size: 1.125rem;
 }
 .code-block {
-  border: 1px solid #b5b5b1;
+  border: 1px solid #b4b4b4;
 }
 .code-toolbar {
   padding-left: 1.25rem;
@@ -327,9 +327,9 @@ video {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  border-bottom: 1px solid #b5b5b1;
+  border-bottom: 1px solid #b4b4b4;
   font-size: 0.85rem;
-  color: #51514f;
+  color: #505050;
 }
 .code-toolbar button {
   background: var(--ink);
@@ -350,7 +350,7 @@ pre {
 .code-block pre {
   padding: 2rem 1.25rem;
   overflow-x: auto;
-  scrollbar-color: #878784 var(--paper);
+  scrollbar-color: #868686 var(--paper);
 }
 code {
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
@@ -364,7 +364,7 @@ code {
   margin-top: 1rem;
   max-width: 78ch;
   font-size: 0.9rem;
-  color: #51514f;
+  color: #505050;
 }
 .install-alternative a {
   color: var(--ink);
@@ -387,12 +387,12 @@ code {
   margin: 0;
 }
 .steps li {
-  border-top: 1px solid #b5b5b1;
+  border-top: 1px solid #b4b4b4;
   padding-top: 1rem;
 }
 .step-number {
   display: block;
-  color: #656562;
+  color: #646464;
   font-family: "SFMono-Regular", Consolas, monospace;
   font-size: 0.85rem;
   margin-bottom: 1.5rem;
@@ -403,13 +403,13 @@ code {
   margin-bottom: 0.75rem;
 }
 .steps p {
-  color: #51514f;
+  color: #505050;
   max-width: 35ch;
 }
 .repo-workflow {
   margin-top: 4.5rem;
   padding-top: 2.5rem;
-  border-top: 1px solid #b5b5b1;
+  border-top: 1px solid #b4b4b4;
   display: grid;
   grid-template-columns: 1.3fr 0.7fr;
   align-items: start;
@@ -423,7 +423,7 @@ code {
 }
 .repo-copy p {
   max-width: 58ch;
-  color: #51514f;
+  color: #505050;
 }
 .repo-copy blockquote {
   border-left: 2px solid var(--ink);
@@ -434,11 +434,11 @@ code {
 }
 .repo-copy .compatibility {
   font-size: 0.9rem;
-  color: #51514f;
+  color: #505050;
 }
 .repo-tree {
   padding-top: 0.25rem;
-  color: #51514f;
+  color: #505050;
   font-size: 1rem;
   line-height: 1.9;
   white-space: pre-wrap;

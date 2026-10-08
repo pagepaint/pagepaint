@@ -1,0 +1,292 @@
+<!-- ABOUTME: Provides an interactive sample app for testing the embedded review widget. -->
+<!-- ABOUTME: Demonstrates script loading, positioning, page context, and browser storage. -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Pagepaint is a JavaScript feedback toolkit. Draw, capture, record, and keep feedback locally, with optional GitHub issue sharing."
+    />
+    <title>Pagepaint — feedback playground</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23285b49'/%3E%3Cpath d='M9 10h14v10H13l-4 3V10Z' fill='none' stroke='white' stroke-width='2'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="./demo/demo.css" />
+    <script src="./pagepaint.js" defer></script>
+    <script src="./demo/demo.js" defer></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="wordmark" href="./" aria-label="Pagepaint playground home"
+        ><span class="logo-mark"
+          ><svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path
+              d="M5 5h14v11H9l-4 4V5Z"
+              stroke="currentColor"
+              stroke-width="1.8"
+            />
+            <path
+              d="M9 9h6M9 12h4"
+              stroke="currentColor"
+              stroke-width="1.8"
+            /></svg></span
+        >pagepaint<span class="wordmark-divider"></span
+        ><span class="wordmark-note">a feedback toolkit</span></a
+      >
+      <div class="header-status"><span></span>Live playground</div>
+    </header>
+    <main>
+      <section class="intro">
+        <div>
+          <p class="eyebrow">BUILD. REVIEW. KEEP GOING.</p>
+          <h1>The details make<br /><em>the difference.</em></h1>
+          <p class="intro-copy">
+            Give your AI-built apps a feedback button. Capture what you see,
+            circle what needs work, and keep the whole conversation together.
+          </p>
+        </div>
+        <div class="intro-aside">
+          <div class="little-note">
+            <svg viewBox="0 0 70 60" fill="none" aria-hidden="true">
+              <path
+                d="M6 12c8-4 40-3 48 0s1 31-8 34-35 3-39-5-8-27-1-29Z"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+              <path
+                d="m24 24 13 9 24-23M23 47l-8 9"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+            </svg>
+            <p>A clearer note.<br />A better next iteration.</p>
+          </div>
+          <button id="open-feedback" class="open-feedback">
+            Try the feedback widget <span aria-hidden="true">↗</span>
+          </button>
+        </div>
+      </section>
+      <div class="playground-grid">
+        <section class="sample-app" aria-labelledby="sample-title">
+          <header class="sample-header">
+            <div class="workspace-name">
+              <span class="workspace-avatar">S</span>
+              <div>
+                <strong>Studio workspace</strong
+                ><span>Sample app · something to mark up</span>
+              </div>
+            </div>
+            <span class="demo-tag">DEMO</span>
+          </header>
+          <div class="sample-toolbar">
+            <nav aria-label="Sample app views">
+              <button data-view="overview">Overview</button
+              ><button data-view="board" class="active" aria-current="page">
+                Board
+              </button>
+            </nav>
+            <span class="iteration">Iteration 04</span>
+          </div>
+          <div class="board-heading">
+            <div>
+              <p class="board-eyebrow">THE NEXT SMALL THINGS</p>
+              <h2 id="sample-title">Make it feel right.</h2>
+              <p>Click a task to move it to the next column.</p>
+            </div>
+            <div class="reviewers" aria-label="Sample reviewers">
+              <span>AL</span><span>MK</span><span>JD</span>
+            </div>
+          </div>
+          <div class="board" id="board">
+            <section class="column" data-column="0">
+              <h3>
+                <span class="column-dot todo"></span>To do<span
+                  class="column-count"
+                  >3</span
+                >
+              </h3>
+              <button
+                class="task"
+                data-stage="0"
+                aria-label="Move Improve the empty state to the next column"
+              >
+                <span class="task-tag design">Design</span
+                ><strong>Improve the empty state</strong>
+                <p>A little more guidance when there’s nothing here yet.</p>
+                <div class="task-footer">
+                  <span>ST–018</span><span class="task-owner">AL</span>
+                </div>
+              </button>
+              <button
+                class="task"
+                data-stage="0"
+                aria-label="Move Make buttons easier to find to the next column"
+              >
+                <span class="task-tag interface">Interface</span
+                ><strong>Make buttons easier to find</strong>
+                <p>The primary action needs a little more emphasis.</p>
+                <div class="task-footer">
+                  <span>ST–021</span><span class="task-owner peach">JD</span>
+                </div>
+              </button>
+              <button
+                class="task"
+                data-stage="0"
+                aria-label="Move Tighten the mobile spacing to the next column"
+              >
+                <span class="task-tag design">Design</span
+                ><strong>Tighten the mobile spacing</strong>
+                <p>Keep the breathing room. Lose the overflow.</p>
+                <div class="task-footer">
+                  <span>ST–023</span><span class="task-owner">AL</span>
+                </div>
+              </button>
+            </section>
+            <section class="column" data-column="1">
+              <h3>
+                <span class="column-dot progress"></span>In progress<span
+                  class="column-count"
+                  >1</span
+                >
+              </h3>
+              <button
+                class="task"
+                data-stage="1"
+                aria-label="Move Simplify the navigation to the next column"
+              >
+                <span class="task-tag interface">Interface</span
+                ><strong>Simplify the navigation</strong>
+                <p>Fewer choices. A more obvious way forward.</p>
+                <div class="task-footer">
+                  <span>ST–016</span><span class="task-owner blue">MK</span>
+                </div>
+              </button>
+              <div class="column-placeholder">
+                Room for the next improvement.
+              </div>
+            </section>
+            <section class="column" data-column="2">
+              <h3>
+                <span class="column-dot done"></span>Done<span
+                  class="column-count"
+                  >1</span
+                >
+              </h3>
+              <button
+                class="task completed"
+                data-stage="2"
+                aria-label="Move Save draft changes to the next column"
+              >
+                <span class="task-tag experience">Experience</span
+                ><strong>Save draft changes</strong>
+                <p>Picking up where you left off should feel effortless.</p>
+                <div class="task-footer">
+                  <span>ST–012</span><span class="task-owner peach">JD</span>
+                </div>
+              </button>
+            </section>
+          </div>
+          <footer class="sample-footer">
+            <span
+              ><span class="small-dot"></span>Ready for another round of
+              feedback</span
+            ><span>Everything here is sample content</span>
+          </footer>
+        </section>
+        <aside class="setup" aria-labelledby="setup-title">
+          <div class="setup-heading">
+            <span class="section-number">01</span>
+            <h2 id="setup-title">Drop it in.</h2>
+          </div>
+          <p>
+            One script. No framework.<br />Your existing app stays your app.
+          </p>
+          <div class="code-block">
+            <div class="code-header">
+              <span>index.html</span
+              ><button id="copy-snippet" aria-label="Copy embed code">
+                Copy
+              </button>
+            </div>
+            <pre><code id="embed-code"></code></pre>
+          </div>
+          <div class="position-control">
+            <label for="position">Button position</label
+            ><select id="position">
+              <option value="bottom-right">Bottom right</option>
+              <option value="bottom-left">Bottom left</option>
+              <option value="top-right">Top right</option>
+              <option value="top-left">Top left</option>
+              <option value="custom">Custom: 120px from bottom</option>
+            </select>
+          </div>
+          <div class="setup-divider"></div>
+          <div class="setup-heading">
+            <span class="section-number">02</span>
+            <h2>Make your point.</h2>
+          </div>
+          <ol class="steps">
+            <li><span>Open the floating feedback button.</span></li>
+            <li>
+              <span
+                >Choose Draw &amp; capture. Mark this page, then capture
+                it.</span
+              >
+            </li>
+            <li>
+              <span>Save a note. Choose your repo folder when prompted.</span>
+            </li>
+            <li>
+              <span>Download a ZIP with notes, images, and page context.</span>
+            </li>
+          </ol>
+          <div class="local-note">
+            <span class="small-dot"></span>
+            <p>
+              <strong>Your feedback stays local.</strong>Choose a repo folder to
+              save notes and screenshots for your agent. Drafts stay in this
+              browser; ZIP export works everywhere.
+            </p>
+          </div>
+        </aside>
+      </div>
+      <section class="context-demo">
+        <div>
+          <p class="eyebrow">CONTEXT COMES ALONG</p>
+          <h2>Less “which page was that?”</h2>
+          <p>
+            Every note keeps its full URL, path, query parameters, hash,
+            viewport, and scroll position. Screenshots keep the context from the
+            moment they were captured.
+          </p>
+        </div>
+        <div class="context-preview">
+          <span>CURRENT PAGE</span><code id="current-context"></code
+          ><button id="change-context">
+            Try a URL with query parameters <span aria-hidden="true">↗</span>
+          </button>
+        </div>
+      </section>
+      <footer class="site-footer">
+        <span>Pagepaint · local feedback</span
+        ><a href="./pagepaint-extension.zip" download
+          >Download Chrome / Edge extension</a
+        >
+        <nav aria-label="Pagepaint links">
+          <a
+            id="github-link"
+            href="https://github.com/pagepaint/pagepaint"
+            target="_blank"
+            rel="noopener noreferrer"
+            >GitHub</a
+          ><a href="./privacy/">Privacy</a><a href="./terms/">Terms</a
+          ><a href="./LICENSE">MIT license</a>
+        </nav>
+      </footer>
+      <div id="demo-announcement" role="status" class="sr-only"></div>
+    </main>
+  </body>
+</html>

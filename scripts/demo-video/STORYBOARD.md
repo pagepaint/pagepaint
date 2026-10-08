@@ -5,7 +5,7 @@ Look: smooth 60 fps, `paper: false`. Light neutral gray stage, black captions, a
 Length: 264 units (22 s), 12 units a second. Poster at 104 (the yellow rectangle drawn around the broken button, page toolbar showing). Music ends at 222, the chord lands at 230 with the mark.
 Placement: homepage hero, autoplay muted with an optional sound toggle. The captions carry the story.
 
-The browser window shows a 680 × 555 viewport at 1.6× (1088 × 888 on the stage). The widget is rebuilt from `src/widget.js` markup, `src/styles.js` rules and `src/icons.js` paths at that viewport, so its layout is what the real panel does at that size.
+The browser window shows an 860 × 700 viewport, 1088 × 886 on the stage (1.27×). A camera inside the window closes in to 1.48× on the panel (63–71), pans to the drawing (73–81), returns to the panel (112–120) and pulls back out for the picker (154–162). The widget is rebuilt from `src/widget.js` markup, `src/styles.js` rules and `src/icons.js` paths at that viewport, so its layout is what the real panel does at that size.
 
 | Beat     | Time    | Caption                              | What happens                                                                                                                                                                                                                                                                                                                                             | Sounds                                                  |
 | -------- | ------- | ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
@@ -20,7 +20,7 @@ The browser window shows a 680 × 555 viewport at 1.6× (1088 × 888 on the stag
 ## Reads
 
 - Script: caption 2–6, card 4–10, lines 8–14, held to 26.
-- Bug: window 30–37, Feedback button 40, caption 34–40, cursor reaches the clipped label at 48, held to 58.
+- Bug: window 30–37, Feedback button 40, caption 33–39, cursor reaches the clipped label at 48, held to 58.
 - Draw: Feedback click 62, panel 63–68, Draw & capture click 72, toolbar 74–80, Rectangle 83, Yellow 88, drag 92–101, held to 110.
 - Comment: Capture & attach click 112, flash 112–115, panel with attachment 116–121, typing 122–146, Send click 152.
 - Repo: picker 158–163, `checkout-app` 166, Select 172, picker out 174–177, "Saved in repo" 178, held to 183.
@@ -33,7 +33,7 @@ The browser window shows a 680 × 555 viewport at 1.6× (1088 × 888 on the stag
 - The video shows a returning user, so Feedback opens the conversation view, not the first-run accent picker.
 - The drawing colour is the real "Yellow" swatch (`#eab308`). The default tool is the pen and the default colour red, so the cursor picks Rectangle and Yellow first. The neon `#edff3a` is the interface accent, never a drawing colour.
 - The folder picker appears because the first Send calls `showDirectoryPicker` (`RepositoryStore.prepare`). The website gets only the folder the user picks. It is drawn as a plain neutral chooser, not a copy of an operating system dialog.
-- File names follow `RepositoryStore.save`: `<id>.webp`, `<id>.original.webp`, `<id>.json` in `.annotations/`; the id is a shortened UUID. The JSON card shows the fields the save adds at the end of the record (`url`, `viewport`, `shapes`, `comment`, `status`); earlier fields and point coordinates are elided with `…`, not invented. The viewport matches the window: 680 × 555.
+- File names follow `RepositoryStore.save`: `<id>.webp`, `<id>.original.webp`, `<id>.json` in `.annotations/`; the id is a shortened UUID. The JSON card shows the fields the save adds at the end of the record (`url`, `viewport`, `shapes`, `comment`, `status`); earlier fields and point coordinates are elided with `…`, not invented. The viewport matches the window: 860 × 700.
 - No GitHub issue, upload or sign-in appears: OAuth configuration is pending.
 - The checkout page is a sample fixture drawn for the video, labelled as such in the browser tab. Its URL is `http://localhost:5173/checkout`.
 - Wordmark: lowercase "pagepaint" as on the shipped site header, with ".dev" in gray.

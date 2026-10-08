@@ -48,7 +48,13 @@ for (const file of [
   await cp(path.join("dist", file), path.join(assets, `v${version}`, file));
 }
 // Retain published versioned URLs when deploying a new release.
-const retainedVersions = ["0.2.0", "0.2.1", "0.2.2", "0.3.0"];
+const retainedVersions = [
+  "0.2.0",
+  "0.2.1",
+  "0.2.2",
+  "0.3.0",
+  ...(process.argv.includes("--preserve-current-release") ? [version] : []),
+];
 await Promise.all(
   retainedVersions.map(async (release) => {
     const directory = path.join(assets, `v${release}`);
@@ -59,7 +65,7 @@ await Promise.all(
         "review-tool.mjs",
         "review-tool.js.LEGAL.txt",
         "review-tool.mjs.LEGAL.txt",
-        ...(release === "0.3.0"
+        ...(["0.3.0", version].includes(release)
           ? [
               "pagepaint.js",
               "pagepaint.mjs",
@@ -102,7 +108,7 @@ await writeFile(
   Cache-Control: public, max-age=300
 /*.mjs
   Content-Type: text/javascript; charset=utf-8
-${[...retainedVersions, version].map((release) => `/v${release}/*\n  Cache-Control: public, max-age=31536000, immutable`).join("\n")}
+${[...new Set([...retainedVersions, version])].map((release) => `/v${release}/*\n  Cache-Control: public, max-age=31536000, immutable`).join("\n")}
 `,
 );
 await writeFile(

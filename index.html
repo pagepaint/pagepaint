@@ -1,293 +1,294 @@
-<!-- ABOUTME: Provides an interactive sample app for testing the embedded review widget. -->
-<!-- ABOUTME: Demonstrates script loading, positioning, page context, and browser storage. -->
+<!-- ABOUTME: Introduces Pagepaint through a concise QA installation and usage guide. -->
+<!-- ABOUTME: Presents the product video, CDN setup, and local repository workflow. -->
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
+    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="Pagepaint is a JavaScript feedback toolkit. Draw, capture, record, and keep feedback locally, with optional GitHub issue sharing."
+      content="Pagepaint is local visual feedback for developers and QA. Add one script, annotate your app, and save the evidence for your coding agent."
     />
-    <title>Pagepaint — feedback playground</title>
+    <meta name="theme-color" content="#f7f7f7" />
+    <title>Pagepaint — the QA field guide</title>
     <link
-      rel="icon"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23285b49'/%3E%3Cpath d='M9 10h14v10H13l-4 3V10Z' fill='none' stroke='white' stroke-width='2'/%3E%3C/svg%3E"
+      rel="preload"
+      href="/demo/fonts/dm-sans-400.ttf"
+      as="font"
+      type="font/ttf"
+      crossorigin
     />
-    <link rel="stylesheet" href="./demo/demo.css" />
-    <link rel="stylesheet" href="./legal.css" />
-    <script src="./pagepaint.js" defer></script>
-    <script src="./demo/demo.js" defer></script>
+    <link
+      rel="preload"
+      href="/demo/fonts/dm-sans-700.ttf"
+      as="font"
+      type="font/ttf"
+      crossorigin
+    />
+    <link rel="stylesheet" href="/homepage/homepage.css" />
+    <link rel="stylesheet" href="/directions/field-guide/style.css" />
+    <script src="/homepage/homepage.js" defer></script>
   </head>
   <body>
-    <header class="site-header">
-      <a class="wordmark" href="./" aria-label="Pagepaint playground home"
-        ><span class="logo-mark"
-          ><svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path
-              d="M5 5h14v11H9l-4 4V5Z"
-              stroke="currentColor"
-              stroke-width="1.8"
-            />
-            <path
-              d="M9 9h6M9 12h4"
-              stroke="currentColor"
-              stroke-width="1.8"
-            /></svg></span
-        >pagepaint<span class="wordmark-divider"></span
-        ><span class="wordmark-note">a feedback toolkit</span></a
+    <a href="#overview" class="skip-link">Skip to the guide</a>
+    <header class="masthead page-width">
+      <a href="/" class="wordmark" aria-label="Pagepaint home"
+        ><span class="brand-mark" aria-hidden="true">p<span>p</span></span
+        >pagepaint<span class="edition">/ field guide</span></a
       >
-      <div class="header-status"><span></span>Live playground</div>
+      <nav class="header-links" aria-label="Site navigation">
+        <a href="/directions/"
+          >All directions <span aria-hidden="true">↗</span></a
+        >
+        <a href="https://github.com/pagepaint/pagepaint"
+          >GitHub <span aria-hidden="true">↗</span></a
+        >
+      </nav>
     </header>
-    <main>
-      <section class="intro">
-        <div>
-          <p class="eyebrow">BUILD. REVIEW. KEEP GOING.</p>
-          <h1>The details make<br /><em>the difference.</em></h1>
-          <p class="intro-copy">
-            Give your AI-built apps a feedback button. Capture what you see,
-            circle what needs work, and keep the whole conversation together.
-          </p>
-        </div>
-        <div class="intro-aside">
-          <div class="little-note">
-            <svg viewBox="0 0 70 60" fill="none" aria-hidden="true">
-              <path
-                d="M6 12c8-4 40-3 48 0s1 31-8 34-35 3-39-5-8-27-1-29Z"
-                stroke="currentColor"
-                stroke-width="2"
-              />
-              <path
-                d="m24 24 13 9 24-23M23 47l-8 9"
-                stroke="currentColor"
-                stroke-width="2"
-              />
-            </svg>
-            <p>A clearer note.<br />A better next iteration.</p>
+
+    <div class="guide page-width">
+      <aside class="guide-rail">
+        <div class="rail-heading">In this guide</div>
+        <nav aria-label="On this page">
+          <a href="#overview"><span>00</span> Overview</a>
+          <a href="#install"><span>01</span> Install</a>
+          <a href="#review"><span>02</span> Review</a>
+          <a href="#handoff"><span>03</span> Handoff</a>
+        </nav>
+        <p class="rail-note">
+          Plain JavaScript.<br />MIT licensed.<br />Your feedback stays local.
+        </p>
+      </aside>
+
+      <main id="overview">
+        <section class="introduction" aria-labelledby="intro-title">
+          <p class="section-index">00 / Visual feedback for dev &amp; QA</p>
+          <h1 id="intro-title">Point it out.<br />Ship the fix.</h1>
+          <div class="intro-bottom">
+            <p>
+              Pagepaint puts a drawing and feedback toolbar on your app. Capture
+              what’s wrong, leave a note, and give your coding agent the
+              evidence.
+            </p>
+            <button class="try-button" type="button" data-open-feedback>
+              Try Pagepaint <span aria-hidden="true">↗</span>
+            </button>
           </div>
-          <button id="open-feedback" class="open-feedback">
-            Try the feedback widget <span aria-hidden="true">↗</span>
-          </button>
-        </div>
-      </section>
-      <div class="playground-grid">
-        <section class="sample-app" aria-labelledby="sample-title">
-          <header class="sample-header">
-            <div class="workspace-name">
-              <span class="workspace-avatar">S</span>
-              <div>
-                <strong>Studio workspace</strong
-                ><span>Sample app · something to mark up</span>
-              </div>
-            </div>
-            <span class="demo-tag">DEMO</span>
-          </header>
-          <div class="sample-toolbar">
-            <nav aria-label="Sample app views">
-              <button data-view="overview">Overview</button
-              ><button data-view="board" class="active" aria-current="page">
-                Board
-              </button>
-            </nav>
-            <span class="iteration">Iteration 04</span>
-          </div>
-          <div class="board-heading">
-            <div>
-              <p class="board-eyebrow">THE NEXT SMALL THINGS</p>
-              <h2 id="sample-title">Make it feel right.</h2>
-              <p>Click a task to move it to the next column.</p>
-            </div>
-            <div class="reviewers" aria-label="Sample reviewers">
-              <span>AL</span><span>MK</span><span>JD</span>
-            </div>
-          </div>
-          <div class="board" id="board">
-            <section class="column" data-column="0">
-              <h3>
-                <span class="column-dot todo"></span>To do<span
-                  class="column-count"
-                  >3</span
-                >
-              </h3>
-              <button
-                class="task"
-                data-stage="0"
-                aria-label="Move Improve the empty state to the next column"
-              >
-                <span class="task-tag design">Design</span
-                ><strong>Improve the empty state</strong>
-                <p>A little more guidance when there’s nothing here yet.</p>
-                <div class="task-footer">
-                  <span>ST–018</span><span class="task-owner">AL</span>
-                </div>
-              </button>
-              <button
-                class="task"
-                data-stage="0"
-                aria-label="Move Make buttons easier to find to the next column"
-              >
-                <span class="task-tag interface">Interface</span
-                ><strong>Make buttons easier to find</strong>
-                <p>The primary action needs a little more emphasis.</p>
-                <div class="task-footer">
-                  <span>ST–021</span><span class="task-owner peach">JD</span>
-                </div>
-              </button>
-              <button
-                class="task"
-                data-stage="0"
-                aria-label="Move Tighten the mobile spacing to the next column"
-              >
-                <span class="task-tag design">Design</span
-                ><strong>Tighten the mobile spacing</strong>
-                <p>Keep the breathing room. Lose the overflow.</p>
-                <div class="task-footer">
-                  <span>ST–023</span><span class="task-owner">AL</span>
-                </div>
-              </button>
-            </section>
-            <section class="column" data-column="1">
-              <h3>
-                <span class="column-dot progress"></span>In progress<span
-                  class="column-count"
-                  >1</span
-                >
-              </h3>
-              <button
-                class="task"
-                data-stage="1"
-                aria-label="Move Simplify the navigation to the next column"
-              >
-                <span class="task-tag interface">Interface</span
-                ><strong>Simplify the navigation</strong>
-                <p>Fewer choices. A more obvious way forward.</p>
-                <div class="task-footer">
-                  <span>ST–016</span><span class="task-owner blue">MK</span>
-                </div>
-              </button>
-              <div class="column-placeholder">
-                Room for the next improvement.
-              </div>
-            </section>
-            <section class="column" data-column="2">
-              <h3>
-                <span class="column-dot done"></span>Done<span
-                  class="column-count"
-                  >1</span
-                >
-              </h3>
-              <button
-                class="task completed"
-                data-stage="2"
-                aria-label="Move Save draft changes to the next column"
-              >
-                <span class="task-tag experience">Experience</span
-                ><strong>Save draft changes</strong>
-                <p>Picking up where you left off should feel effortless.</p>
-                <div class="task-footer">
-                  <span>ST–012</span><span class="task-owner peach">JD</span>
-                </div>
-              </button>
-            </section>
-          </div>
-          <footer class="sample-footer">
-            <span
-              ><span class="small-dot"></span>Ready for another round of
-              feedback</span
-            ><span>Everything here is sample content</span>
-          </footer>
         </section>
-        <aside class="setup" aria-labelledby="setup-title">
-          <div class="setup-heading">
-            <span class="section-number">01</span>
-            <h2 id="setup-title">Drop it in.</h2>
-          </div>
-          <p>
-            One script. No framework.<br />Your existing app stays your app.
-          </p>
-          <div class="code-block">
-            <div class="code-header">
-              <span>index.html</span
-              ><button id="copy-snippet" aria-label="Copy embed code">
-                Copy
+
+        <div class="watch-install">
+          <figure class="demo-film">
+            <div class="film-heading">
+              <span>See a review, start to finish</span
+              ><span class="mono">DEMO / PAGEPAINT</span>
+            </div>
+            <div class="video-surface">
+              <video
+                data-demo-video
+                autoplay
+                muted
+                loop
+                playsinline
+                preload="metadata"
+                poster="/video/pagepaint-demo-poster.webp"
+                src="/video/pagepaint-demo.mp4"
+                width="1280"
+                height="720"
+                aria-label="Pagepaint demo: annotate a page, capture it, and save feedback to a repository."
+              ></video>
+            </div>
+            <figcaption>
+              <span>Draw → capture → comment → save</span>
+              <div class="film-controls">
+                <button
+                  type="button"
+                  data-video-toggle
+                  aria-label="Pause product video"
+                >
+                  Pause
+                </button>
+                <button
+                  type="button"
+                  data-video-sound
+                  aria-label="Enable video sound"
+                >
+                  Sound off
+                </button>
+              </div>
+            </figcaption>
+          </figure>
+
+          <section
+            id="install"
+            class="installation"
+            aria-labelledby="install-title"
+          >
+            <div class="chapter-number">01</div>
+            <h2 id="install-title">
+              One script.<br />
+              Any app.
+            </h2>
+            <p>
+              Drop this before <code>&lt;/body&gt;</code>. No package install,
+              backend, or local Node server.
+            </p>
+            <div class="code-heading">
+              <span class="mono">index.html</span
+              ><button
+                type="button"
+                data-copy-install
+                data-copy-target="install-code"
+              >
+                Copy script
               </button>
             </div>
-            <pre><code id="embed-code"></code></pre>
+            <pre><code id="install-code">&lt;script
+  src="https://pagepaint.dev/v0.4.0/pagepaint.js"
+  data-pagepaint
+  defer
+&gt;&lt;/script&gt;</code></pre>
+            <p class="install-note">
+              Works on client-rendered and server-rendered pages. Each origin
+              keeps its own local history.
+            </p>
+            <a class="text-link" href="/pagepaint-extension.zip"
+              >Prefer an extension? Download for Chrome / Edge
+              <span aria-hidden="true">↗</span></a
+            >
+            <p class="extension-note">
+              Extract the ZIP, turn on Developer mode in your browser’s
+              extensions page, then choose <strong>Load unpacked</strong>.
+            </p>
+          </section>
+        </div>
+
+        <section
+          id="review"
+          class="review-section"
+          aria-labelledby="review-title"
+        >
+          <div class="chapter-heading">
+            <span class="chapter-number">02</span>
+            <h2 id="review-title">A bug report with the view attached.</h2>
           </div>
-          <div class="position-control">
-            <label for="position">Button position</label
-            ><select id="position">
-              <option value="bottom-right">Bottom right</option>
-              <option value="bottom-left">Bottom left</option>
-              <option value="top-right">Top right</option>
-              <option value="top-left">Top left</option>
-              <option value="custom">Custom: 120px from bottom</option>
-            </select>
-          </div>
-          <div class="setup-divider"></div>
-          <div class="setup-heading">
-            <span class="section-number">02</span>
-            <h2>Make your point.</h2>
-          </div>
-          <ol class="steps">
-            <li><span>Open the floating feedback button.</span></li>
+          <ol class="review-steps">
             <li>
-              <span
-                >Choose Draw &amp; capture. Mark this page, then capture
-                it.</span
-              >
+              <span class="step-number" aria-hidden="true">1</span>
+              <div>
+                <h3>Mark the actual page</h3>
+                <p>
+                  Open the toolbar. Draw, highlight, or use a rectangle or
+                  circle to point at the problem.
+                </p>
+              </div>
             </li>
             <li>
-              <span>Save a note. Choose your repo folder when prompted.</span>
+              <span class="step-number" aria-hidden="true">2</span>
+              <div>
+                <h3>Add the evidence</h3>
+                <p>
+                  Capture the viewport or record a short clip. Add what you
+                  expected in the feedback thread.
+                </p>
+              </div>
             </li>
             <li>
-              <span>Download a ZIP with notes, images, and page context.</span>
+              <span class="step-number" aria-hidden="true">3</span>
+              <div>
+                <h3>Save the context</h3>
+                <p>
+                  Your URL, query parameters, viewport, and marks stay with the
+                  note. Download a ZIP whenever you need it.
+                </p>
+              </div>
             </li>
           </ol>
-          <div class="local-note">
-            <span class="small-dot"></span>
+          <p class="workflow-note">
+            <span aria-hidden="true">↳</span> Drag the menu out of your way.
+            Change your accent, project name, and shortcuts in Settings.
+          </p>
+        </section>
+
+        <section
+          id="handoff"
+          class="handoff-section"
+          aria-labelledby="handoff-title"
+        >
+          <div class="chapter-heading">
+            <span class="chapter-number">03</span>
+            <h2 id="handoff-title">Leave it where your agent works.</h2>
+          </div>
+          <div class="handoff-content">
+            <div class="handoff-copy">
+              <p>
+                Choose your app’s repository folder when you save. Pagepaint
+                writes the note, image, and drawing data into
+                <code>.annotations/</code>.
+              </p>
+              <p>
+                Add this to <code>AGENTS.md</code> or <code>CLAUDE.md</code> —
+                or use <strong>Add agent instructions</strong> in Settings.
+              </p>
+              <blockquote>
+                Check <code>.annotations/</code> for open items; set status to
+                resolved when done.
+              </blockquote>
+              <p class="support-note">
+                Folder access needs HTTPS or localhost in a supported desktop
+                browser, such as Chrome or Edge. Other browsers keep feedback
+                locally and can export a ZIP.
+              </p>
+            </div>
+            <div class="repo-files" aria-label="Example annotation files">
+              <div class="mono">your-app/</div>
+              <pre><code>└── .annotations/
+    ├── &lt;id&gt;.json
+    ├── &lt;id&gt;.webp
+    ├── &lt;id&gt;.original.webp
+    └── &lt;id&gt;.webm</code></pre>
+              <p>
+                The agent reads ordinary files.<br />No feedback server. No
+                sync.
+              </p>
+              <span class="file-note"
+                >Images and video are written when attached.</span
+              >
+            </div>
+          </div>
+        </section>
+
+        <details class="storage-note">
+          <summary>Where does the feedback live?</summary>
+          <div>
             <p>
-              <strong>Your feedback stays local.</strong>Choose a repo folder to
-              save notes and screenshots for your agent. Drafts stay in this
-              browser; ZIP export works everywhere.
+              Notes, drafts, captures, and preferences are saved in your
+              browser’s IndexedDB. Browser storage is separated by origin,
+              including localhost port; it can be cleared or evicted.
+            </p>
+            <p>
+              Selected repository files survive clearing browser storage. ZIP
+              export is available without folder access. Pagepaint doesn’t
+              upload your feedback; sharing to GitHub is an optional, separate
+              action.
+            </p>
+            <p>
+              CDN screenshots reconstruct the DOM, so some CSS, cross-origin
+              content, or video may look different. The extension uses native
+              tab screenshots.
             </p>
           </div>
-        </aside>
-      </div>
-      <section class="context-demo">
-        <div>
-          <p class="eyebrow">CONTEXT COMES ALONG</p>
-          <h2>Less “which page was that?”</h2>
-          <p>
-            Every note keeps its full URL, path, query parameters, hash,
-            viewport, and scroll position. Screenshots keep the context from the
-            moment they were captured.
-          </p>
-        </div>
-        <div class="context-preview">
-          <span>CURRENT PAGE</span><code id="current-context"></code
-          ><button id="change-context">
-            Try a URL with query parameters <span aria-hidden="true">↗</span>
-          </button>
-        </div>
-      </section>
-      <footer class="site-footer">
-        <span>Pagepaint · local feedback</span
-        ><a href="./pagepaint-extension.zip" download
-          >Download Chrome / Edge extension</a
-        >
-        <nav aria-label="Pagepaint links">
-          <a
-            id="github-link"
-            href="https://github.com/pagepaint/pagepaint"
-            target="_blank"
-            rel="noopener noreferrer"
-            >GitHub</a
-          ><a href="./privacy/">Privacy</a><a href="./terms/">Terms</a
-          ><a href="./LICENSE">MIT license</a>
-        </nav>
-      </footer>
-      <div id="demo-announcement" role="status" class="sr-only"></div>
-    </main>
+        </details>
+      </main>
+    </div>
+
+    <footer class="footer page-width">
+      <span>Pagepaint — built for the next review.</span>
+      <nav aria-label="Footer navigation">
+        <a href="https://github.com/pagepaint/pagepaint">Source</a
+        ><a href="/LICENSE">MIT license</a><a href="/privacy/">Privacy</a
+        ><a href="/terms/">Terms</a>
+      </nav>
+      <span class="folio mono">FIELD GUIDE / 02</span>
+    </footer>
   </body>
 </html>

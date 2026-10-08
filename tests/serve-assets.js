@@ -5,13 +5,22 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const playground =
+  process.env.TEST_FIXTURE === "1"
+    ? "tests/fixtures/playground.html"
+    : "index.html";
 const staticFiles = new Map([
-  ["/", ["index.html", "text/html; charset=utf-8"]],
-  ["/index.html", ["index.html", "text/html; charset=utf-8"]],
+  ["/", [playground, "text/html; charset=utf-8"]],
+  ["/index.html", [playground, "text/html; charset=utf-8"]],
+  ["/homepage/", ["index.html", "text/html; charset=utf-8"]],
   ["/privacy/", ["public/privacy/index.html", "text/html; charset=utf-8"]],
   ["/terms/", ["public/terms/index.html", "text/html; charset=utf-8"]],
   ["/legal.css", ["public/legal.css", "text/css; charset=utf-8"]],
   ["/LICENSE", ["LICENSE", "text/plain; charset=utf-8"]],
+  [
+    "/pagepaint-extension.zip",
+    ["dist/pagepaint-extension.zip", "application/zip"],
+  ],
   ["/github/", ["github/index.html", "text/html; charset=utf-8"]],
   ["/github/github.js", ["dist/github.js", "text/javascript; charset=utf-8"]],
   ["/github/github.css", ["github/github.css", "text/css; charset=utf-8"]],
@@ -64,6 +73,14 @@ const staticFiles = new Map([
     ],
   ]),
 ]);
+const publicTypes = new Map([
+  [".html", "text/html; charset=utf-8"],
+  [".css", "text/css; charset=utf-8"],
+  [".js", "text/javascript; charset=utf-8"],
+  [".mp4", "video/mp4"],
+  [".webp", "image/webp"],
+  [".vtt", "text/vtt; charset=utf-8"],
+]);
 
 export function createReviewServer() {
   return http.createServer(async (request, response) => {
@@ -71,7 +88,15 @@ export function createReviewServer() {
     response.setHeader("Access-Control-Allow-Origin", "*");
     response.setHeader("Cache-Control", "no-cache");
     const url = new URL(request.url, "http://localhost");
-    const file = staticFiles.get(url.pathname);
+    const publicPath = url.pathname.endsWith("/")
+      ? `${url.pathname}index.html`
+      : url.pathname;
+    const type = publicTypes.get(path.extname(publicPath));
+    const file =
+      staticFiles.get(url.pathname) ||
+      (type && /^\/(directions|homepage|video)\//.test(publicPath)
+        ? [path.join("public", publicPath), type]
+        : null);
     if (!["GET", "HEAD"].includes(request.method) || !file) {
       response.writeHead(file ? 405 : 404);
       response.end("Not found.");

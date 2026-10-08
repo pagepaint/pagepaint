@@ -16,6 +16,6 @@ export default defineConfig({
     command: "node tests/serve-assets.js",
     url: "http://127.0.0.1:4319/",
     reuseExistingServer: false,
-    env: { HOST: "127.0.0.1", PORT: "4319" },
+    env: { HOST: "127.0.0.1", PORT: "4319", TEST_FIXTURE: "1" },
   },
 });

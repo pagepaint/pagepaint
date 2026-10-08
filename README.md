@@ -15,7 +15,7 @@ A plain JavaScript feedback widget for AI-built apps. Load one CDN script, draw 
 
 The dependencies are bundled. The script runs in the app's origin, so each domain and localhost port has its own browser storage and folder permission. Use a different `data-project` for separate apps sharing an origin. The display name is saved on first visit: localhost uses the page title, falling back to host and port; hosted apps use the hostname without `www.`. Set `data-project-name` to choose another default, or rename it in Settings. Renaming preserves the project ID and existing history. Your site's CSP must allow the CDN script, the widget's inline styles, data/blob images, and blob media.
 
-The hosted playground is at <https://pagepaint.dev/>. The unversioned `/pagepaint.js` URL follows the current release; the versioned URL pins this release. ES modules are available at `/v0.4.0/pagepaint.mjs`. Existing scripts and pinned versions at the legacy workers.dev domain continue to work.
+The installation guide and short product demo are at <https://pagepaint.dev/>. Five homepage designs can be reviewed at <https://pagepaint.dev/directions/>. The unversioned `/pagepaint.js` URL follows the current release; the versioned URL pins this release. ES modules are available at `/v0.4.0/pagepaint.mjs`. Existing scripts and pinned versions at the legacy workers.dev domain continue to work.
 
 ```js
 import { init } from "https://pagepaint.dev/v0.4.0/pagepaint.mjs";
@@ -93,7 +93,7 @@ Download [the Chrome / Edge extension ZIP](https://pagepaint.dev/v0.4.0/pagepain
 
 The extension bundles the shared library, uses native tab screenshots instead of DOM reconstruction, and records in an offscreen document so a clip can continue across navigations. Click its recording badge/action to stop if the on-page toolbar is unavailable. Completed clips are recoverable in its local project library. **Open Pagepaint library** in Settings provides centralized project history, repo folder saving, and ZIP export. Projects are separated by full origin, including localhost port. CDN embeds and the extension have separate storage histories. Activating the extension replaces a mounted CDN widget for that page session, preserving its app-origin data and avoiding duplicate controls.
 
-See [PRIVACY.md](PRIVACY.md) for storage, capture permissions, and deletion behavior. Everything lives in one repository: shared source in `src/`, extension adapters in `extension/`, playground in `index.html` / `demo/`, and builds in `scripts/`.
+See [PRIVACY.md](PRIVACY.md) for storage, capture permissions, and deletion behavior. Everything lives in one repository: shared source in `src/`, extension adapters in `extension/`, the homepage in `index.html` / `public/`, the capture regression playground in `tests/fixtures/` / `demo/`, and builds in `scripts/`.
 
 ## Capture limits
 
