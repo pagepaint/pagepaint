@@ -1,0 +1,63 @@
+<!-- ABOUTME: Documents GitHub OAuth registration for self-hosted Pagepaint deployments. -->
+<!-- ABOUTME: Keeps client secrets outside the CDN bundle and explains the authentication boundary. -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Pagepaint · GitHub setup</title>
+    <link rel="stylesheet" href="/github/github.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <a href="/">Pagepaint<span>✳</span></a>
+      </header>
+      <h1>Connect GitHub.</h1>
+      <p>
+        The CDN and extension use a small Cloudflare Worker for OAuth. Feedback
+        stays in your browser; issue creation and attachment uploads go directly
+        from the trusted Pagepaint window to GitHub.
+      </p>
+      <ol>
+        <li>
+          <a
+            href="https://github.com/settings/applications/new"
+            target="_blank"
+            rel="noopener"
+            >Register a GitHub OAuth App</a
+          >
+          named Pagepaint. Use <code>https://pagepaint.dev</code> for its
+          homepage and <code>https://pagepaint.dev/github/callback</code> for
+          the callback. Leave wildcard matching off and expiring user tokens on.
+        </li>
+        <li>
+          Generate a client secret and put <code>GITHUB_CLIENT_ID</code>,
+          <code>GITHUB_CLIENT_SECRET</code>, and a random
+          <code>SESSION_SECRET</code> of at least 32 characters into Worker
+          secrets. Never include them in the script, git repository, or chat.
+        </li>
+        <li>
+          Deploy with
+          <code
+            >cf deploy --prebuilt --secrets-file
+            /private/path/pagepaint-secrets.json</code
+          >
+          after <code>npm run build:cdn</code>. Sign in from Settings → GitHub.
+        </li>
+      </ol>
+      <p>
+        For a different domain, update AUTH_ORIGIN, the custom domain, OAuth
+        callback, and the widget's githubUrl option together. Authentication
+        cookies are encrypted, HttpOnly, and expire within eight hours. No
+        database is required.
+      </p>
+      <p>
+        OAuth asks for <code>repo</code> and <code>project</code> scopes to
+        support private repositories and Projects. Users review the target and
+        attachments before posting. A fine-grained GitHub App is a future
+        alternative to these broad OAuth scopes.
+      </p>
+    </main>
+  </body>
+</html>

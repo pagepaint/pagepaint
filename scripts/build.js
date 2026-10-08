@@ -25,6 +25,18 @@ for (const format of ["iife", "esm"]) {
 }
 console.log("Built dist/review-tool.js and dist/review-tool.mjs");
 
+await build({
+  entryPoints: ["github/github.js"],
+  outfile: "dist/github.js",
+  bundle: true,
+  minify: true,
+  format: "esm",
+  target: ["es2020"],
+  banner: {
+    js: "// ABOUTME: Reviews local feedback before creating GitHub issues.\n// ABOUTME: Keeps GitHub access tokens inside the trusted Pagepaint window.",
+  },
+});
+
 for (const extension of ["js", "mjs"]) {
   for (const suffix of ["", ".map", ".LEGAL.txt"])
     await cp(

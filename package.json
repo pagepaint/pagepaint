@@ -1,7 +1,15 @@
 {
   "name": "pagepaint",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Local-first page feedback: draw, capture, record, and save to your repository.",
+  "homepage": "https://pagepaint.dev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pagepaint/pagepaint.git"
+  },
+  "bugs": {
+    "url": "https://github.com/pagepaint/pagepaint/issues"
+  },
   "type": "module",
   "main": "dist/pagepaint.js",
   "module": "dist/pagepaint.mjs",

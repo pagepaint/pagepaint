@@ -32,6 +32,7 @@ if (typeof window !== "undefined") {
       init({
         projectId: script.dataset.project || "default",
         projectName: script.dataset.projectName,
+        githubUrl: script.dataset.githubUrl,
         position: script.dataset.position || "bottom-right",
         offset:
           script.dataset.offset === undefined

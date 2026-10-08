@@ -1,6 +1,18 @@
 // ABOUTME: Styles the isolated feedback panel and responsive screenshot editor.
 // ABOUTME: Uses scoped tokens and explicit control styles to withstand host page CSS.
 export const styles = `
+  .config-tabs { display: flex; gap: 8px; margin: 12px 0 18px; }
+  .config-tabs button { flex: 1; padding: 9px; border: 1px solid var(--line); border-radius: 8px; color: var(--muted); }
+  .config-tabs [aria-selected=true] { color: var(--accent); border-color: var(--accent); background: var(--accent-wash); }
+  .panel[data-onboarding] .config-tabs { display: none; }
+  .project-setting select { width: 100%; padding: 8px; background: var(--wash); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; font: inherit; }
+  .github-account { color: var(--muted); font-size: 12px; margin: 12px 0; }
+  .github-check { display: flex; gap: 8px; align-items: center; margin: 15px 0 8px; font-size: 12px; }
+  #github-config .project-setting { margin-top: 16px; }
+  #github-config .storage-hint { color: var(--muted); margin-bottom: 18px; }
+  #github-error { color: #f4d68b; margin-bottom: 12px; }
+  .thread-nav { flex-wrap: wrap; gap: 2px 10px !important; }
+
   .project-setting, .area-label { display: grid; gap: 5px; font-size: 11px; color: var(--muted); margin-bottom: 12px; }
   .project-setting input, .area-label input { padding: 7px 9px; border: 1px solid var(--line); border-radius: 6px; color: var(--ink); background: var(--wash); width: 100%; }
   .thread-nav { display: flex; padding: 0 20px; gap: 10px; align-items: center; border-bottom: 1px solid var(--line); flex-shrink: 0; }

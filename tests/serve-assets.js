@@ -8,6 +8,18 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const staticFiles = new Map([
   ["/", ["index.html", "text/html; charset=utf-8"]],
   ["/index.html", ["index.html", "text/html; charset=utf-8"]],
+  ["/privacy/", ["public/privacy/index.html", "text/html; charset=utf-8"]],
+  ["/terms/", ["public/terms/index.html", "text/html; charset=utf-8"]],
+  ["/legal.css", ["public/legal.css", "text/css; charset=utf-8"]],
+  ["/LICENSE", ["LICENSE", "text/plain; charset=utf-8"]],
+  ["/github/", ["github/index.html", "text/html; charset=utf-8"]],
+  ["/github/github.js", ["dist/github.js", "text/javascript; charset=utf-8"]],
+  ["/github/github.css", ["github/github.css", "text/css; charset=utf-8"]],
+  [
+    "/github/signed-in.html",
+    ["github/signed-in.html", "text/html; charset=utf-8"],
+  ],
+  ["/github/setup.html", ["github/setup.html", "text/html; charset=utf-8"]],
   ["/demo/demo.css", ["demo/demo.css", "text/css; charset=utf-8"]],
   ["/demo/demo.js", ["demo/demo.js", "text/javascript; charset=utf-8"]],
   ...[

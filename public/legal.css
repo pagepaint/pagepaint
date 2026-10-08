@@ -1,0 +1,70 @@
+/* ABOUTME: Formats Pagepaint's public privacy and terms pages using the playground typography. */
+/* ABOUTME: Keeps long policy text readable across desktop and mobile layouts. */
+.legal-page {
+  max-width: 790px;
+  margin: 70px auto 0;
+  padding: 0 28px;
+}
+.legal-page h1 {
+  font-size: clamp(38px, 6vw, 62px);
+  line-height: 1.1;
+  margin: 18px 0;
+}
+.legal-page .legal-date {
+  color: #77786f;
+  font-size: 12px;
+  margin-bottom: 34px;
+}
+.legal-page .legal-lead {
+  font-size: 20px;
+  line-height: 1.6;
+  color: #33392f;
+  border-bottom: 1px solid #d9dcd2;
+  padding-bottom: 32px;
+  margin-bottom: 40px;
+}
+.legal-page h2 {
+  font-size: 22px;
+  margin-top: 36px;
+  margin-bottom: 14px;
+  letter-spacing: -0.5px;
+}
+.legal-page p {
+  font-size: 15px;
+  line-height: 1.85;
+  color: #565d52;
+  margin: 14px 0;
+}
+.legal-page a,
+.site-header > a:last-child {
+  color: #285b49;
+  text-underline-offset: 4px;
+}
+.legal-page code {
+  background: #e8ebe2;
+  border-radius: 4px;
+  padding: 2px 5px;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.legal-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 22px;
+  margin-top: 60px;
+  padding: 28px 0 40px;
+  border-top: 1px solid #d9dcd2;
+  font-size: 12px;
+}
+.site-header > a:last-child {
+  font-size: 12px;
+}
+.site-footer {
+  flex-wrap: wrap;
+  gap: 14px 24px;
+}
+.site-footer nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+}

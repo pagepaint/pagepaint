@@ -1,0 +1,76 @@
+<!-- ABOUTME: Presents GitHub connection and issue publishing in a trusted Pagepaint window. -->
+<!-- ABOUTME: Requires an explicit review before local feedback is sent to a repository. -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Pagepaint · GitHub</title>
+    <link rel="stylesheet" href="/github/github.css" />
+    <script src="/github/github.js" type="module"></script>
+  </head>
+  <body>
+    <main>
+      <header>
+        <a href="/" target="_blank" rel="noopener">Pagepaint<span>✳</span></a>
+        <p>Local feedback, shared when you choose.</p>
+      </header>
+      <section id="connection">
+        <span class="eyebrow">GitHub connection</span>
+        <h1>From feedback<br />to a fix.</h1>
+        <p id="account">Checking your connection…</p>
+        <button id="sign-in" hidden>Sign in with GitHub ↗</button>
+        <p id="permission-info" class="hint">
+          GitHub will ask for repository and Project access. Nothing is posted
+          until you review and create an issue.
+        </p>
+      </section>
+      <section id="review" hidden>
+        <p id="source" class="hint"></p>
+        <label
+          >Repository<select id="repository" aria-label="Repository"></select
+        ></label>
+        <label>Issue title<input id="title" maxlength="200" /></label>
+        <label
+          >GitHub Project URL (optional)<input
+            id="project"
+            type="url"
+            placeholder="https://github.com/orgs/team/projects/1"
+        /></label>
+        <label
+          >Labels (comma separated)<input id="labels" maxlength="300"
+        /></label>
+        <label class="check"
+          ><input id="attachments" type="checkbox" />Upload screenshots and
+          recordings</label
+        >
+        <p id="attachment-info" class="hint"></p>
+        <h2>Thread preview</h2>
+        <div id="preview"></div>
+        <p class="hint">
+          The full page URLs, including query parameters, appear in the issue.
+          Attachments go to a pagepaint-feedback branch in the chosen
+          repository.
+        </p>
+        <button id="publish">Create GitHub issue</button>
+      </section>
+      <button id="continue" hidden>Use this GitHub account</button>
+      <section id="outcome" hidden>
+        <h2>Issue created</h2>
+        <a id="issue-link" target="_blank" rel="noopener"></a>
+        <p id="project-result"></p>
+        <button id="done">Return to Pagepaint</button>
+      </section>
+      <p id="error" role="alert" hidden></p>
+      <p id="status" role="status"></p>
+      <footer>
+        Feedback stays on your device until you create an issue.
+        <a href="/github/setup.html" target="_blank" rel="noopener"
+          >Self-hosting setup</a
+        >
+        · <a href="/privacy/" target="_blank" rel="noopener">Privacy</a> ·
+        <a href="/terms/" target="_blank" rel="noopener">Terms</a>
+      </footer>
+    </main>
+  </body>
+</html>

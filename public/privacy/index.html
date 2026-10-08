@@ -1,0 +1,121 @@
+<!-- ABOUTME: Explains local feedback storage and the optional GitHub authentication boundary. -->
+<!-- ABOUTME: Describes operational hosting metadata without claiming that all data processing is absent. -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      name="description"
+      content="Pagepaint keeps feedback on your device. Learn how local storage, GitHub sharing, and authentication work."
+    />
+    <title>Privacy policy · Pagepaint</title>
+    <link rel="stylesheet" href="/demo/demo.css" />
+    <link rel="stylesheet" href="/legal.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="wordmark" href="/"
+        >pagepaint<span class="wordmark-divider"></span
+        ><span class="wordmark-note">a feedback toolkit</span></a
+      ><a href="/">Back to playground ↗</a>
+    </header>
+    <main class="legal-page">
+      <p class="eyebrow">YOUR FEEDBACK, YOUR DEVICE</p>
+      <h1>Privacy policy.</h1>
+      <p class="legal-date">Effective October 8, 2026</p>
+      <p class="legal-lead">
+        We don’t collect your feedback, screenshots, or recordings. Pagepaint
+        has no feedback database, analytics, advertising, or automatic
+        synchronization.
+      </p>
+      <h2>What stays local</h2>
+      <p>
+        Messages, drafts, settings, annotations, screenshots, and recordings are
+        saved in your browser’s IndexedDB. If you choose a repository folder,
+        the browser writes ordinary files into its
+        <code>.annotations/</code> directory. ZIP exports download to your
+        device. Each website origin keeps its own CDN-widget data; the browser
+        extension has separate local storage.
+      </p>
+      <p>
+        Feedback deliberately includes full URLs and query parameters, page
+        titles, viewport and scroll details, visible page content, and
+        timestamps. These remain local unless you export or choose to share
+        them. We cannot recover local feedback after browser data is cleared.
+      </p>
+      <h2>Optional GitHub sign-in</h2>
+      <p>
+        GitHub sign-in uses a small Cloudflare Worker to exchange an
+        authorization code for an access token. The client secret is held in
+        Worker secrets. Your access token is encrypted in an HttpOnly cookie,
+        expires within eight hours, and is available only to Pagepaint’s trusted
+        GitHub connection window. It is not saved in the embedded app’s
+        preferences or exports. There is no server session database.
+      </p>
+      <p>
+        GitHub OAuth asks for repository and Project access, including private
+        repositories. Signing in alone does not share feedback. The account name
+        and repository names you choose to return to the widget are used to
+        configure your project locally.
+      </p>
+      <h2>Sharing an issue</h2>
+      <p>
+        When you review and create a GitHub issue, the connection window sends
+        the chosen thread and page context directly to GitHub. If you enable
+        attachments, screenshots, editable annotation metadata, and recordings
+        are committed to <code>.pagepaint/</code> on a
+        <code>pagepaint-feedback</code> branch in the selected repository.
+        Public repository uploads are public. Private repository permissions
+        govern private uploads. GitHub stores these issues and commits under its
+        own policies; signing out of Pagepaint does not delete them.
+      </p>
+      <h2>Hosting and necessary cookies</h2>
+      <p>
+        Cloudflare delivers this website and CDN script and processes ordinary
+        request and connection information, such as IP addresses and request
+        metadata, for delivery and security. GitHub receives authentication
+        requests and any issues or attachments you explicitly publish. We do not
+        use this information for advertising or run analytics scripts. Pagepaint
+        uses local preferences and necessary authentication cookies; it has no
+        advertising or tracking cookies.
+      </p>
+      <p>
+        Read
+        <a
+          href="https://www.cloudflare.com/policies/privacy/"
+          target="_blank"
+          rel="noopener noreferrer"
+          >Cloudflare’s privacy policy</a
+        >
+        and
+        <a
+          href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement"
+          target="_blank"
+          rel="noopener noreferrer"
+          >GitHub’s privacy statement</a
+        >
+        for their processing and retention practices.
+      </p>
+      <h2>Your controls</h2>
+      <p>
+        You can clear site data or remove the extension to delete its browser
+        copies, remove the selected local annotation files, and delete
+        downloaded ZIPs. Sign out to clear the Pagepaint authentication cookie.
+        Revoke Pagepaint in GitHub’s authorized-app settings to withdraw its
+        GitHub access. Manage published issues and attachment commits in GitHub
+        separately.
+      </p>
+      <h2>Changes and contact</h2>
+      <p>
+        Pagepaint is maintained by DevPlant. Changes to these practices will be
+        reflected here with an updated effective date. Contact the maintainers
+        through the GitHub link on the <a href="/">Pagepaint homepage</a>.
+      </p>
+      <footer class="legal-footer">
+        <a href="/">Pagepaint</a><a href="/terms/">Terms and conditions</a
+        ><a href="/LICENSE">MIT license</a>
+      </footer>
+    </main>
+  </body>
+</html>

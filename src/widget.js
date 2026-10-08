@@ -13,6 +13,8 @@ import { RepositoryStore, selectorAt } from "./repository.js";
 import { ACCENTS } from "./appearance.js";
 import { defaultProjectName } from "./projects.js";
 import { VideoRecorder } from "./recording.js";
+import { GitHubBridge } from "./github-bridge.js";
+import { repositoryName, projectReference } from "./github.js";
 import {
   HOTKEYS,
   hotkeySettings,
@@ -52,6 +54,8 @@ export class ReviewWidget {
     this.saveQueue = Promise.resolve();
     this.preferenceQueue = Promise.resolve();
     this.preferences = {};
+    this.github =
+      this.options.github || new GitHubBridge(this.options.githubUrl);
     this.hotkeys = hotkeySettings(this.options.hotkeys);
     this.events = new AbortController();
     this.store =
@@ -92,10 +96,10 @@ export class ReviewWidget {
       <button id="fab" class="fab" aria-expanded="false" aria-controls="panel" data-action="toggle">${icon("chat")}<span>Feedback</span></button>
       <section id="panel" class="panel" role="dialog" aria-labelledby="panel-title" hidden>
         <header class="panel-header"><div id="panel-handle" class="brand" role="button" tabindex="0" aria-label="Move feedback menu" title="Drag to move. Arrow keys move; Shift moves faster."><span class="brand-mark">${icon("chat")}</span><div><h2 id="panel-title">Leave a little feedback</h2><p class="subtitle">A note. A screenshot. A clearer next step.</p></div></div><div class="header-actions"><button id="settings" class="icon-button" data-action="settings" aria-label="Feedback settings">${icon("settings")}</button><button class="icon-button" data-action="close" aria-label="Close feedback">${icon("close")}</button></div></header>
-        <section id="appearance" class="appearance" aria-label="Feedback appearance" hidden><label class="project-setting">Project name<input id="project-name" maxlength="120" /></label><p class="appearance-intro">Pick an accent for your feedback tools. You can change it in Settings anytime.</p><div class="accent-options" role="group" aria-label="Accent color">${ACCENTS.map(({ id, name, color }) => `<button class="accent-option" data-accent="${id}" style="--choice:${color}" aria-pressed="${id === this.accent}"><span class="accent-dot">${icon("check")}</span><span>${name}</span></button>`).join("")}</div><div class="shortcut-info"><strong>Keyboard shortcuts</strong><p>Click a field and press your combination. Backspace clears it. Mod means Ctrl or Command. Browser shortcuts may take priority.</p><div class="shortcut-fields">${HOTKEYS.map(([action, label]) => `<label class="shortcut-row"><span>${label}</span><input data-hotkey="${action}" aria-label="${label} shortcut" readonly placeholder="Disabled" /></label>`).join("")}</div><div class="repo-actions"><button class="storage-button" data-action="reset-hotkeys">Reset shortcuts</button><button class="storage-button" data-action="reset-panel">Reset menu position</button></div><p id="shortcut-error" role="alert" hidden></p></div><button id="open-library" class="storage-button" data-action="open-library" hidden>Open Pagepaint library</button><div class="repo-info"><strong>Save into your app’s repo</strong><p id="repo-status"></p><div class="repo-actions"><button id="choose-repo" class="storage-button" data-action="choose-repo">Choose repo folder</button><button id="write-repo" class="storage-button" data-action="write-repo">Save notes to repo</button><button id="agent-instructions" class="storage-button" data-action="agent-instructions">Add agent instructions</button></div><p class="storage-hint">Files go into .annotations/. Your agent can mark items resolved in the JSON.</p></div><div class="storage-info"><strong>Saved on this device</strong><p id="storage-usage">Checking browser storage…</p><p id="storage-protection"></p><button id="persist-storage" class="storage-button" data-action="persist-storage">Keep data on this device</button><p class="storage-hint">Clearing site data removes feedback. Download a ZIP to keep a copy or share it.</p></div><div class="appearance-actions"><button class="secondary" data-action="cancel-appearance">Cancel</button><button id="save-appearance" class="primary" data-action="save-appearance">Use this color ${icon("check")}</button></div></section>
+        <section id="appearance" class="appearance" aria-label="Feedback appearance" hidden><label class="project-setting">Project name<input id="project-name" maxlength="120" /></label><div class="config-tabs" role="tablist" aria-label="Feedback configuration"><button role="tab" id="general-tab" aria-selected="true" aria-controls="general-config" data-action="general-config">General</button><button role="tab" id="github-tab" aria-selected="false" aria-controls="github-config" data-action="github-config">GitHub</button></div><div id="general-config" role="tabpanel" aria-labelledby="general-tab"><p class="appearance-intro">Pick an accent for your feedback tools. You can change it in Settings anytime.</p><div class="accent-options" role="group" aria-label="Accent color">${ACCENTS.map(({ id, name, color }) => `<button class="accent-option" data-accent="${id}" style="--choice:${color}" aria-pressed="${id === this.accent}"><span class="accent-dot">${icon("check")}</span><span>${name}</span></button>`).join("")}</div><div class="shortcut-info"><strong>Keyboard shortcuts</strong><p>Click a field and press your combination. Backspace clears it. Mod means Ctrl or Command. Browser shortcuts may take priority.</p><div class="shortcut-fields">${HOTKEYS.map(([action, label]) => `<label class="shortcut-row"><span>${label}</span><input data-hotkey="${action}" aria-label="${label} shortcut" readonly placeholder="Disabled" /></label>`).join("")}</div><div class="repo-actions"><button class="storage-button" data-action="reset-hotkeys">Reset shortcuts</button><button class="storage-button" data-action="reset-panel">Reset menu position</button></div><p id="shortcut-error" role="alert" hidden></p></div><button id="open-library" class="storage-button" data-action="open-library" hidden>Open Pagepaint library</button><div class="repo-info"><strong>Save into your app’s repo</strong><p id="repo-status"></p><div class="repo-actions"><button id="choose-repo" class="storage-button" data-action="choose-repo">Choose repo folder</button><button id="write-repo" class="storage-button" data-action="write-repo">Save notes to repo</button><button id="agent-instructions" class="storage-button" data-action="agent-instructions">Add agent instructions</button></div><p class="storage-hint">Files go into .annotations/. Your agent can mark items resolved in the JSON.</p></div><div class="storage-info"><strong>Saved on this device</strong><p id="storage-usage">Checking browser storage…</p><p id="storage-protection"></p><button id="persist-storage" class="storage-button" data-action="persist-storage">Keep data on this device</button><p class="storage-hint">Clearing site data removes feedback. Download a ZIP to keep a copy or share it.</p></div></div><section id="github-config" role="tabpanel" aria-labelledby="github-tab" hidden><p class="appearance-intro">Connect this Pagepaint project to a repository. Turn a feedback thread into an issue when you’re ready to share it.</p><p id="github-account" class="github-account">GitHub is not connected.</p><div class="repo-actions"><button id="github-connect" class="primary" data-action="github-connect">Sign in with GitHub</button><button id="github-disconnect" class="storage-button" data-action="github-disconnect" hidden>Sign out</button></div><label class="project-setting">GitHub repository<select id="github-repository" aria-label="GitHub repository"><option value="">Connect GitHub to choose a repository</option></select></label><label class="project-setting">GitHub Project URL (optional)<input id="github-project" type="url" placeholder="https://github.com/orgs/team/projects/1" /></label><label class="project-setting">Issue labels (comma separated)<input id="github-labels" maxlength="300" placeholder="feedback, bug" /></label><label class="github-check"><input id="github-attachments" type="checkbox" />Include screenshots and recordings</label><p class="storage-hint">Attachments are committed to the selected repository’s pagepaint-feedback branch. The issue contains links to these files. Your local copies stay here.</p><p id="github-error" role="alert" hidden></p><button class="primary" data-action="save-github">Save GitHub configuration</button></section><div id="general-actions" class="appearance-actions"><button class="secondary" data-action="cancel-appearance">Cancel</button><button id="save-appearance" class="primary" data-action="save-appearance">Use this color ${icon("check")}</button></div></section>
         <div class="context-bar">${icon("link")}<span id="page-path" class="page-path"></span></div>
         <p id="notice" class="notice" role="alert" hidden></p>
-        <nav id="thread-nav" class="thread-nav"><button class="storage-button" data-action="new-thread">New issue</button><span id="thread-label">Issues</span><button id="resolve-thread" class="storage-button" data-action="resolve-thread" hidden>Resolve issue</button><button id="all-threads" class="storage-button" data-action="all-threads" hidden>All issues</button></nav><div id="messages" class="messages" role="log" aria-label="Feedback conversation" aria-live="polite"></div>
+        <nav id="thread-nav" class="thread-nav"><button class="storage-button" data-action="new-thread">New issue</button><button id="github-issue" class="storage-button" data-action="github-issue" hidden>Create GitHub issue</button><span id="thread-label">Issues</span><button id="resolve-thread" class="storage-button" data-action="resolve-thread" hidden>Resolve issue</button><button id="all-threads" class="storage-button" data-action="all-threads" hidden>All issues</button></nav><div id="messages" class="messages" role="log" aria-label="Feedback conversation" aria-live="polite"></div>
         <form id="composer" class="composer">
           <div id="attachment" class="attachment" hidden><button class="attachment-preview" data-action="edit" type="button" aria-label="Edit attached screenshot"><img id="attachment-image" alt="Attached screenshot"/></button><div class="attachment-copy"><strong>Screenshot attached</strong><p id="attachment-detail">Click to edit your marks</p></div><button class="icon-button" data-action="remove-capture" type="button" aria-label="Remove attached screenshot">${icon("close")}</button></div>
           <div id="video-attachment" class="attachment" hidden><button class="storage-button" data-action="preview-video" type="button">Preview recording</button><span id="video-detail" class="attachment-copy"></span><button class="icon-button" data-action="remove-video" type="button" aria-label="Remove recording">${icon("close")}</button></div><label id="area-label" class="area-label">Area (optional)<input id="area" maxlength="80" placeholder="e.g. Checkout" /></label><div class="input-box"><label class="input-label" for="message">YOUR FEEDBACK</label><textarea id="message" rows="3" maxlength="10000" placeholder="What should we change?" aria-describedby="composer-hint"></textarea><div class="composer-actions"><div class="capture-actions"><button id="draw-button" class="capture-button" data-action="draw-page" type="button">${icon("pen")}<span>Draw & capture</span></button><button id="capture-button" class="icon-button" data-action="capture" type="button" aria-label="Capture screen" title="Capture screen without drawing on the page">${icon("camera")}</button><button id="record-button" class="icon-button" data-action="record-video" type="button" aria-label="Record video" title="Record up to one minute">${icon("video")}</button></div><button id="send" class="primary" type="submit" disabled>Send ${icon("send")}</button></div></div>
@@ -286,6 +290,24 @@ export class ReviewWidget {
 
   async act(action) {
     switch (action) {
+      case "general-config":
+        return this.showConfigTab("general");
+      case "github-config":
+        return this.showConfigTab("github");
+      case "github-connect":
+        return this.connectGitHub();
+      case "github-disconnect":
+        await this.github.disconnect();
+        this.githubAccount = null;
+        await this.savePreferences({
+          github: { ...this.preferences.github, login: null },
+        });
+        this.refreshGitHub();
+        return;
+      case "save-github":
+        return this.saveGitHub();
+      case "github-issue":
+        return this.createGitHubIssue();
       case "open-library":
         return this.options.openLibrary?.();
       case "record-video":
@@ -672,6 +694,7 @@ export class ReviewWidget {
     this.applyAccent(this.accent);
     this.element("project-name").value = this.projectName;
     this.showHotkeys(this.hotkeys);
+    this.showConfigTab("general");
     this.shortcutError("");
     this.setView("appearance");
     this.refreshStorage();
@@ -857,7 +880,11 @@ export class ReviewWidget {
     for (const button of this.root.querySelectorAll(
       "[data-thread], #thread-nav button",
     ))
-      button.disabled = !!(this.sending || this.switchingThread);
+      button.disabled = !!(
+        this.sending ||
+        this.switchingThread ||
+        this.convertingGitHub
+      );
     this.element("send").disabled =
       this.switchingThread ||
       this.sending ||
@@ -1004,6 +1031,7 @@ export class ReviewWidget {
       this.sending ||
       this.capturing ||
       this.recording ||
+      this.convertingGitHub ||
       this.switchingThread
     )
       return;
@@ -1029,6 +1057,158 @@ export class ReviewWidget {
       this.element("area").disabled = false;
       this.updateSend();
       this.element("message").focus();
+    }
+  }
+
+  showConfigTab(tab) {
+    this.element("general-config").hidden = tab !== "general";
+    this.element("github-config").hidden = tab !== "github";
+    this.element("general-actions").hidden = tab !== "general";
+    this.element("general-tab").setAttribute(
+      "aria-selected",
+      String(tab === "general"),
+    );
+    this.element("github-tab").setAttribute(
+      "aria-selected",
+      String(tab === "github"),
+    );
+    if (tab === "github") this.refreshGitHub();
+    this.place();
+  }
+
+  refreshGitHub() {
+    const configuration = this.preferences.github || {};
+    const account = this.githubAccount;
+    this.element("github-account").textContent = account?.login
+      ? `Connected as @${account.login}`
+      : configuration.login
+        ? `Configured for @${configuration.login}. Sign in to reconnect or change repositories.`
+        : "GitHub is not connected.";
+    this.element("github-disconnect").hidden = !account && !configuration.login;
+    const select = this.element("github-repository");
+    select.replaceChildren();
+    const repositories =
+      account?.repositories ||
+      (configuration.repository
+        ? [{ full_name: configuration.repository }]
+        : []);
+    const empty = document.createElement("option");
+    empty.value = "";
+    empty.textContent = "Choose a repository";
+    select.append(empty);
+    for (const repo of repositories) {
+      const option = document.createElement("option");
+      option.value = repo.full_name;
+      option.textContent = `${repo.full_name}${repo.private === true ? " · Private" : repo.private === false ? " · Public" : ""}`;
+      select.append(option);
+    }
+    select.value = configuration.repository || "";
+    this.element("github-project").value = configuration.projectUrl || "";
+    this.element("github-labels").value =
+      configuration.labels?.join(", ") || "";
+    this.element("github-attachments").checked =
+      !!configuration.includeAttachments;
+  }
+
+  async connectGitHub() {
+    const button = this.element("github-connect");
+    button.disabled = true;
+    try {
+      this.githubAccount = await this.github.connect();
+      this.refreshGitHub();
+      this.element("github-error").hidden = true;
+    } catch (error) {
+      this.element("github-error").textContent = error.message;
+      this.element("github-error").hidden = false;
+    } finally {
+      button.disabled = false;
+    }
+  }
+
+  async saveGitHub() {
+    try {
+      const repository = repositoryName(
+        this.element("github-repository").value,
+      );
+      const projectUrl = this.element("github-project").value.trim();
+      projectReference(projectUrl);
+      const labels = [
+        ...new Set(
+          this.element("github-labels")
+            .value.split(",")
+            .map((label) => label.trim())
+            .filter(Boolean),
+        ),
+      ];
+      if (labels.length > 20 || labels.some((label) => label.length > 50))
+        throw new Error("Use up to 20 labels of 50 characters each.");
+      await this.savePreferences({
+        github: {
+          repository,
+          projectUrl,
+          labels,
+          includeAttachments: this.element("github-attachments").checked,
+          login:
+            this.githubAccount?.login || this.preferences.github?.login || null,
+        },
+      });
+      this.showConversation();
+      this.notice(`GitHub destination saved: ${repository}.`);
+    } catch (error) {
+      this.element("github-error").textContent = error.message;
+      this.element("github-error").hidden = false;
+    }
+  }
+
+  async createGitHubIssue() {
+    const root = this.records.find(
+      (record) => record.id === this.activeThreadId,
+    );
+    if (!root || this.convertingGitHub) return;
+    if (root.github?.url) {
+      window.open(root.github.url, "_blank", "noopener,noreferrer");
+      return;
+    }
+    if (!this.preferences.github?.repository) {
+      this.showAppearance();
+      this.showConfigTab("github");
+      return;
+    }
+    const threadId = root.id;
+    const configuration = structuredClone(this.preferences.github);
+    // Open the connection window before loading attachments so popup activation is retained.
+    this.convertingGitHub = true;
+    this.element("github-issue").disabled = true;
+    try {
+      const records = this.records.filter(
+        (record) => (record.threadId || record.id) === threadId,
+      );
+      const payload = Promise.all(
+        records.map((record) => this.resolveRecordVideo(record)),
+      ).then((records) => ({
+        configuration,
+        projectName: this.projectName,
+        records: structuredClone(records),
+      }));
+      const result = await this.github.createIssue(payload);
+      const url = new URL(result.url);
+      if (
+        url.origin !== "https://github.com" ||
+        !/^\/[^/]+\/[^/]+\/issues\/\d+$/.test(url.pathname) ||
+        url.pathname.split("/").slice(1, 3).join("/").toLowerCase() !==
+          configuration.repository.toLowerCase()
+      )
+        throw new Error("GitHub returned an invalid issue URL.");
+      const updated = { ...root, github: result };
+      await this.store.put(updated);
+      Object.assign(root, updated);
+      this.renderMessages();
+      this.notice(
+        result.projectError || `Created GitHub issue #${result.number}.`,
+      );
+    } finally {
+      this.convertingGitHub = false;
+      if (!this.destroyed) this.updateSend();
     }
   }
 
@@ -1157,6 +1337,11 @@ export class ReviewWidget {
     this.element("resolve-thread").hidden = !root;
     this.element("resolve-thread").textContent =
       root?.status === "resolved" ? "Reopen issue" : "Resolve issue";
+    this.element("github-issue").hidden = !root;
+    this.element("github-issue").textContent = root?.github?.url
+      ? `GitHub #${root.github.number}`
+      : "Create GitHub issue";
+    this.element("github-issue").disabled = !!this.convertingGitHub;
     this.element("area-label").hidden = !!this.activeThreadId;
     this.element("message").placeholder = this.activeThreadId
       ? "Add a reply…"
@@ -1636,6 +1821,7 @@ export class ReviewWidget {
     Promise.allSettled([this.ready, this.saveQueue, this.preferenceQueue]).then(
       () => this.store.close(),
     );
+    this.github.destroy?.();
     this.options.onDestroy?.();
   }
 }

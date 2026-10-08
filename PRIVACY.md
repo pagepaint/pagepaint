@@ -1,6 +1,10 @@
 # Pagepaint data and permissions
 
-Pagepaint has no feedback backend, accounts, analytics, or synchronization. The CDN host serves static code, a playground, and the extension ZIP. Like any static host, it may receive normal asset request metadata; annotations and recordings are not sent to it.
+Pagepaint has no feedback backend, analytics, or synchronization. The CDN host serves code, a playground, the extension ZIP, and an optional GitHub connection window. Like any host, it may receive normal request metadata; annotations and recordings are not uploaded to it.
+
+Optional GitHub sign-in uses a small Cloudflare authentication service to exchange OAuth codes. Its client secret stays in Worker secrets. Access tokens are encrypted in HttpOnly cookies that expire within eight hours; no session database is used. Tokens are exposed only to the trusted same-origin connection window, never the embedded app, widget storage, or ZIP export. Sign out removes that browser session; revoke Pagepaint in GitHub settings to withdraw its authorization entirely.
+
+GitHub OAuth requests repository and Project access (`repo` and `project` scopes), including private repositories. Connecting alone sends no feedback. Creating an issue requires review in the Pagepaint window and sends the thread's comments and page context directly to the chosen GitHub repository. Optional screenshots, editable annotation metadata, and recordings are committed to `.pagepaint/` on a `pagepaint-feedback` branch. Public repository attachments are public; private repository permissions govern private attachments. GitHub retains these issues and commits under its own policies. Feedback remains saved locally and records the resulting issue link.
 
 A CDN embed stores feedback, drafts, settings, and permitted directory handles in the app origin's IndexedDB. Each domain, scheme, and port is separate. The extension stores feedback in its own profile's IndexedDB and identifies projects by the captured app's origin. CDN and extension histories are separate; there is no automatic migration or sync.
 

@@ -5,12 +5,17 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Pagepaint is a JavaScript feedback toolkit. Draw, capture, record, and keep feedback locally, with optional GitHub issue sharing."
+    />
     <title>Pagepaint — feedback playground</title>
     <link
       rel="icon"
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23285b49'/%3E%3Cpath d='M9 10h14v10H13l-4 3V10Z' fill='none' stroke='white' stroke-width='2'/%3E%3C/svg%3E"
     />
     <link rel="stylesheet" href="./demo/demo.css" />
+    <link rel="stylesheet" href="./legal.css" />
     <script src="./pagepaint.js" defer></script>
     <script src="./demo/demo.js" defer></script>
   </head>
@@ -270,7 +275,17 @@
         <span>Pagepaint · local feedback</span
         ><a href="./pagepaint-extension.zip" download
           >Download Chrome / Edge extension</a
-        ><span>Plain JavaScript. Small interruptions. Useful feedback.</span>
+        >
+        <nav aria-label="Pagepaint links">
+          <a
+            id="github-link"
+            href="https://github.com/pagepaint/pagepaint"
+            target="_blank"
+            rel="noopener noreferrer"
+            >GitHub</a
+          ><a href="./privacy/">Privacy</a><a href="./terms/">Terms</a
+          ><a href="./LICENSE">MIT license</a>
+        </nav>
       </footer>
       <div id="demo-announcement" role="status" class="sr-only"></div>
     </main>
