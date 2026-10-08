@@ -1,0 +1,43 @@
+{
+  "context": {
+    "url": "https://pagepaint.dev/",
+    "origin": "https://pagepaint.dev",
+    "pathname": "/",
+    "search": "",
+    "hash": "",
+    "query": [],
+    "title": "Pagepaint — visual feedback for dev & QA",
+    "referrer": "",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
+    "language": "en-US",
+    "timezone": "Europe/Bucharest",
+    "viewport": {
+      "width": 2398,
+      "height": 1088,
+      "devicePixelRatio": 2
+    },
+    "scroll": {
+      "x": 0,
+      "y": 0
+    },
+    "capturedAt": "2026-10-08T20:07:13.625Z"
+  },
+  "shapes": [
+    {
+      "tool": "rectangle",
+      "selector": "#main",
+      "color": "#ef4444",
+      "width": 4.548790658882401,
+      "points": [
+        {
+          "x": 775.6635738115095,
+          "y": 120.19024658203125
+        },
+        {
+          "x": 2870.2928286592996,
+          "y": 1348.8648071289062
+        }
+      ]
+    }
+  ]
+}
