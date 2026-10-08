@@ -1,0 +1,751 @@
+/* ABOUTME: Styles the Pagepaint QA field guide with a monochrome numbered layout. */
+/* ABOUTME: Keeps installation, product video, and repository handoff readable across screens. */
+@font-face {
+  font-family: "DM Sans";
+  src: url("/demo/fonts/dm-sans-400.ttf") format("truetype");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "DM Sans";
+  src: url("/demo/fonts/dm-sans-500.ttf") format("truetype");
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: "DM Sans";
+  src: url("/demo/fonts/dm-sans-700.ttf") format("truetype");
+  font-weight: 700;
+  font-display: swap;
+}
+:root {
+  color-scheme: light;
+  --paper: #f7f7f7;
+  --ink: #151515;
+  --muted: #5b5b5b;
+  --rule: #d7d7d7;
+  --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "DM Sans", sans-serif;
+  font-synthesis: none;
+  scroll-behavior: smooth;
+  scroll-padding-top: 28px;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+a {
+  color: inherit;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 5px;
+}
+button:active {
+  transform: translateY(1px);
+}
+button,
+a,
+summary {
+  -webkit-tap-highlight-color: #d7d7d7;
+}
+p {
+  line-height: 1.65;
+  margin: 0;
+}
+code {
+  font-family: var(--mono);
+  font-size: 0.87em;
+}
+pre {
+  margin: 0;
+}
+.mono {
+  font-family: var(--mono);
+  font-size: 11px;
+}
+.page-width {
+  width: min(1380px, calc(100% - 96px));
+  margin-inline: auto;
+}
+.skip-link {
+  position: absolute;
+  left: 24px;
+  top: -60px;
+  background: white;
+  padding: 12px 16px;
+  z-index: 2;
+}
+.skip-link:focus {
+  top: 8px;
+}
+.masthead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 92px;
+  border-bottom: 1px solid var(--ink);
+  gap: 24px;
+}
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  gap: 10px;
+  font-size: 22px;
+  letter-spacing: -0.8px;
+  font-weight: 700;
+}
+.brand-mark {
+  display: inline-flex;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -6px;
+  margin-right: 8px;
+  width: 29px;
+}
+.brand-mark span {
+  transform: translateY(-4px);
+}
+.edition {
+  padding-left: 17px;
+  margin-left: 13px;
+  border-left: 1px solid var(--rule);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--muted);
+}
+.header-links {
+  display: flex;
+  gap: 29px;
+  font-size: 13px;
+}
+.header-links a {
+  text-decoration: none;
+  padding-block: 14px;
+}
+.header-links a:hover {
+  text-decoration: underline;
+}
+.header-links span {
+  margin-left: 5px;
+}
+.guide {
+  display: grid;
+  grid-template-columns: 154px minmax(0, 1fr);
+  gap: 42px;
+}
+.guide-rail {
+  padding-top: 53px;
+}
+.rail-heading {
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--muted);
+  margin-bottom: 18px;
+}
+.guide-rail nav {
+  display: grid;
+  gap: 1px;
+}
+.guide-rail nav a {
+  padding: 11px 0;
+  font-size: 13px;
+  text-decoration: none;
+}
+.guide-rail nav a:hover {
+  text-decoration: underline;
+}
+.guide-rail nav span {
+  display: inline-block;
+  width: 27px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+}
+.rail-note {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 44px;
+  line-height: 1.9;
+}
+main {
+  min-width: 0;
+}
+.introduction {
+  padding-top: 48px;
+  padding-bottom: 33px;
+}
+.section-index {
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.5;
+  margin-bottom: 18px;
+}
+h1 {
+  font-size: clamp(48px, 5.2vw, 76px);
+  line-height: 1.01;
+  letter-spacing: -0.066em;
+  font-weight: 500;
+  margin: 0 0 23px;
+}
+.intro-bottom {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 28px;
+}
+.intro-bottom p {
+  font-size: 16px;
+  max-width: 540px;
+  color: #454545;
+  line-height: 1.55;
+}
+.try-button {
+  background: var(--ink);
+  color: #fff;
+  border: 1px solid var(--ink);
+  min-height: 48px;
+  padding: 0 19px;
+  flex-shrink: 0;
+  font-size: 13px;
+}
+.try-button span {
+  margin-left: 18px;
+}
+.try-button:hover {
+  background: #3b3b3b;
+}
+.watch-install {
+  display: grid;
+  grid-template-columns: 1.45fr 1fr;
+  gap: 32px;
+  padding-bottom: 41px;
+}
+.demo-film {
+  min-width: 0;
+  margin: 0;
+  border-top: 1px solid var(--ink);
+}
+.film-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  min-height: 44px;
+  font-size: 12px;
+}
+.film-heading .mono {
+  color: var(--muted);
+  font-size: 9px;
+}
+.video-surface {
+  background: #151515;
+  aspect-ratio: 16/9;
+}
+video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+figcaption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 47px;
+  border-bottom: 1px solid var(--rule);
+  font-size: 11px;
+  color: var(--muted);
+}
+.film-controls {
+  display: flex;
+  gap: 12px;
+}
+.film-controls button {
+  border: 0;
+  background: transparent;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  padding: 13px 0;
+  min-height: 44px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.film-controls button:hover {
+  color: var(--ink);
+}
+.installation {
+  border-top: 1px solid var(--ink);
+  padding-top: 15px;
+  min-width: 0;
+}
+.chapter-number {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+}
+.installation h2 {
+  font-size: 33px;
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  line-height: 1.09;
+  margin: 13px 0 15px;
+}
+.installation > p {
+  color: #454545;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.code-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--rule);
+  background: #eee;
+  margin-top: 21px;
+  padding-inline: 13px;
+}
+.code-heading button {
+  background: none;
+  border: 0;
+  font-size: 11px;
+  padding: 12px 0 12px 16px;
+  min-height: 44px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.installation pre {
+  padding: 0 13px 16px;
+  background: #eee;
+  line-height: 1.6;
+  font-size: 12px;
+  overflow: auto;
+}
+.installation pre code {
+  font-size: inherit;
+}
+.installation .install-note {
+  margin-top: 13px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.text-link {
+  display: inline-block;
+  margin-top: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+.installation .extension-note {
+  color: var(--muted);
+  font-size: 11px;
+  margin-top: 8px;
+}
+.review-section,
+.handoff-section {
+  border-top: 1px solid var(--ink);
+  padding-block: 31px;
+}
+.chapter-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 22px;
+  margin-bottom: 25px;
+}
+.chapter-heading h2 {
+  font-size: clamp(22px, 2.15vw, 29px);
+  line-height: 1.2;
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  margin: 0;
+}
+.review-steps {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+}
+.review-steps li {
+  display: flex;
+  align-items: start;
+  gap: 12px;
+}
+.step-number {
+  font-family: var(--mono);
+  width: 24px;
+  height: 24px;
+  border: 1px solid #aaa;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+h3 {
+  margin: 0 0 9px;
+  font-size: 14px;
+  font-weight: 700;
+}
+.review-steps p {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.65;
+}
+.workflow-note {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 24px;
+}
+.workflow-note span {
+  padding-right: 12px;
+  font-family: var(--mono);
+}
+.handoff-content {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 51px;
+}
+.handoff-copy > p {
+  font-size: 13px;
+  color: #454545;
+  line-height: 1.65;
+}
+.handoff-copy > p + p {
+  margin-top: 15px;
+}
+blockquote {
+  font-size: 13px;
+  line-height: 1.6;
+  border-left: 2px solid var(--ink);
+  padding-left: 16px;
+  margin: 20px 0;
+}
+.handoff-copy .support-note {
+  color: var(--muted);
+  font-size: 11px;
+}
+.repo-files {
+  border-left: 1px solid var(--rule);
+  padding-left: 29px;
+}
+.repo-files > .mono {
+  font-weight: 700;
+  font-size: 12px;
+  margin-bottom: 11px;
+}
+.repo-files pre {
+  font-size: 12px;
+  line-height: 1.7;
+  color: #454545;
+}
+.repo-files pre code {
+  font-size: inherit;
+}
+.repo-files p {
+  font-size: 12px;
+  margin-top: 18px;
+  line-height: 1.5;
+}
+.file-note {
+  display: block;
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 11px;
+}
+.storage-note {
+  border-top: 1px solid var(--rule);
+  margin-top: 0;
+}
+.storage-note summary {
+  font-size: 13px;
+  padding-block: 18px;
+  cursor: pointer;
+}
+.storage-note > div {
+  display: grid;
+  gap: 12px;
+  padding-bottom: 24px;
+  max-width: 670px;
+}
+.storage-note p {
+  font-size: 12px;
+  color: var(--muted);
+}
+.footer {
+  margin-top: 45px;
+  padding-block: 26px;
+  border-top: 1px solid var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.footer nav {
+  display: flex;
+  gap: 20px;
+}
+.footer nav a {
+  text-decoration: none;
+  padding-block: 10px;
+}
+.footer nav a:hover {
+  text-decoration: underline;
+}
+.folio {
+  white-space: nowrap;
+  font-size: 10px;
+}
+@media (min-width: 1600px) {
+  .guide {
+    grid-template-columns: 164px minmax(0, 1fr);
+    gap: 65px;
+  }
+}
+@media (max-width: 1150px) {
+  .page-width {
+    width: calc(100% - 56px);
+  }
+  .guide {
+    grid-template-columns: 116px minmax(0, 1fr);
+    gap: 26px;
+  }
+  .watch-install {
+    grid-template-columns: 1.18fr 1fr;
+    gap: 22px;
+  }
+  .film-heading .mono {
+    display: none;
+  }
+  .intro-bottom p {
+    font-size: 15px;
+    max-width: 400px;
+  }
+  .review-steps {
+    gap: 19px;
+  }
+  .review-steps li {
+    gap: 8px;
+  }
+  .handoff-content {
+    gap: 28px;
+  }
+}
+@media (max-width: 900px) {
+  .guide {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .guide-rail {
+    padding-top: 17px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .guide-rail nav {
+    display: flex;
+    gap: 24px;
+  }
+  .guide-rail nav a {
+    padding: 9px 0 15px;
+  }
+  .rail-heading,
+  .rail-note {
+    display: none;
+  }
+  .guide-rail nav span {
+    width: 22px;
+  }
+  .introduction {
+    padding-top: 34px;
+  }
+  h1 {
+    font-size: 64px;
+  }
+  .watch-install {
+    grid-template-columns: 1.3fr 1fr;
+  }
+  .footer {
+    flex-wrap: wrap;
+    gap: 10px 30px;
+  }
+  .folio {
+    margin-left: auto;
+  }
+}
+@media (max-width: 640px) {
+  .page-width {
+    width: calc(100% - 36px);
+  }
+  .masthead {
+    min-height: 74px;
+    gap: 10px;
+  }
+  .wordmark {
+    font-size: 20px;
+    gap: 7px;
+  }
+  .brand-mark {
+    font-size: 23px;
+    width: 25px;
+    margin-right: 5px;
+  }
+  .edition {
+    display: none;
+  }
+  .header-links {
+    gap: 15px;
+    font-size: 11px;
+  }
+  .header-links span {
+    margin-left: 2px;
+  }
+  .guide-rail nav {
+    justify-content: space-between;
+    gap: 9px;
+  }
+  .guide-rail nav a {
+    font-size: 11px;
+    min-height: 44px;
+  }
+  .guide-rail nav span {
+    width: 18px;
+    font-size: 9px;
+  }
+  .introduction {
+    padding-top: 29px;
+    padding-bottom: 26px;
+  }
+  .section-index {
+    font-size: 9px;
+    margin-bottom: 14px;
+  }
+  h1 {
+    font-size: clamp(46px, 12.5vw, 68px);
+    margin-bottom: 20px;
+  }
+  .intro-bottom {
+    display: block;
+  }
+  .intro-bottom p {
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  .try-button {
+    margin-top: 22px;
+  }
+  .watch-install {
+    grid-template-columns: 1fr;
+    gap: 27px;
+    padding-bottom: 30px;
+  }
+  .film-heading {
+    min-height: 40px;
+  }
+  .film-heading .mono {
+    display: inline;
+  }
+  figcaption {
+    gap: 9px;
+    font-size: 10px;
+  }
+  .film-controls {
+    gap: 11px;
+  }
+  .film-controls button {
+    font-size: 10px;
+  }
+  .installation {
+    padding-top: 17px;
+  }
+  .installation h2 {
+    font-size: 30px;
+  }
+  .installation h2 br {
+    display: none;
+  }
+  .installation pre {
+    font-size: 11px;
+  }
+  .review-section,
+  .handoff-section {
+    padding-block: 25px;
+  }
+  .chapter-heading {
+    gap: 16px;
+    margin-bottom: 22px;
+  }
+  .chapter-heading h2 {
+    font-size: 24px;
+    line-height: 1.2;
+  }
+  .review-steps {
+    grid-template-columns: 1fr;
+    gap: 23px;
+  }
+  .review-steps li {
+    gap: 14px;
+  }
+  h3 {
+    font-size: 15px;
+    margin-bottom: 7px;
+  }
+  .review-steps p {
+    font-size: 13px;
+    max-width: 45ch;
+  }
+  .workflow-note {
+    font-size: 11px;
+  }
+  .handoff-content {
+    grid-template-columns: 1fr;
+    gap: 25px;
+  }
+  .repo-files {
+    border-left: 0;
+    border-top: 1px solid var(--rule);
+    padding: 22px 0 0 0;
+  }
+  .footer {
+    margin-top: 27px;
+    padding-block: 22px;
+    gap: 13px;
+  }
+  .footer > span:first-child {
+    width: 100%;
+  }
+  .footer nav {
+    gap: 18px;
+  }
+  .folio {
+    margin-left: 0;
+    width: 100%;
+    padding-top: 8px;
+    font-size: 9px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    scroll-behavior: auto;
+  }
+  button:active {
+    transform: none;
+  }
+}
