@@ -1,0 +1,208 @@
+<!-- ABOUTME: Introduces Pagepaint through expressive type and a short product walkthrough. -->
+<!-- ABOUTME: Provides CDN installation, feedback workflow, and local repository instructions. -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Pagepaint is visual feedback for developers and QA. Add one script, draw on your app, and save screenshots, recordings, and notes locally."
+    />
+    <meta name="theme-color" content="#101010" />
+    <title>Pagepaint — point to the problem</title>
+    <link rel="stylesheet" href="/homepage/homepage.css" />
+    <link rel="stylesheet" href="./style.css" />
+    <script src="/homepage/homepage.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header shell">
+      <a
+        class="brand"
+        href="/directions/"
+        aria-label="Pagepaint design directions"
+      >
+        <span class="brand-symbol" aria-hidden="true">p/p</span>
+        <span>Pagepaint</span>
+      </a>
+      <nav aria-label="Main navigation">
+        <a href="#install">Install</a>
+        <a href="#workflow">Use it</a>
+        <a href="https://github.com/pagepaint/pagepaint"
+          >GitHub <span aria-hidden="true">↗</span></a
+        >
+      </nav>
+    </header>
+    <main id="main">
+      <section class="intro shell" aria-labelledby="page-title">
+        <p class="audience">Visual feedback for developers &amp; QA</p>
+        <h1 class="wordmark" id="page-title" aria-label="Pagepaint">
+          <span aria-hidden="true">p</span><span aria-hidden="true">a</span
+          ><span aria-hidden="true">g</span><span aria-hidden="true">e</span
+          ><span aria-hidden="true">p</span><span aria-hidden="true">a</span
+          ><span aria-hidden="true">i</span><span aria-hidden="true">n</span
+          ><span aria-hidden="true">t</span>
+        </h1>
+        <div class="intro-bottom">
+          <div class="intro-copy">
+            <h2>Point to the problem.</h2>
+            <p>
+              Draw on your app. Capture a screenshot or record a clip. Save the
+              feedback where your code lives.
+            </p>
+          </div>
+          <div class="intro-actions">
+            <a class="button button-primary" href="#install"
+              >Install Pagepaint <span aria-hidden="true">↓</span></a
+            >
+            <button
+              class="button button-outline"
+              type="button"
+              data-open-feedback
+            >
+              Try Pagepaint <span aria-hidden="true">↗</span>
+            </button>
+          </div>
+        </div>
+      </section>
+      <section class="film shell" aria-labelledby="film-title">
+        <div class="film-toolbar">
+          <h2 id="film-title">See the workflow</h2>
+          <div class="film-controls" aria-label="Video controls">
+            <button type="button" data-video-toggle>Pause video</button>
+            <button type="button" data-video-sound aria-pressed="false">
+              Sound off
+            </button>
+          </div>
+        </div>
+        <video
+          data-demo-video
+          autoplay
+          muted
+          loop
+          playsinline
+          preload="metadata"
+          width="1280"
+          height="720"
+          poster="/video/pagepaint-demo-poster.webp"
+          aria-label="Pagepaint walkthrough: draw on a page, capture the view, add a comment, and save feedback."
+          aria-describedby="demo-description"
+        >
+          <source src="/video/pagepaint-demo.mp4" type="video/mp4" />
+          <p>
+            <a href="/video/pagepaint-demo.mp4"
+              >Watch the Pagepaint walkthrough</a
+            >.
+          </p>
+        </video>
+        <div class="film-caption" id="demo-description">
+          <p>Draw. Capture. Explain. Save.</p>
+          <p>One toolbar, right on the page.</p>
+        </div>
+      </section>
+      <section class="guide" id="install" aria-labelledby="install-title">
+        <div class="shell">
+          <div class="install-intro">
+            <h2 id="install-title">One script.<br />Your app.</h2>
+            <p>
+              Drop this into your HTML. Plain JavaScript, bundled dependencies.
+              No build step or feedback server to set up.
+            </p>
+          </div>
+          <div class="code-block">
+            <div class="code-toolbar">
+              <span>HTML · before &lt;/body&gt;</span
+              ><button
+                type="button"
+                data-copy-install
+                data-copy-target="install-code"
+              >
+                Copy script
+              </button>
+            </div>
+            <pre><code id="install-code">&lt;script src="https://pagepaint.dev/v0.4.0/pagepaint.js" data-pagepaint defer&gt;&lt;/script&gt;</code></pre>
+          </div>
+          <p class="install-alternative">
+            Prefer a browser extension?
+            <a href="/pagepaint-extension.zip"
+              >Download for Chrome / Edge <span aria-hidden="true">↗</span></a
+            >
+            and load the extracted folder using
+            <strong>Load unpacked</strong> in Developer mode.
+          </p>
+          <div class="workflow" id="workflow" aria-labelledby="workflow-title">
+            <h2 id="workflow-title">Make the next fix obvious.</h2>
+            <ol class="steps">
+              <li>
+                <span class="step-number" aria-hidden="true">01</span>
+                <h3>Mark the page</h3>
+                <p>
+                  Open Feedback and choose Draw &amp; capture. Use a pen,
+                  highlighter, rectangle, or circle to show exactly what needs
+                  attention.
+                </p>
+              </li>
+              <li>
+                <span class="step-number" aria-hidden="true">02</span>
+                <h3>Add the context</h3>
+                <p>
+                  Attach the capture or record a short clip. Add your comment.
+                  Pagepaint keeps the full URL, query parameters, and viewport
+                  with it.
+                </p>
+              </li>
+              <li>
+                <span class="step-number" aria-hidden="true">03</span>
+                <h3>Keep it with the code</h3>
+                <p>
+                  Choose your repo folder when saving, or keep feedback in
+                  browser storage. Download a ZIP whenever you need to hand it
+                  over.
+                </p>
+              </li>
+            </ol>
+          </div>
+          <div class="repo-workflow">
+            <div class="repo-copy">
+              <h2>Give your agent the evidence.</h2>
+              <p>
+                Repo saving writes the capture, recording, and JSON into
+                <code>.annotations/</code>. Add this line to
+                <code>AGENTS.md</code> or <code>CLAUDE.md</code>:
+              </p>
+              <blockquote>
+                Check <code>.annotations/</code> for open items; set status to
+                resolved when done.
+              </blockquote>
+              <p class="compatibility">
+                Folder access needs desktop Chrome or Edge on HTTPS or
+                localhost. Other browsers can use browser storage and ZIP
+                export.
+              </p>
+            </div>
+            <pre
+              class="repo-tree"
+              aria-label="Example files saved to a repository"
+            ><code>.annotations/
+  feedback.json
+  feedback.webp
+  feedback.webm
+
+status: "open" → "resolved"</code></pre>
+          </div>
+        </div>
+      </section>
+    </main>
+    <footer class="site-footer shell">
+      <p>Pagepaint <span>Local feedback. Open source. MIT.</span></p>
+      <nav aria-label="Footer navigation">
+        <a href="/directions/">Five directions</a>
+        <a href="https://github.com/pagepaint/pagepaint">Source</a>
+        <a href="/LICENSE">License</a>
+        <a href="/privacy/">Privacy</a>
+        <a href="/terms/">Terms</a>
+      </nav>
+    </footer>
+  </body>
+</html>
