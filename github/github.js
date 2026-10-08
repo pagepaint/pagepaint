@@ -42,6 +42,10 @@ function finish(value) {
 function populate() {
   if (!account || !payload) return;
   if (operation === "connect") {
+    if (payload.autoConnect && payload.login === account.login) {
+      finish(account);
+      return;
+    }
     element("continue").hidden = false;
     return;
   }
@@ -103,7 +107,7 @@ function populate() {
 }
 async function session() {
   try {
-    const { token } = await api("session");
+    const { token, expiresAt } = await api("session");
     client = new GitHubClient(token);
     const [user, repositories] = await Promise.all([
       client.user(),
@@ -111,6 +115,7 @@ async function session() {
     ]);
     account = {
       login: user.login,
+      ...(Number.isFinite(expiresAt) ? { expiresAt } : {}),
       repositories: repositories.map((repo) => ({
         full_name: repo.full_name,
         private: repo.private,

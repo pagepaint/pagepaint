@@ -5,7 +5,16 @@ export const styles = `
   .config-tabs button { flex: 1; padding: 9px; border: 1px solid var(--line); border-radius: 8px; color: var(--muted); }
   .config-tabs [aria-selected=true] { color: var(--accent); border-color: var(--accent); background: var(--accent-wash); }
   .panel[data-onboarding] .config-tabs { display: none; }
-  .project-setting select { width: 100%; padding: 8px; background: var(--wash); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; font: inherit; }
+  .repository-trigger { width: 100%; min-height: 38px; justify-content: space-between; text-align: left; padding: 8px 10px; background: var(--wash); border: 1px solid var(--line); border-radius: 6px; font-size: 12px; color: var(--ink); }
+  .repository-trigger span:first-child { min-width: 0; overflow-wrap: anywhere; }
+  .repository-menu { margin-top: 6px; padding: 8px; border: 1px solid var(--accent-line); background: var(--paper); border-radius: 8px; }
+  .repository-results { max-height: 200px; overflow: auto; margin-top: 6px; }
+  .repository-option { display: flex; width: 100%; justify-content: space-between; text-align: left; gap: 8px; padding: 9px 8px; border: 1px solid transparent; border-radius: 5px; font-size: 12px; color: var(--ink); }
+  .repository-option span { min-width: 0; overflow-wrap: anywhere; }
+  .repository-option small { color: var(--muted); font-size: 10px; flex-shrink: 0; }
+  .repository-option[aria-selected=true] { background: var(--accent-wash); }
+  .repository-option[data-active], .repository-option:hover { border-color: var(--accent-line); background: var(--wash); }
+  .repository-status { color: var(--muted); font-size: 11px; padding: 7px 3px 0; }
   .github-account { color: var(--muted); font-size: 12px; margin: 12px 0; }
   .github-check { display: flex; gap: 8px; align-items: center; margin: 15px 0 8px; font-size: 12px; }
   #github-config .project-setting { margin-top: 16px; }

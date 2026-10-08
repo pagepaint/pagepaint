@@ -12,6 +12,7 @@ The GitHub organization is [pagepaint](https://github.com/pagepaint). The public
 - `cloudflare/worker.js` handles only GitHub OAuth and CDN assets. It stores no feedback or database records. GitHub access tokens are encrypted in short-lived HttpOnly cookies and read only by the same-origin GitHub window. Never send credentials back to host apps or store them in widget preferences or exports.
 - Issue creation and optional uploads go directly from that trusted window to GitHub. Uploads use `.pagepaint/` on the `pagepaint-feedback` branch. Creating an issue requires an explicit review click. Preserve the thread marker used to recover from lost responses without duplicating issues.
 - Project identity is independent of its editable display name. Localhost defaults to the first page title; hosted apps default to the hostname. CDN and extension storage are separate.
+- GitHub account/repository metadata saves immediately in project preferences, independently of destination configuration. Never cache tokens there. The repository picker uses searchable, keyboard-accessible results. Refresh connection automatically finishes only when the trusted session matches the saved login; expired metadata requires refresh. Cookie authentication retains its eight-hour limit.
 
 ## Verification
 
@@ -37,6 +38,6 @@ Official references: [cf CLI](https://developers.cloudflare.com/cf/), [deploymen
 
 ## Chrome Web Store and GitHub branding
 
-The first store package is version 0.4.1. `store/listing.md` tracks submission status, permissions, privacy disclosures, and reviewer instructions. Do not claim a store listing exists before receiving its actual item ID. `scripts/store-screenshots.js` uses a temporary profile with test-only host permissions; the shipped manifest has no blanket host permission. Google requires disclosures for locally handled website content and activated page URLs even when Pagepaint receives no feedback.
+The first store package is version 0.4.2. `store/listing.md` tracks submission status, permissions, privacy disclosures, and reviewer instructions. Do not claim a store listing exists before receiving its actual item ID. `scripts/store-screenshots.js` uses a temporary profile with test-only host permissions; the shipped manifest has no blanket host permission. Google requires disclosures for locally handled website content and activated page URLs even when Pagepaint receives no feedback.
 
 The registered organization-owned OAuth app is [Pagepaint](https://github.com/organizations/pagepaint/settings/applications/3915523); its callback is the existing custom-domain URL. Production OAuth secrets are configured in Cloudflare. `.env` and private provisioning JSON are ignored and owner-readable only. Never print their values or include them in assets or git.

@@ -54,6 +54,7 @@ const retainedVersions = [
   "0.2.2",
   "0.3.0",
   "0.4.0",
+  "0.4.1",
   ...(process.argv.includes("--preserve-current-release") ? [version] : []),
 ];
 await Promise.all(
@@ -66,7 +67,7 @@ await Promise.all(
         "review-tool.mjs",
         "review-tool.js.LEGAL.txt",
         "review-tool.mjs.LEGAL.txt",
-        ...(["0.3.0", "0.4.0", version].includes(release)
+        ...(["0.3.0", "0.4.0", "0.4.1", version].includes(release)
           ? [
               "pagepaint.js",
               "pagepaint.mjs",

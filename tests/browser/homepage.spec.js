@@ -46,7 +46,7 @@ for (const direction of directions) {
     expect(await video.evaluate((element) => element.muted)).toBe(true);
     await page.locator("[data-copy-install]").first().click();
     expect(await page.evaluate(() => navigator.clipboard.readText())).toMatch(
-      /https:\/\/pagepaint\.dev\/v0\.4\.1\/pagepaint\.js/,
+      /https:\/\/pagepaint\.dev\/v0\.4\.2\/pagepaint\.js/,
     );
     expect(await page.evaluate(() => navigator.clipboard.readText())).toContain(
       "data-pagepaint",

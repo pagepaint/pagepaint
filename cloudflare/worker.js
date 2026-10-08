@@ -185,7 +185,7 @@ export async function auth(request, env, fetcher = fetch) {
   if (url.pathname === "/github/api/session" && request.method === "GET") {
     const session = await unseal(request, SESSION, env.SESSION_SECRET);
     return session
-      ? json({ token: session.token })
+      ? json({ token: session.token, expiresAt: session.expiresAt })
       : json({ error: "Sign in with GitHub to continue." }, 401);
   }
   if (url.pathname === "/github/api/logout" && request.method === "POST")

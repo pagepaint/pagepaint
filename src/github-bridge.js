@@ -80,8 +80,8 @@ export class GitHubBridge {
       }, 500);
     });
   }
-  connect() {
-    return this.open("connect", {});
+  connect(login) {
+    return this.open("connect", { login, autoConnect: !!login });
   }
   createIssue(payload) {
     return this.open("create", payload);

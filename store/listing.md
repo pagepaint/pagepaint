@@ -1,6 +1,6 @@
 # Pagepaint Chrome Web Store submission
 
-Status: package and listing prepared; account sign-in and store submission remain pending. Do not label a package as submitted or published until the dashboard confirms that state.
+Status: Timo completed developer registration, payment, and agreement acceptance. The updated package is prepared; store submission remains pending. Do not label a package as submitted or published until the dashboard confirms that state.
 
 ## Listing
 
@@ -68,11 +68,11 @@ Certifications supported by the implementation: no data sales; no use or transfe
 
 No login is needed for core features. Open https://pagepaint.dev/, click the extension action, choose a toolbar color, and capture a screenshot. Add a rectangle, attach it, type a comment, and press Send. Cancel the optional folder picker to retain browser-only saving. Reload the page and invoke the action again; feedback persists. Open Settings → Open project library to find the same thread. Download a ZIP, or choose a disposable local folder to verify .annotations/ files. Start Record video on the app tab, navigate within that origin, then use Stop & attach or the extension’s REC action to stop. Preview the clip and export it. Recording is video-only and capped at one minute / approximately 50 MB.
 
-Hosted GitHub OAuth is configured. Core functionality does not depend on sign-in. Account authorization and a real issue write remain separate live verification steps.
+Hosted GitHub OAuth is configured, and Timo verified sign-in in Edge. Core functionality does not depend on sign-in. A real issue write requires a named authorized target and has not been used as a public smoke test.
 
 ## Assets and package
 
-- Build: `npm run build`; upload `dist/pagepaint-extension.zip` (0.4.1).
+- Build: `npm run build`; upload `dist/pagepaint-extension.zip` (0.4.2).
 - Icons: bundled in `extension/icons/`; source in `public/brand/`.
 - Promotional tile: `store/assets/promo-440x280.png`.
 - Actual extension screenshots: `store/assets/screenshot-annotations.png`, `store/assets/screenshot-project-library.png` (1280×800).

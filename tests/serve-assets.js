@@ -5,6 +5,9 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const { version } = JSON.parse(
+  await readFile(path.join(root, "package.json"), "utf8"),
+);
 const playground =
   process.env.TEST_FIXTURE === "1"
     ? "tests/fixtures/playground.html"
@@ -62,6 +65,17 @@ const staticFiles = new Map([
     ],
     [
       `/dist/${file}`,
+      [
+        `dist/${file}`,
+        file.endsWith(".map")
+          ? "application/json"
+          : file.endsWith(".txt")
+            ? "text/plain"
+            : "text/javascript; charset=utf-8",
+      ],
+    ],
+    [
+      `/v${version}/${file}`,
       [
         `dist/${file}`,
         file.endsWith(".map")

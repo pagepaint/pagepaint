@@ -71,7 +71,10 @@ test("exchanges a valid code, exposes tokens only to the trusted window, and cle
   assert.ok(!cookie.includes("test-user-token"));
   assert.match(cookies[0], /HttpOnly; Secure; SameSite=Lax; Max-Age=28800/);
   const session = await auth(request("/github/api/session", { cookie }), env);
-  assert.deepEqual(await session.json(), { token: "test-user-token" });
+  const sessionData = await session.json();
+  assert.equal(sessionData.token, "test-user-token");
+  assert.ok(sessionData.expiresAt > Date.now());
+  assert.ok(sessionData.expiresAt <= Date.now() + 28800000);
   assert.equal(session.headers.get("Cache-Control"), "no-store");
   assert.equal(session.headers.get("Access-Control-Allow-Origin"), null);
   const blocked = await auth(

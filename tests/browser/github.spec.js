@@ -12,7 +12,7 @@ async function setup(page, context, { signedIn = true } = {}) {
       return route.fulfill({
         status: connected ? 200 : 401,
         json: connected
-          ? { token: "test-window-token" }
+          ? { token: "test-window-token", expiresAt: Date.now() + 3600000 }
           : { error: "Sign in to continue" },
       });
     if (name === "login") {
@@ -109,6 +109,141 @@ async function configure(page) {
   return popup;
 }
 
+async function reloadProject(page, projectId) {
+  await page.reload();
+  await page.evaluate(async (projectId) => {
+    Pagepaint.getInstance()?.destroy();
+    window.testReview = Pagepaint.init({
+      projectId,
+      repo: false,
+      githubUrl: `${location.origin}/github/`,
+    });
+    await testReview.ready;
+    testReview.open();
+  }, projectId);
+  await page
+    .getByRole("button", { name: "Feedback settings", exact: true })
+    .click();
+  await page.getByRole("tab", { name: "GitHub", exact: true }).click();
+}
+
+test("restores sign-in before repository configuration and filters repositories with keyboard selection", async ({
+  page,
+  context,
+}) => {
+  const { projectId, calls } = await setup(page, context, { signedIn: false });
+  const connection = await configure(page);
+  await connection
+    .getByRole("button", { name: "Sign in with GitHub ↗" })
+    .click();
+  await expect(
+    connection.getByText("Signed in as @timo", { exact: true }),
+  ).toBeVisible();
+  await connection
+    .getByRole("button", { name: "Use this GitHub account", exact: true })
+    .click();
+  await expect(
+    page.getByText("Connected as @timo", { exact: true }),
+  ).toBeVisible();
+  await expect
+    .poll(() =>
+      page.evaluate(
+        async () => (await testReview.store.preferences()).githubAccount?.login,
+      ),
+    )
+    .toBe("timo");
+  expect(
+    await page.evaluate(() => testReview.preferences.github),
+  ).toBeUndefined();
+  expect(
+    JSON.stringify(await page.evaluate(() => testReview.preferences)),
+  ).not.toContain("test-window-token");
+  await reloadProject(page, projectId);
+  await expect(
+    page.getByText("Connected as @timo", { exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "GitHub repository", exact: true })
+    .click();
+  const search = page.getByRole("combobox", {
+    name: "Search GitHub repositories",
+  });
+  await search.fill("TEAM public");
+  await expect(
+    page
+      .getByRole("listbox", { name: "GitHub repositories" })
+      .getByRole("option"),
+  ).toHaveCount(1);
+  await expect(
+    page.getByRole("option", { name: "team/public-app Public", exact: true }),
+  ).toBeVisible();
+  await search.fill("missing-repository");
+  await expect(
+    page.getByText("No matching repositories.", { exact: true }),
+  ).toBeVisible();
+  await search.press("Escape");
+  await expect(
+    page.getByRole("button", { name: "GitHub repository", exact: true }),
+  ).toBeFocused();
+  await page
+    .getByRole("button", { name: "GitHub repository", exact: true })
+    .click();
+  await search.fill("team");
+  await search.press("ArrowDown");
+  await search.press("Enter");
+  await expect(
+    page.getByRole("button", { name: "GitHub repository", exact: true }),
+  ).toContainText("team/public-app");
+  const reads = calls.filter((call) => call.path === "/user").length;
+  const refreshPromise = page.waitForEvent("popup");
+  await page
+    .getByRole("button", { name: "Refresh connection", exact: true })
+    .click();
+  const refresh = await refreshPromise;
+  await expect.poll(() => refresh.isClosed()).toBe(true);
+  await expect
+    .poll(() => calls.filter((call) => call.path === "/user").length)
+    .toBeGreaterThan(reads);
+  await expect(
+    page.getByText("Connected as @timo", { exact: true }),
+  ).toBeVisible();
+});
+
+test("restores an expired connection through one-click refresh", async ({
+  page,
+  context,
+}) => {
+  const { projectId } = await setup(page, context);
+  await page.evaluate(async () =>
+    testReview.savePreferences({
+      githubAccount: {
+        login: "timo",
+        repositories: [{ full_name: "team/app", private: true }],
+        expiresAt: 1,
+      },
+    }),
+  );
+  await reloadProject(page, projectId);
+  await expect(
+    page.getByText("Connection for @timo needs a refresh.", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "GitHub repository", exact: true }),
+  ).toBeDisabled();
+  const refreshPromise = page.waitForEvent("popup");
+  await page
+    .getByRole("button", { name: "Refresh connection", exact: true })
+    .click();
+  const refresh = await refreshPromise;
+  await expect.poll(() => refresh.isClosed()).toBe(true);
+  await expect(
+    page.getByText("Connected as @timo", { exact: true }),
+  ).toBeVisible();
+  expect(
+    await page.evaluate(() => testReview.preferences.githubAccount.expiresAt),
+  ).toBeGreaterThan(Date.now());
+});
+
 test("keeps sign-in pending when browser isolation detaches the authorization popup", async ({
   page,
   context,
@@ -199,8 +334,14 @@ test("signs in through the trusted window and persists non-secret project config
     page.getByText("Connected as @timo", { exact: true }),
   ).toBeVisible();
   await page
-    .getByLabel("GitHub repository", { exact: true })
-    .selectOption("team/app");
+    .getByRole("button", { name: "GitHub repository", exact: true })
+    .click();
+  await page
+    .getByRole("combobox", { name: "Search GitHub repositories" })
+    .fill("team/app");
+  await page
+    .getByRole("option", { name: "team/app Private", exact: true })
+    .click();
   await page
     .getByLabel("GitHub Project URL (optional)")
     .fill("https://github.com/orgs/team/projects/1");
@@ -243,8 +384,8 @@ test("signs in through the trusted window and persists non-secret project config
     .click();
   await page.getByRole("tab", { name: "GitHub", exact: true }).click();
   await expect(
-    page.getByLabel("GitHub repository", { exact: true }),
-  ).toHaveValue("team/app");
+    page.getByRole("button", { name: "GitHub repository", exact: true }),
+  ).toContainText("team/app");
   await page.getByRole("button", { name: "Sign out", exact: true }).click();
   await expect(
     page.getByText("GitHub is not connected.", { exact: true }),
@@ -313,8 +454,14 @@ test("reviews a screenshot, annotation, and complete thread before creating and 
     .getByRole("button", { name: "Use this GitHub account", exact: true })
     .click();
   await page
-    .getByLabel("GitHub repository", { exact: true })
-    .selectOption("team/app");
+    .getByRole("button", { name: "GitHub repository", exact: true })
+    .click();
+  await page
+    .getByRole("combobox", { name: "Search GitHub repositories" })
+    .fill("team/app");
+  await page
+    .getByRole("option", { name: "team/app Private", exact: true })
+    .click();
   await page
     .getByLabel("GitHub Project URL (optional)")
     .fill("https://github.com/orgs/team/projects/1");
@@ -413,8 +560,14 @@ test("converts a lazy recording through a connection window on a different origi
     .getByRole("button", { name: "Use this GitHub account", exact: true })
     .click();
   await page
-    .getByLabel("GitHub repository", { exact: true })
-    .selectOption("team/app");
+    .getByRole("button", { name: "GitHub repository", exact: true })
+    .click();
+  await page
+    .getByRole("combobox", { name: "Search GitHub repositories" })
+    .fill("team/app");
+  await page
+    .getByRole("option", { name: "team/app Private", exact: true })
+    .click();
   await page
     .getByRole("button", { name: "Save GitHub configuration", exact: true })
     .click();

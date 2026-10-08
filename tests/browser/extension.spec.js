@@ -219,6 +219,53 @@ test("unpacked extension captures real tab pixels and shares feedback with its l
     await expect(
       library.getByText("Native extension capture", { exact: true }),
     ).toBeVisible();
+    // Account metadata belongs to the extension origin, so an app refresh can recover it.
+    await library.evaluate(async (projectId) => {
+      await new Promise((resolve, reject) => {
+        const request = indexedDB.open("review-tool", 1);
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => {
+          const db = request.result;
+          const transaction = db.transaction("records", "readwrite");
+          const store = transaction.objectStore("records");
+          const preferences = store.get(`${projectId}:preferences`);
+          preferences.onsuccess = () =>
+            store.put({
+              ...preferences.result,
+              githubAccount: {
+                login: "fixture-reviewer",
+                repositories: [{ full_name: "fixture/app", private: true }],
+                expiresAt: Date.now() + 3600000,
+              },
+            });
+          transaction.oncomplete = () => {
+            db.close();
+            resolve();
+          };
+          transaction.onerror = () => {
+            db.close();
+            reject(transaction.error);
+          };
+        };
+      });
+    }, projectId);
+    await page.reload();
+    await page
+      .getByRole("button", { name: "Feedback settings", exact: true })
+      .click();
+    await page.getByRole("tab", { name: "GitHub", exact: true }).click();
+    await expect(
+      page.getByText("Connected as @fixture-reviewer", { exact: true }),
+    ).toBeVisible();
+    await page
+      .getByRole("button", { name: "GitHub repository", exact: true })
+      .click();
+    await page
+      .getByRole("combobox", { name: "Search GitHub repositories" })
+      .fill("fixture");
+    await expect(
+      page.getByRole("option", { name: "fixture/app Private", exact: true }),
+    ).toBeVisible();
   } finally {
     await context.close();
     await rm(profile, { recursive: true, force: true });
