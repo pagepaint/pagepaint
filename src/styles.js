@@ -128,7 +128,7 @@ export const styles = `
   .attachment-copy p { font-size: 10px; color: var(--muted); }
   .panel-footer { border-top: 1px solid var(--line); background: #141710; display: flex; flex-direction: column; align-items: stretch; gap: 8px; padding: 11px 20px; }
   .footer-actions, .thread-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
-  .thread-actions { justify-content: flex-start; margin-top: 8px; }
+  .thread-actions { justify-content: flex-start; position: sticky; top: 0; z-index: 1; background: var(--paper); padding-block: 4px; margin-block: 8px; }
   .primary.github-button { font-size: 11px; padding: 7px 10px; min-height: 34px; }
   .thread-nav .github-button { margin-block: 6px; }
   .save-status { display: flex; align-items: center; gap: 6px; font-size: 10px; color: var(--muted); }

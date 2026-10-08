@@ -1507,7 +1507,7 @@ export class ReviewWidget {
         const actions = document.createElement("div");
         actions.className = "thread-actions";
         actions.append(thread, github);
-        article.append(actions);
+        article.insertBefore(actions, bubble);
       }
       messages.append(article);
     }

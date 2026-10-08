@@ -9,7 +9,7 @@
 Add before `</body>` in the app's HTML:
 
 ```html
-<script src="https://pagepaint.dev/v0.4.3/pagepaint.js" data-pagepaint defer></script>
+<script src="https://pagepaint.dev/v0.4.4/pagepaint.js" data-pagepaint defer></script>
 ```
 
 Works with static HTML, client-rendered apps, and server-rendered pages. No local Node server or build step is needed. Dependencies are bundled. The script runs in the host app's origin. The unversioned `https://pagepaint.dev/pagepaint.js` follows the latest release; versioned URLs are immutable.
@@ -18,7 +18,7 @@ For separate projects on the same origin, set `data-project="my-app"`. Set `data
 
 ### Chrome / Edge extension
 
-Download [the extension ZIP](https://pagepaint.dev/v0.4.3/pagepaint-extension.zip), extract it, open `chrome://extensions` or `edge://extensions`, enable Developer mode, and choose Load unpacked with the folder containing `manifest.json`. Pin its icon and click it on the app. Default activation shortcut: Alt+Shift+P. Configure that shortcut on the browser's extensions/shortcuts page.
+Download [the extension ZIP](https://pagepaint.dev/v0.4.4/pagepaint-extension.zip), extract it, open `chrome://extensions` or `edge://extensions`, enable Developer mode, and choose Load unpacked with the folder containing `manifest.json`. Pin its icon and click it on the app. Default activation shortcut: Alt+Shift+P. Configure that shortcut on the browser's extensions/shortcuts page.
 
 The extension bundles all executable code and has no blanket host permission. It uses native tab screenshots and an offscreen tab recorder. Its local project library is separate from CDN-widget history. Browser-internal pages and protected content may block capture. Version 0.4.2 was submitted to Chrome Web Store review on October 8, 2026, with automatic publication enabled after approval. Install the ZIP until approval; no public store installation link is available yet.
 

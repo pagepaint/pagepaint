@@ -11,7 +11,7 @@ A plain JavaScript feedback widget for AI-built apps. Load one CDN script, draw 
 
 ```html
 <script
-  src="https://pagepaint.dev/v0.4.3/pagepaint.js"
+  src="https://pagepaint.dev/v0.4.4/pagepaint.js"
   data-pagepaint
   data-project="my-app"
   defer
@@ -20,10 +20,10 @@ A plain JavaScript feedback widget for AI-built apps. Load one CDN script, draw 
 
 The dependencies are bundled. The script runs in the app's origin, so each domain and localhost port has its own browser storage and folder permission. Use a different `data-project` for separate apps sharing an origin. The display name is saved on first visit: localhost uses the page title, falling back to host and port; hosted apps use the hostname without `www.`. Set `data-project-name` to choose another default, or rename it in Settings. Renaming preserves the project ID and existing history. Your site's CSP must allow the CDN script, the widget's inline styles, data/blob images, and blob media.
 
-The installation guide and short product demo are at <https://pagepaint.dev/>. Five homepage designs can be reviewed at <https://pagepaint.dev/directions/>. The unversioned `/pagepaint.js` URL follows the current release; the versioned URL pins this release. ES modules are available at `/v0.4.3/pagepaint.mjs`. Existing scripts and pinned versions at the legacy workers.dev domain continue to work.
+The installation guide and short product demo are at <https://pagepaint.dev/>. Five homepage designs can be reviewed at <https://pagepaint.dev/directions/>. The unversioned `/pagepaint.js` URL follows the current release; the versioned URL pins this release. ES modules are available at `/v0.4.4/pagepaint.mjs`. Existing scripts and pinned versions at the legacy workers.dev domain continue to work.
 
 ```js
-import { init } from "https://pagepaint.dev/v0.4.3/pagepaint.mjs";
+import { init } from "https://pagepaint.dev/v0.4.4/pagepaint.mjs";
 
 const review = init({
   projectId: "my-app",
@@ -94,7 +94,7 @@ JavaScript initialization also accepts a `hotkeys` object. Keys are `toggle`, `d
 
 The video button records a user-selected screen, window, or tab using `getDisplayMedia` and `MediaRecorder`. It produces a previewable attachment with recording-time context and saves its Blob in IndexedDB. Recordings are video-only, limited to one minute or approximately 50 MB. Stop through **Stop & attach**, add a comment, then Send. ZIPs and repo saves contain the original `.webm` or `.mp4` file. Canceling screen selection leaves the draft intact. Stop before leaving a CDN-embedded page; its recorder cannot survive page navigation.
 
-Download [the Chrome / Edge extension ZIP](https://pagepaint.dev/v0.4.3/pagepaint-extension.zip), extract it, enable Developer mode at `chrome://extensions` or `edge://extensions`, and choose **Load unpacked** with that folder. Click the extension icon on an app, or use Alt+Shift+P (configurable in the browser’s extension shortcuts). Browser-internal pages may block capture. Version 0.4.2 was submitted to Chrome Web Store review on October 8, 2026, with automatic publication enabled after approval. The ZIP works now; a store installation link will follow approval. The homepage has a step-by-step [extension installation guide](https://pagepaint.dev/#extension).
+Download [the Chrome / Edge extension ZIP](https://pagepaint.dev/v0.4.4/pagepaint-extension.zip), extract it, enable Developer mode at `chrome://extensions` or `edge://extensions`, and choose **Load unpacked** with that folder. Click the extension icon on an app, or use Alt+Shift+P (configurable in the browser’s extension shortcuts). Browser-internal pages may block capture. Version 0.4.2 was submitted to Chrome Web Store review on October 8, 2026, with automatic publication enabled after approval. The ZIP works now; a store installation link will follow approval. The homepage has a step-by-step [extension installation guide](https://pagepaint.dev/#extension).
 
 The extension bundles the shared library, uses native tab screenshots instead of DOM reconstruction, and records in an offscreen document so a clip can continue across navigations. Click its recording badge/action to stop if the on-page toolbar is unavailable. Completed clips are recoverable in its local project library. **Open Pagepaint library** in Settings provides centralized project history, repo folder saving, and ZIP export. Projects are separated by full origin, including localhost port. CDN embeds and the extension have separate storage histories. Activating the extension replaces a mounted CDN widget for that page session, preserving its app-origin data and avoiding duplicate controls.
 

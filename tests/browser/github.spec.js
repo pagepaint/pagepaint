@@ -656,6 +656,12 @@ test("sends directly from a card and links an exact closed-title match without l
       github: { repository: "team/app", labels: [], includeAttachments: false },
     }),
   );
+  await page
+    .getByRole("button", { name: "Capture screen", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Attach screenshot", exact: true })
+    .click();
   await page.getByLabel("YOUR FEEDBACK").fill("Fix the clipped button");
   await page.getByRole("button", { name: "Send", exact: true }).click();
   await expect(
@@ -700,6 +706,14 @@ test("sends directly from a card and links an exact closed-title match without l
   await expect(
     page.getByRole("button", { name: "GitHub #7 ↗", exact: true }),
   ).toBeVisible();
+  const messages = await page.locator("#messages").boundingBox();
+  const github = await page
+    .getByRole("button", { name: "GitHub #7 ↗", exact: true })
+    .boundingBox();
+  expect(github.y).toBeGreaterThanOrEqual(messages.y);
+  expect(github.y + github.height).toBeLessThanOrEqual(
+    messages.y + messages.height,
+  );
 });
 
 test("reviews a batch, persists each success, and retries remaining threads without duplicate writes", async ({

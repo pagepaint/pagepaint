@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Pagepaint",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "description": "Draw, capture, record, and save local feedback for any app.",
   "minimum_chrome_version": "116",
   "permissions": [
