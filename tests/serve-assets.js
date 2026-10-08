@@ -80,6 +80,10 @@ const publicTypes = new Map([
   [".mp4", "video/mp4"],
   [".webp", "image/webp"],
   [".vtt", "text/vtt; charset=utf-8"],
+  [".svg", "image/svg+xml"],
+  [".png", "image/png"],
+  [".txt", "text/plain; charset=utf-8"],
+  [".xml", "application/xml; charset=utf-8"],
 ]);
 
 export function createReviewServer() {
@@ -94,7 +98,11 @@ export function createReviewServer() {
     const type = publicTypes.get(path.extname(publicPath));
     const file =
       staticFiles.get(url.pathname) ||
-      (type && /^\/(directions|homepage|video)\//.test(publicPath)
+      (type &&
+      (/^\/(directions|homepage|video|brand)\//.test(publicPath) ||
+        ["/llms.txt", "/llms-full.txt", "/robots.txt", "/sitemap.xml"].includes(
+          publicPath,
+        ))
         ? [path.join("public", publicPath), type]
         : null);
     if (!["GET", "HEAD"].includes(request.method) || !file) {

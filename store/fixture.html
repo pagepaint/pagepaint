@@ -1,0 +1,152 @@
+<!-- ABOUTME: Provides a deliberately clipped checkout control for extension listing screenshots. -->
+<!-- ABOUTME: Labels all example content as a sample QA fixture without real customer data. -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sample checkout · QA fixture</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #fafafa;
+        color: #171717;
+        font:
+          16px/1.5 Arial,
+          sans-serif;
+      }
+      header {
+        border-bottom: 1px solid #ddd;
+        padding: 22px 48px;
+        display: flex;
+        justify-content: space-between;
+      }
+      header span,
+      small,
+      .muted {
+        color: #666;
+      }
+      main {
+        max-width: 980px;
+        margin: 56px auto;
+      }
+      h1 {
+        font-size: 48px;
+        line-height: 1.1;
+        letter-spacing: -2px;
+        margin: 10px 0 44px;
+      }
+      .columns {
+        display: grid;
+        grid-template-columns: 1.4fr 1fr;
+        gap: 56px;
+      }
+      h2 {
+        margin: 0 0 22px;
+        font-size: 22px;
+      }
+      label {
+        display: block;
+        font-size: 14px;
+        margin-bottom: 6px;
+      }
+      input {
+        width: 100%;
+        border: 1px solid #bbb;
+        background: #fff;
+        padding: 13px 16px;
+        font: inherit;
+        margin-bottom: 22px;
+      }
+      .row {
+        display: flex;
+        gap: 20px;
+      }
+      .summary {
+        background: #eee;
+        padding: 28px;
+      }
+      .item {
+        display: flex;
+        justify-content: space-between;
+        padding: 16px 0;
+        border-bottom: 1px solid #ccc;
+      }
+      .total {
+        font-weight: 700;
+        margin-top: 24px;
+      }
+      .actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 32px;
+      }
+      button {
+        color: white;
+        background: #171717;
+        border: 0;
+        padding: 14px 24px;
+        font: inherit;
+        width: 97px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-align: left;
+        cursor: pointer;
+      }
+      footer {
+        border-top: 1px solid #ddd;
+        padding: 24px 48px;
+        font-size: 12px;
+        color: #666;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <strong>Sample checkout</strong><span>QA fixture · Compact layout</span>
+    </header>
+    <main>
+      <small>Checkout / Review</small>
+      <h1>Ready to place your order?</h1>
+      <div class="columns">
+        <section>
+          <h2>Delivery details</h2>
+          <label for="name">Name</label
+          ><input id="name" value="Sample customer" />
+          <label for="address">Address</label
+          ><input id="address" value="42 Example Street" />
+          <div class="row">
+            <div>
+              <label for="city">City</label
+              ><input id="city" value="Sample city" />
+            </div>
+            <div>
+              <label for="zip">Postal code</label
+              ><input id="zip" value="00000" />
+            </div>
+          </div>
+          <p class="muted">
+            Example content for testing. No payment is processed.
+          </p>
+        </section>
+        <section class="summary">
+          <h2>Order summary</h2>
+          <div class="item">
+            <span>Field notebook × 2</span><span>€24.00</span>
+          </div>
+          <div class="item"><span>Delivery</span><span>€4.00</span></div>
+          <div class="item total"><span>Total</span><span>€28.00</span></div>
+          <div class="actions">
+            <small>Secure checkout</small
+            ><button id="broken-button">Confirm order</button>
+          </div>
+        </section>
+      </div>
+    </main>
+    <footer>Sample QA fixture · The clipped button is intentional.</footer>
+  </body>
+</html>

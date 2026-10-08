@@ -109,6 +109,32 @@ code {
   line-height: 1;
   letter-spacing: -1.5px;
 }
+.wordmark img {
+  display: block;
+  width: 168px;
+  height: auto;
+}
+.install-intro {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 24px;
+  padding: 0 0 24px;
+}
+.install-intro h2 {
+  font-size: 28px;
+  letter-spacing: -0.04em;
+}
+.install-intro p {
+  color: var(--muted);
+  font-size: 14px;
+}
+.option-label {
+  font-family: var(--mono);
+  font-size: 12px;
+  margin-bottom: 20px;
+  color: inherit;
+}
 .masthead nav {
   display: flex;
   gap: 30px;
@@ -385,12 +411,16 @@ video {
   color: var(--muted);
 }
 .extension-guide {
-  border-block: 1px solid var(--rule);
-  margin-bottom: 40px;
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) minmax(0, 2.35fr);
+  gap: 40px;
+  border: 1px solid var(--rule);
+  border-top: none;
+  padding: 36px;
 }
 .extension-guide summary {
-  padding: 22px 0;
-  font-size: 16px;
+  padding: 16px 0;
+  font-size: 14px;
   cursor: pointer;
 }
 .extension-guide summary:hover {
@@ -398,17 +428,71 @@ video {
   text-underline-offset: 4px;
 }
 .extension-content {
-  padding: 0 0 24px 22px;
-  max-width: 85ch;
+  min-width: 0;
   font-size: 14px;
   color: #4d4d4d;
 }
 .extension-content ol {
   padding-left: 22px;
-  margin: 16px 0 0;
+  margin: 0;
 }
 .extension-content li + li {
-  margin-top: 8px;
+  margin-top: 16px;
+}
+.extension-content code {
+  overflow-wrap: anywhere;
+}
+.extension-heading h2 {
+  font-size: 32px;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  margin-bottom: 16px;
+}
+.extension-heading > p:not(.option-label) {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #4d4d4d;
+  max-width: 35ch;
+}
+.extension-download {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  font-size: 13px;
+  border: 1px solid var(--ink);
+  padding: 12px 16px;
+  min-height: 48px;
+  text-decoration: none;
+  margin-block: 20px 12px;
+}
+.extension-download:hover {
+  background: #ededed;
+}
+.extension-heading > .extension-status,
+.extension-content > .extension-note {
+  font-size: 12px;
+  color: var(--muted);
+}
+.extension-content > .extension-note {
+  margin-top: 20px;
+}
+.extension-content details {
+  border-bottom: 1px solid var(--rule);
+  margin-top: 12px;
+}
+.extension-content details p {
+  padding-bottom: 16px;
+}
+kbd {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 2px 4px;
+  border: 1px solid #c4c4c4;
+  border-bottom-width: 2px;
+}
+.footer-brand img {
+  display: block;
 }
 footer {
   display: flex;
@@ -450,7 +534,8 @@ footer nav {
   .synopsis p {
     font-size: 14px;
   }
-  .install {
+  .install,
+  .extension-guide {
     gap: 28px;
     padding: 28px;
     grid-template-columns: minmax(200px, 1fr) minmax(0, 2fr);
@@ -472,6 +557,9 @@ footer nav {
   }
   .wordmark {
     font-size: 25px;
+  }
+  .wordmark img {
+    width: 136px;
   }
   .masthead nav {
     gap: 20px;
@@ -513,13 +601,18 @@ footer nav {
     align-self: center;
     max-width: 40ch;
   }
-  .install {
+  .install,
+  .extension-guide {
     grid-template-columns: 1fr;
     gap: 28px;
     padding: 24px;
   }
   .install-heading p {
     max-width: 54ch;
+  }
+  .install-intro {
+    flex-direction: column;
+    gap: 4px;
   }
   .workflow {
     padding: 44px 0;
@@ -592,11 +685,15 @@ footer nav {
   .film-controls {
     gap: 16px;
   }
-  .install {
+  .install,
+  .extension-guide {
     padding: 22px 18px;
   }
   .install h2 {
     font-size: 28px;
+  }
+  .masthead-inner {
+    gap: 12px;
   }
   .code-heading button {
     padding: 10px 12px;

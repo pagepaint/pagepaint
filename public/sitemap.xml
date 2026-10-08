@@ -1,0 +1,7 @@
+<!-- ABOUTME: Lists canonical public Pagepaint information pages for search engines. -->
+<!-- ABOUTME: Excludes design experiments and authentication windows from the sitemap. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://pagepaint.dev/</loc></url>
+  <url><loc>https://pagepaint.dev/privacy/</loc></url>
+  <url><loc>https://pagepaint.dev/terms/</loc></url>
+</urlset>

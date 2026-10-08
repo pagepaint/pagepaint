@@ -1,0 +1,56 @@
+# Pagepaint
+
+> Pagepaint is an open-source visual feedback tool for developers and QA reviewing web apps, including AI-built apps. It lets people draw directly on a page, capture a screenshot or short video, add comments, and save feedback locally. MIT licensed. No feedback backend, analytics, or automatic sync.
+
+## Install: two options
+
+### CDN script
+
+Add before `</body>` in the app's HTML:
+
+```html
+<script src="https://pagepaint.dev/v0.4.1/pagepaint.js" data-pagepaint defer></script>
+```
+
+Works with static HTML, client-rendered apps, and server-rendered pages. No local Node server or build step is needed. Dependencies are bundled. The script runs in the host app's origin. The unversioned `https://pagepaint.dev/pagepaint.js` follows the latest release; versioned URLs are immutable.
+
+For separate projects on the same origin, set `data-project="my-app"`. Set `data-project-name="My app"` to choose a display name. Otherwise localhost uses the first page title, and hosted apps use their hostname. Position defaults to bottom-right; Settings can change color, hotkeys, project name, and GitHub preferences. The toolbar is draggable.
+
+### Chrome / Edge extension
+
+Download [the extension ZIP](https://pagepaint.dev/v0.4.1/pagepaint-extension.zip), extract it, open `chrome://extensions` or `edge://extensions`, enable Developer mode, and choose Load unpacked with the folder containing `manifest.json`. Pin its icon and click it on the app. Default activation shortcut: Alt+Shift+P. Configure that shortcut on the browser's extensions/shortcuts page.
+
+The extension bundles all executable code and has no blanket host permission. It uses native tab screenshots and an offscreen tab recorder. Its local project library is separate from CDN-widget history. Browser-internal pages and protected content may block capture. Chrome Web Store publication is pending; do not invent a store link.
+
+## What it does
+
+- Floating feedback button; chat-style comments and separate issue threads.
+- On-page pen, highlighter, rectangle, and circle tools with a small color palette.
+- Screenshot capture with editable shapes and full page context.
+- Video-only recording, limited to one minute or approximately 50 MB. The CDN recorder ends on navigation; the extension can continue recording across tab navigation.
+- Automatic local IndexedDB saving for comments, drafts, screenshots, recordings, and settings.
+- Full URL, path, query parameters, hash, page title, viewport, scroll details, and timestamps travel with feedback.
+- User-selected repo-folder saving via the File System Access API in supported desktop Chromium browsers on HTTPS or localhost.
+- ZIP export without a folder or account; works as the fallback when folder access is unavailable.
+
+## Agent workflow
+
+Repo saving creates ordinary `.annotations/<id>.json`, screenshot `.webp`, and original recording files when present. JSON includes comment, context, shapes, thread, and `status: "open"`. Folder permission is required. Add to AGENTS.md or CLAUDE.md:
+
+> Check `.annotations/` for open items; set status to resolved when done.
+
+Browser history is not reconstructed from repo files after browser data is cleared. Agents should read saved files directly. CDN storage is isolated by origin, including localhost ports. Storage has browser-defined limits and may be evicted; use repo files or ZIPs for durable copies.
+
+## Optional GitHub integration
+
+The code supports GitHub sign-in, repo/Project configuration, reviewed thread-to-issue creation, and optional attachments committed to `.pagepaint/` on a `pagepaint-feedback` branch. A small Cloudflare OAuth service stores no feedback and keeps credentials out of the embedded app. Issue creation sends feedback directly from the trusted Pagepaint connection window to GitHub only after review. Hosted sign-in requires OAuth configuration; check [service status](https://pagepaint.dev/github/api/status). Do not assume it is enabled.
+
+## Documentation
+
+- [Homepage and installation guide](https://pagepaint.dev/): installation, demonstration, and local feedback workflow.
+- [Full technical guide](https://pagepaint.dev/llms-full.txt): script attributes, module API, storage, and capture limitations.
+- [Source and README](https://github.com/pagepaint/pagepaint): code, API examples, development, and issues.
+- [GitHub setup](https://pagepaint.dev/github/setup.html): OAuth service configuration.
+- [Privacy](https://pagepaint.dev/privacy/): local data handling and explicitly requested sharing.
+- [Terms](https://pagepaint.dev/terms/): use and licensing.
+- [MIT license](https://pagepaint.dev/LICENSE).

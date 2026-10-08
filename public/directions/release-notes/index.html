@@ -4,11 +4,57 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <meta name="robots" content="noindex, follow" />
+    <link rel="canonical" href="https://pagepaint.dev/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#171717" />
     <meta
       name="description"
       content="Pagepaint is local-first visual feedback for developers and QA. Draw on your app, capture the bug, and save the context. Install with one script."
+    />
+
+    <link rel="icon" href="/brand/favicon.png" sizes="48x48" type="image/png" />
+    <link rel="icon" href="/brand/pagepaint-icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Pagepaint" />
+    <meta
+      property="og:title"
+      content="Pagepaint — visual feedback for dev &amp; QA"
+    />
+    <meta
+      property="og:description"
+      content="Draw on your app, capture screenshots or video, and save feedback locally. Install one CDN script or the Chrome / Edge extension. Open source, MIT."
+    />
+    <meta property="og:url" content="https://pagepaint.dev/" />
+    <meta
+      property="og:image"
+      content="https://pagepaint.dev/brand/pagepaint-social.png"
+    />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Pagepaint: review the page, show the bug."
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="Pagepaint — visual feedback for dev &amp; QA"
+    />
+    <meta
+      name="twitter:description"
+      content="Draw, capture, record, and save feedback locally. One CDN script or browser extension. Open source, MIT."
+    />
+    <meta
+      name="twitter:image"
+      content="https://pagepaint.dev/brand/pagepaint-social.png"
+    />
+    <link
+      rel="alternate"
+      type="text/plain"
+      href="/llms.txt"
+      title="Pagepaint installation and features for AI agents"
     />
     <title>Pagepaint — visual feedback for dev &amp; QA</title>
     <link rel="stylesheet" href="/homepage/homepage.css" />
@@ -19,12 +65,13 @@
     <a class="skip-link" href="#main">Skip to content</a>
     <header class="masthead">
       <div class="masthead-inner">
-        <a
-          class="wordmark"
-          href="/directions/"
-          aria-label="Pagepaint design directions"
-          >pagepaint</a
-        >
+        <a class="wordmark" href="/" aria-label="Pagepaint home"
+          ><img
+            src="/brand/pagepaint-wordmark-light.svg"
+            width="168"
+            height="45"
+            alt="Pagepaint"
+        /></a>
         <nav aria-label="Main navigation">
           <a href="#install">Install</a>
           <a href="#use">Use</a>
@@ -37,7 +84,7 @@
       <section class="lead" aria-labelledby="intro-title">
         <div class="release-line">
           <span>Visual feedback for dev &amp; QA</span>
-          <span>Open source · MIT · v0.4.0</span>
+          <span>Open source · MIT · v0.4.1</span>
         </div>
         <h1 id="intro-title">Review the page.<br />Show the bug.</h1>
 
@@ -95,8 +142,13 @@
         </div>
       </section>
 
+      <div class="install-intro">
+        <h2>Two ways to install.</h2>
+        <p>Add a script to your app, or use the browser extension.</p>
+      </div>
       <section class="install" id="install" aria-labelledby="install-title">
         <div class="install-heading">
+          <p class="option-label">Option 01 · CDN script</p>
           <h2 id="install-title">One script.<br />Your app.</h2>
           <p>
             Add this before <code>&lt;/body&gt;</code>. Works with static pages,
@@ -117,10 +169,81 @@
           <pre
             tabindex="0"
             aria-label="Pagepaint installation script"
-          ><code id="install-code">&lt;script src="https://pagepaint.dev/v0.4.0/pagepaint.js" data-pagepaint defer&gt;&lt;/script&gt;</code></pre>
+          ><code id="install-code">&lt;script src="https://pagepaint.dev/v0.4.1/pagepaint.js" data-pagepaint defer&gt;&lt;/script&gt;</code></pre>
           <p>
-            The versioned URL pins v0.4.0. No build step or local Node server
+            The versioned URL pins v0.4.1. No build step or local Node server
             needed.
+          </p>
+        </div>
+      </section>
+
+      <section
+        class="extension-guide"
+        id="extension"
+        aria-labelledby="extension-title"
+      >
+        <div class="extension-heading">
+          <p class="option-label">Option 02 · Chrome / Edge</p>
+          <h2 id="extension-title">Same tools.<br />Any app.</h2>
+          <p>
+            Use Pagepaint without changing the app’s code. The extension
+            captures native tab pixels and keeps its own local project library.
+          </p>
+          <a
+            class="extension-download"
+            href="/v0.4.1/pagepaint-extension.zip"
+            download
+            >Download extension ZIP <span aria-hidden="true">↗</span></a
+          >
+          <p class="extension-status">
+            Manual installation is available now. Chrome Web Store listing
+            coming next.
+          </p>
+        </div>
+        <div class="extension-content">
+          <ol>
+            <li>
+              <strong>Download and extract.</strong> Unzip the package into a
+              folder you’ll keep on your computer.
+            </li>
+            <li>
+              <strong>Open Extensions.</strong> Visit
+              <code>chrome://extensions</code> in Chrome or
+              <code>edge://extensions</code> in Edge. Turn on
+              <strong>Developer mode</strong>.
+            </li>
+            <li>
+              <strong>Load the folder.</strong> Click
+              <strong>Load unpacked</strong> and select the extracted folder
+              containing <code>manifest.json</code>.
+            </li>
+            <li>
+              <strong>Open it on your app.</strong> Pin Pagepaint from the
+              browser’s Extensions menu. Click its icon on the page you’re
+              reviewing, or press <kbd>Alt</kbd> + <kbd>Shift</kbd> +
+              <kbd>P</kbd>.
+            </li>
+          </ol>
+          <p class="extension-note">
+            Change the extension shortcut at
+            <code>chrome://extensions/shortcuts</code> or
+            <code>edge://extensions/shortcuts</code>. Drawing shortcuts and
+            toolbar color are configurable in Pagepaint Settings.
+          </p>
+          <details>
+            <summary>What can the extension access?</summary>
+            <p>
+              Pagepaint activates when you click its icon. It has no blanket
+              access to every site. Screenshots, comments, recordings, and their
+              URLs save locally; folder saving and GitHub sharing need your
+              explicit action. Browser settings pages and protected content may
+              block capture.
+            </p>
+          </details>
+          <p class="extension-note">
+            Use <strong>Open project library</strong> in Settings to find saved
+            feedback. Export a ZIP or save to a repo before uninstalling:
+            removing the extension deletes its browser copies.
           </p>
         </div>
       </section>
@@ -193,40 +316,16 @@
           </p>
         </div>
       </section>
-
-      <details class="extension-guide">
-        <summary>
-          Prefer an extension? Use Pagepaint without changing the app.
-        </summary>
-        <div class="extension-content">
-          <p>
-            The Chrome / Edge extension uses the same tools, with native tab
-            screenshots. Its local history is separate from the CDN widget.
-          </p>
-          <ol>
-            <li>
-              <a href="/pagepaint-extension.zip" download
-                >Download the extension ZIP</a
-              >
-              and extract it.
-            </li>
-            <li>
-              Open <code>chrome://extensions</code> or
-              <code>edge://extensions</code> and enable
-              <strong>Developer mode</strong>.
-            </li>
-            <li>
-              Choose <strong>Load unpacked</strong>, select the extracted
-              folder, then click the Pagepaint extension icon in your app.
-            </li>
-          </ol>
-        </div>
-      </details>
     </main>
 
     <footer>
       <div class="footer-brand">
-        <span>pagepaint</span>
+        <img
+          src="/brand/pagepaint-wordmark.svg"
+          width="140"
+          height="38"
+          alt="Pagepaint"
+        />
         <p>Local-first visual feedback.</p>
       </div>
       <nav aria-label="Footer navigation">

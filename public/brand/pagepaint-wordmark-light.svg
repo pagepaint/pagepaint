@@ -1,0 +1,17 @@
+<!-- ABOUTME: Draws the Pagepaint wordmark using shared rounded letterforms. -->
+<!-- ABOUTME: Turns the dot of the i into a single neon-yellow paint splash. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 336 90" role="img" aria-labelledby="title">
+  <title id="title">Pagepaint</title>
+  <g fill="none" stroke="#fafafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8 76V28M8 43C8 21 38 21 38 43S8 65 8 43"/>
+    <path d="M76 58V28M76 43C76 21 46 21 46 43S76 65 76 43"/>
+    <path d="M114 28V68C114 84 92 84 87 76M114 43C114 21 84 21 84 43S114 65 114 43"/>
+    <path d="M122 43H152C152 21 122 21 122 43C122 63 146 65 152 54"/>
+    <path d="M164 76V28M164 43C164 21 194 21 194 43S164 65 164 43"/>
+    <path d="M232 58V28M232 43C232 21 202 21 202 43S232 65 232 43"/>
+    <path d="M248 30V58M264 58V28M264 43C264 23 294 23 294 43V58"/>
+    <path d="M314 16V49Q314 63 328 57M304 29H328"/>
+  </g>
+  <path fill="#dcff00" d="M245 9c3-2 6-1 7 2l1 4c1 2 5 2 4 5-1 2-4 1-6 2-3 2-7 1-9-1-2-2-3-5-1-7z"/>
+  <circle cx="258" cy="10" r="2" fill="#dcff00"/>
+</svg>

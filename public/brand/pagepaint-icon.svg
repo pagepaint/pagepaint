@@ -1,0 +1,9 @@
+<!-- ABOUTME: Reduces the Pagepaint letterform to a p and a neon paint mark. -->
+<!-- ABOUTME: Keeps transparent padding around the square extension icon. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title">
+  <title id="title">Pagepaint</title>
+  <rect x="16" y="16" width="96" height="96" rx="23" fill="#171717" stroke="#777" stroke-width="1"/>
+  <path d="M43 91V40M43 59C43 35 78 35 78 59S43 83 43 59" fill="none" stroke="#fafafa" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  <path fill="#dcff00" d="M87 26c4-2 8 0 9 4l1 5c1 3 6 3 5 7-2 3-6 1-8 3-4 2-9 2-12-2-3-3-3-7 0-10z"/>
+  <circle cx="101" cy="27" r="2.5" fill="#dcff00"/>
+</svg>
