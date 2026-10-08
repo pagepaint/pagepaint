@@ -143,8 +143,11 @@ element("sign-in").addEventListener("click", async () => {
   );
   if (!login)
     return showError(new Error("Allow the GitHub sign-in window to open."));
-  signingIn = true;
+  signingIn = new AbortController();
+  const signal = signingIn.signal;
   element("sign-in").disabled = true;
+  element("cancel-sign-in").hidden = false;
+  element("error").hidden = true;
   try {
     const { url } = await api("login", "POST");
     login.location.href = url;
@@ -153,23 +156,27 @@ element("sign-in").addEventListener("click", async () => {
     const deadline = Date.now() + 600000;
     while (Date.now() < deadline) {
       await new Promise((resolve) => setTimeout(resolve, 2000));
-      if (await session()) {
-        element("status").textContent = "";
-        login.close();
+      if (signal.aborted) {
+        element("status").textContent = "Sign-in canceled. You can try again.";
         return;
       }
-      if (login.closed)
-        throw new Error("The GitHub sign-in window closed. Try again.");
+      if (await session()) {
+        element("status").textContent = "";
+        return;
+      }
+      // OAuth isolation can make a live popup report closed; the session is authoritative.
     }
     throw new Error("GitHub sign-in timed out. Try again.");
   } catch (error) {
-    login.close();
     showError(error);
   } finally {
-    signingIn = false;
+    login.close();
+    signingIn = null;
     element("sign-in").disabled = false;
+    element("cancel-sign-in").hidden = true;
   }
 });
+element("cancel-sign-in").addEventListener("click", () => signingIn?.abort());
 element("continue").addEventListener("click", () => finish(account));
 element("done").addEventListener("click", () => finish(result));
 element("publish").addEventListener("click", async () => {

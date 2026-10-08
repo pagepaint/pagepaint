@@ -109,6 +109,66 @@ async function configure(page) {
   return popup;
 }
 
+test("keeps sign-in pending when browser isolation detaches the authorization popup", async ({
+  page,
+  context,
+}) => {
+  await setup(page, context, { signedIn: false });
+  let connected = false;
+  await context.route("**/github/api/session", (route) =>
+    route.fulfill({
+      status: connected ? 200 : 401,
+      json: connected
+        ? { token: "test-window-token" }
+        : { error: "Sign in to continue" },
+    }),
+  );
+  await context.route("**/github/api/login", (route) =>
+    route.fulfill({
+      json: { url: "http://localhost:4319/mock-authorization" },
+    }),
+  );
+  await context.route("http://localhost:4319/mock-authorization", (route) =>
+    route.fulfill({
+      contentType: "text/html",
+      headers: { "Cross-Origin-Opener-Policy": "same-origin" },
+      body: '<h1>Mock authorization</h1><a href="http://127.0.0.1:4319/mock-callback">Complete mock authorization</a>',
+    }),
+  );
+  await context.route("**/mock-callback", (route) => {
+    connected = true;
+    return route.fulfill({
+      contentType: "text/html",
+      body: "<h1>Mock sign-in completed</h1>",
+    });
+  });
+  const connection = await configure(page);
+  const authorizationPromise = context.waitForEvent("page");
+  await connection
+    .getByRole("button", { name: "Sign in with GitHub ↗" })
+    .click();
+  const authorization = await authorizationPromise;
+  await expect(
+    authorization.getByRole("heading", { name: "Mock authorization" }),
+  ).toBeVisible();
+  // Let the first two-second session poll encounter the detached WindowProxy.
+  await authorization.waitForTimeout(2500);
+  expect(authorization.isClosed()).toBe(false);
+  await expect(connection.locator("#error")).toBeHidden();
+  await authorization
+    .getByRole("link", { name: "Complete mock authorization" })
+    .click();
+  await expect(
+    connection.getByText("Signed in as @timo", { exact: true }),
+  ).toBeVisible();
+  await connection
+    .getByRole("button", { name: "Use this GitHub account", exact: true })
+    .click();
+  await expect(
+    page.getByText("Connected as @timo", { exact: true }),
+  ).toBeVisible();
+});
+
 test("signs in through the trusted window and persists non-secret project configuration", async ({
   page,
   context,
@@ -192,6 +252,55 @@ test("signs in through the trusted window and persists non-secret project config
   expect(
     await page.evaluate(() => testReview.preferences.github.repository),
   ).toBe("team/app");
+});
+
+test("cancels pending sign-in and permits a fresh authorization attempt", async ({
+  page,
+  context,
+}) => {
+  await setup(page, context, { signedIn: false });
+  let attempts = 0;
+  await context.route("**/github/api/login", (route) => {
+    if (++attempts > 1) return route.fallback();
+    return route.fulfill({
+      json: { url: "http://127.0.0.1:4319/mock-pending-authorization" },
+    });
+  });
+  await context.route("**/mock-pending-authorization", (route) =>
+    route.fulfill({
+      contentType: "text/html",
+      body: "<h1>Waiting for mock authorization</h1>",
+    }),
+  );
+  const connection = await configure(page);
+  const authorizationPromise = connection.waitForEvent("popup");
+  await connection
+    .getByRole("button", { name: "Sign in with GitHub ↗" })
+    .click();
+  const authorization = await authorizationPromise;
+  await expect(
+    authorization.getByRole("heading", {
+      name: "Waiting for mock authorization",
+    }),
+  ).toBeVisible();
+  await connection
+    .getByRole("button", { name: "Cancel sign-in", exact: true })
+    .click();
+  await expect(
+    connection.getByRole("button", { name: "Sign in with GitHub ↗" }),
+  ).toBeEnabled();
+  await expect(connection.locator("#status")).toHaveText(
+    "Sign-in canceled. You can try again.",
+  );
+  await expect(connection.locator("#error")).toBeHidden();
+  await expect.poll(() => authorization.isClosed()).toBe(true);
+  await connection
+    .getByRole("button", { name: "Sign in with GitHub ↗" })
+    .click();
+  await expect(
+    connection.getByText("Signed in as @timo", { exact: true }),
+  ).toBeVisible();
+  expect(attempts).toBe(2);
 });
 
 test("reviews a screenshot, annotation, and complete thread before creating and linking an issue", async ({
