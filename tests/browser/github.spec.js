@@ -282,3 +282,73 @@ test("reviews a screenshot, annotation, and complete thread before creating and 
   expect(records).toHaveLength(2);
   expect(JSON.stringify(records)).not.toContain("test-window-token");
 });
+
+test("converts a lazy recording through a connection window on a different origin", async ({
+  page,
+  context,
+}) => {
+  const { calls } = await setup(page, context);
+  await page.evaluate(async () => {
+    testReview.github.destroy();
+    testReview.github.url = new URL("http://localhost:4319/github/");
+    testReview.options.resolveVideo = async (video) => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      return {
+        ...video,
+        blob: new Blob(["test-clip-bytes"], { type: "video/webm" }),
+      };
+    };
+  });
+  const connection = await configure(page);
+  await connection
+    .getByRole("button", { name: "Use this GitHub account", exact: true })
+    .click();
+  await page
+    .getByLabel("GitHub repository", { exact: true })
+    .selectOption("team/app");
+  await page
+    .getByRole("button", { name: "Save GitHub configuration", exact: true })
+    .click();
+  await page.evaluate(() => {
+    testReview.draftVideo = {
+      mediaId: "test-media",
+      mimeType: "video/webm",
+      size: 15,
+      durationMs: 2000,
+      context: testReview.context(),
+    };
+    testReview.updateAttachment();
+  });
+  await page.getByLabel("Area (optional)").fill("Recording");
+  await page.getByLabel("YOUR FEEDBACK").fill("See this recording");
+  await page.getByRole("button", { name: "Send", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Recording · Open thread", exact: true })
+    .click();
+  const popupPromise = page.waitForEvent("popup");
+  await page
+    .getByRole("button", { name: "Create GitHub issue", exact: true })
+    .click();
+  const popup = await popupPromise;
+  await expect(
+    popup.getByText("See this recording", { exact: true }),
+  ).toBeVisible();
+  expect(new URL(popup.url()).origin).toBe("http://localhost:4319");
+  await expect(popup.locator("#source")).toContainText("http://127.0.0.1:4319");
+  await expect(popup.locator("video")).toHaveCount(1);
+  await popup.getByLabel("Upload screenshots and recordings").check();
+  await popup
+    .getByRole("button", { name: "Create GitHub issue", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "GitHub #42", exact: true }),
+  ).toBeVisible();
+  const writes = calls.filter((call) => call.method === "PUT");
+  expect(writes).toHaveLength(1);
+  expect(Buffer.from(writes[0].body.content, "base64").toString()).toBe(
+    "test-clip-bytes",
+  );
+  expect(
+    (await page.evaluate(() => testReview.getFeedback()))[0].video.mediaId,
+  ).toBe("test-media");
+});
