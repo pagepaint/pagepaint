@@ -518,9 +518,6 @@ footer nav {
     gap: 28px;
     padding: 24px;
   }
-  .install h2 br {
-    display: none;
-  }
   .install-heading p {
     max-width: 54ch;
   }
