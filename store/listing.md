@@ -74,7 +74,7 @@ Hosted GitHub OAuth is configured, and Timo verified sign-in in Edge. Core funct
 
 ## Assets and package
 
-- Build: `npm run build`; upload `dist/pagepaint-extension.zip` (0.4.2).
+- Submitted package: version 0.4.2. Keep that submission in review. `npm run build` now produces the 0.4.3 manual-install ZIP with direct card and batch GitHub actions; uploading it to this item would start a separate store update.
 - Icons: bundled in `extension/icons/`; source in `public/brand/`.
 - Promotional tile: `store/assets/promo-440x280.png`.
 - Actual extension screenshots: `store/assets/screenshot-annotations.png`, `store/assets/screenshot-project-library.png` (1280×800).

@@ -10,7 +10,7 @@ export class GitHubBridge {
       throw new Error("The GitHub connection URL must use HTTPS.");
     this.operations = new Set();
   }
-  open(operation, payload) {
+  open(operation, payload, onProgress) {
     const nonce = crypto.randomUUID();
     const url = new URL(this.url);
     url.hash = new URLSearchParams({ operation, nonce }).toString();
@@ -28,6 +28,7 @@ export class GitHubBridge {
       let closed;
       let active = true;
       let delivered = false;
+      let progress = Promise.resolve();
       const cleanup = () => {
         active = false;
         window.removeEventListener("message", receive);
@@ -61,7 +62,19 @@ export class GitHubBridge {
             reject(error);
           }
         }
+        if (event.data.type === "pagepaint:github-progress" && onProgress) {
+          progress = progress.then(() => onProgress(event.data.progress));
+          progress.catch(() => {});
+        }
         if (event.data.type === "pagepaint:github-result") {
+          try {
+            await progress;
+          } catch (error) {
+            cleanup();
+            popup.close();
+            reject(error);
+            return;
+          }
           cleanup();
           popup.close();
           if (event.data.error) reject(new Error(event.data.error));
@@ -85,6 +98,9 @@ export class GitHubBridge {
   }
   createIssue(payload) {
     return this.open("create", payload);
+  }
+  createIssues(payload, onProgress) {
+    return this.open("create-all", payload, onProgress);
   }
   disconnect() {
     return this.open("disconnect", {});

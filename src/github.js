@@ -58,6 +58,27 @@ export function issueTitle(records) {
   return `${root?.area ? `[${root.area}] ` : ""}${title}`.slice(0, 200);
 }
 
+export function findIssueMatch(
+  issues,
+  { repository, records, title, existingIssue },
+) {
+  const candidates = issues.filter((issue) => !issue.pull_request);
+  const linked =
+    existingIssue?.repository?.toLowerCase() === repository.toLowerCase()
+      ? candidates.find((issue) => issue.number === existingIssue.number)
+      : null;
+  const marker = `<!-- pagepaint-thread:${records[0].id} -->`;
+  const identified = candidates.find((issue) => issue.body?.includes(marker));
+  if (identified || linked)
+    return { issue: identified || linked, reason: "thread" };
+  const matches = candidates.filter(
+    (issue) => issue.title?.trim() === title.trim(),
+  );
+  return matches.length
+    ? { issue: matches[0], matches, reason: "title" }
+    : null;
+}
+
 function inline(value) {
   return String(value ?? "")
     .replace(/[\r\n]/g, " ")
@@ -87,7 +108,13 @@ export function issueBody(records, projectName, attachments = []) {
     );
     if (record.area) lines.push(`Area: ${inline(record.area)}`);
     const files = attachments.filter((file) => file.recordId === record.id);
-    for (const file of files) lines.push("", `[${file.label}](${file.url})`);
+    for (const file of files)
+      lines.push(
+        "",
+        file.imageUrl
+          ? `![${file.label}](${file.imageUrl})`
+          : `[${file.label}](${file.url})`,
+      );
     if (record.capture)
       lines.push(
         "",
@@ -134,6 +161,17 @@ export class GitHubClient {
   }
   user() {
     return this.request("/user");
+  }
+  async issues(repository) {
+    const repo = repositoryName(repository);
+    const issues = [];
+    for (let page = 1; ; page++) {
+      const batch = await this.request(
+        `/repos/${repo}/issues?state=all&per_page=100&page=${page}`,
+      );
+      issues.push(...batch.filter((issue) => !issue.pull_request));
+      if (batch.length < 100) return issues;
+    }
   }
   async repositories() {
     const repositories = [];
@@ -233,27 +271,23 @@ export class GitHubClient {
     projectUrl = "",
     includeAttachments = false,
     existingIssue = null,
+    issues = null,
+    reuseTitle = true,
   }) {
     validateThread(records);
     const repo = repositoryName(repository);
     const project = projectUrl ? await this.project(projectUrl) : null;
-    const marker = `<!-- pagepaint-thread:${records[0].id} -->`;
+    const inventory = issues || (await this.issues(repo));
+    const match = findIssueMatch(inventory, {
+      repository: repo,
+      records,
+      title: title?.trim() || issueTitle(records),
+      existingIssue,
+    });
+    // Cached links are verified against live issues; markers recover a lost create response.
     let issue =
-      existingIssue?.repository?.toLowerCase() === repo.toLowerCase()
-        ? existingIssue
-        : null;
-    // Recover a successful create after a lost network response without publishing a duplicate.
-    if (!issue) {
-      for (let page = 1; ; page++) {
-        const batch = await this.request(
-          `/repos/${repo}/issues?state=all&per_page=100&page=${page}`,
-        );
-        issue = batch.find(
-          (item) => !item.pull_request && item.body?.includes(marker),
-        );
-        if (issue || batch.length < 100) break;
-      }
-    }
+      match && (match.reason === "thread" || reuseTitle) ? match.issue : null;
+    const reused = !!issue;
     const attachments = [];
     if (
       !issue &&
@@ -272,6 +306,7 @@ export class GitHubClient {
             recordId: record.id,
             label: "Annotated screenshot",
             url,
+            imageUrl: `../blob/pagepaint-feedback/.pagepaint/${record.id}.png?raw=true`,
           });
           if (
             /^data:image\/png;base64,[a-z\d+/]+=*$/i.test(
@@ -281,6 +316,7 @@ export class GitHubClient {
             attachments.push({
               recordId: record.id,
               label: "Original screenshot",
+              imageUrl: `../blob/pagepaint-feedback/.pagepaint/${record.id}-original.png?raw=true`,
               url: await this.upload(
                 repo,
                 `${record.id}-original.png`,
@@ -335,12 +371,18 @@ export class GitHubClient {
           labels,
         },
       });
+    if (!reused)
+      inventory.push({
+        ...issue,
+        body: issueBody(records, projectName, attachments),
+      });
     const result = {
       number: issue.number,
       url: issue.html_url || issue.url,
       nodeId: issue.node_id || issue.nodeId,
       repository: repo,
       createdAt: new Date().toISOString(),
+      reused,
     };
     if (project) {
       try {

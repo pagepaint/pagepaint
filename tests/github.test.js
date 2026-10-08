@@ -8,6 +8,7 @@ import {
   projectReference,
   issueBody,
   validateThread,
+  findIssueMatch,
 } from "../src/github.js";
 const id = "12345678-1234-1234-1234-123456789abc";
 const records = [
@@ -195,6 +196,19 @@ test("uploads annotated and original captures, shapes, and video only to the fee
     assert.match(write.path, /^\/repos\/team\/app\/contents\/\.pagepaint\//);
   }
   assert.match(calls.at(-1).body.body, /Original screenshot/);
+  assert.match(
+    calls.at(-1).body.body,
+    /!\[Annotated screenshot\]\(\.\.\/blob\/pagepaint-feedback\/\.pagepaint\/[a-f\d-]+\.png\?raw=true\)/,
+  );
+  assert.match(
+    calls.at(-1).body.body,
+    /!\[Original screenshot\]\(\.\.\/blob\/pagepaint-feedback\/\.pagepaint\/[a-f\d-]+-original\.png\?raw=true\)/,
+  );
+  assert.match(
+    calls.at(-1).body.body,
+    /\n\[Page context and editable annotations\]\(https:\/\/github\.com/,
+  );
+  assert.doesNotMatch(calls.at(-1).body.body, /!\[Video recording\]/);
   assert.match(calls.at(-1).body.body, /Video recording/);
   assert.equal(
     Buffer.from(writes.at(-1).body.content, "base64").toString(),
@@ -213,4 +227,85 @@ test("denies invalid attachment paths and expired authorization", async () => {
   );
   assert.equal(calls.length, 0);
   await assert.rejects(client.user(), /Sign in again/);
+});
+test("matches exact titles across closed issues while ignoring pull requests and changed cached links", async () => {
+  const inventory = [
+    { ...issue, title: "Same title", pull_request: {} },
+    { ...issue, number: 13, title: "Same title", state: "closed" },
+    { ...issue, number: 14, title: "same title", state: "open" },
+  ];
+  const match = findIssueMatch(inventory, {
+    repository: "team/app",
+    records,
+    title: "Same title",
+    existingIssue: { repository: "team/other", number: 14 },
+  });
+  assert.equal(match.reason, "title");
+  assert.equal(match.issue.number, 13);
+  assert.equal(match.matches.length, 1);
+});
+test("paginates all issues and recovers a closed thread before creating", async () => {
+  const { client, calls } = fixture((call) =>
+    call.path.endsWith("page=1")
+      ? Array.from({ length: 100 }, (_, index) => ({
+          ...issue,
+          number: index + 100,
+          title: "Other issue",
+        }))
+      : [{ ...issue, state: "closed", body: issueBody(records, "Studio") }],
+  );
+  const result = await client.createIssue({
+    repository: "team/app",
+    records,
+    projectName: "Studio",
+  });
+  assert.equal(result.reused, true);
+  assert.equal(result.number, 12);
+  assert.equal(calls.length, 2);
+  assert(
+    calls.every(
+      (call) => call.path.includes("state=all") && call.method === "GET",
+    ),
+  );
+});
+test("verifies cached issue existence and shares newly created markers within a batch inventory", async () => {
+  const { client, calls } = fixture(() => issue);
+  const inventory = [];
+  const options = {
+    repository: "team/app",
+    records,
+    projectName: "Studio",
+    issues: inventory,
+    existingIssue: { repository: "team/app", number: 99 },
+  };
+  assert.equal((await client.createIssue(options)).reused, false);
+  assert.equal((await client.createIssue(options)).reused, true);
+  assert.equal(calls.length, 1);
+  assert.equal(inventory.length, 1);
+});
+test("allows an explicit separate issue for a title match but always recovers the same thread", async () => {
+  const { client, calls } = fixture((call) =>
+    call.method === "POST"
+      ? { ...issue, number: 15 }
+      : [{ ...issue, title: "Same title", state: "closed" }],
+  );
+  const options = {
+    repository: "team/app",
+    records,
+    title: "Same title",
+    projectName: "Studio",
+  };
+  assert.equal((await client.createIssue(options)).reused, true);
+  assert.equal(
+    (await client.createIssue({ ...options, reuseTitle: false })).reused,
+    false,
+  );
+  assert.equal(calls.filter((call) => call.method === "POST").length, 1);
+  const recovered = await client.createIssue({
+    ...options,
+    reuseTitle: false,
+    issues: [{ ...issue, body: issueBody(records, "Studio") }],
+  });
+  assert.equal(recovered.reused, true);
+  assert.equal(calls.filter((call) => call.method === "POST").length, 1);
 });

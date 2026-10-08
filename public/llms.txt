@@ -9,7 +9,7 @@
 Add before `</body>` in the app's HTML:
 
 ```html
-<script src="https://pagepaint.dev/v0.4.2/pagepaint.js" data-pagepaint defer></script>
+<script src="https://pagepaint.dev/v0.4.3/pagepaint.js" data-pagepaint defer></script>
 ```
 
 Works with static HTML, client-rendered apps, and server-rendered pages. No local Node server or build step is needed. Dependencies are bundled. The script runs in the host app's origin. The unversioned `https://pagepaint.dev/pagepaint.js` follows the latest release; versioned URLs are immutable.
@@ -18,7 +18,7 @@ For separate projects on the same origin, set `data-project="my-app"`. Set `data
 
 ### Chrome / Edge extension
 
-Download [the extension ZIP](https://pagepaint.dev/v0.4.2/pagepaint-extension.zip), extract it, open `chrome://extensions` or `edge://extensions`, enable Developer mode, and choose Load unpacked with the folder containing `manifest.json`. Pin its icon and click it on the app. Default activation shortcut: Alt+Shift+P. Configure that shortcut on the browser's extensions/shortcuts page.
+Download [the extension ZIP](https://pagepaint.dev/v0.4.3/pagepaint-extension.zip), extract it, open `chrome://extensions` or `edge://extensions`, enable Developer mode, and choose Load unpacked with the folder containing `manifest.json`. Pin its icon and click it on the app. Default activation shortcut: Alt+Shift+P. Configure that shortcut on the browser's extensions/shortcuts page.
 
 The extension bundles all executable code and has no blanket host permission. It uses native tab screenshots and an offscreen tab recorder. Its local project library is separate from CDN-widget history. Browser-internal pages and protected content may block capture. Version 0.4.2 was submitted to Chrome Web Store review on October 8, 2026, with automatic publication enabled after approval. Install the ZIP until approval; no public store installation link is available yet.
 
@@ -44,6 +44,8 @@ Browser history is not reconstructed from repo files after browser data is clear
 ## Optional GitHub integration
 
 The code supports GitHub sign-in, repo/Project configuration, reviewed thread-to-issue creation, and optional attachments committed to `.pagepaint/` on a `pagepaint-feedback` branch. A small Cloudflare OAuth service stores no feedback and keeps credentials out of the embedded app. Issue creation sends feedback directly from the trusted Pagepaint connection window to GitHub only after review. Hosted sign-in requires OAuth configuration; check [service status](https://pagepaint.dev/github/api/status). Do not assume it is enabled.
+
+Each card has separate Open thread and Send to GitHub actions. Create all in GitHub beside Download ZIP opens a selectable bulk review for saved threads, excluding unsent drafts. Open and closed issues are checked by thread marker, saved link, and exact case-sensitive title. Title matches offer linking or explicitly creating a separate issue. Linking does not change the existing issue content or state. Successful links persist individually so partial failures can be retried. Uploaded annotated and original screenshots appear inline in issues; private images remain limited to repository readers.
 
 The repository picker filters owner and repository names. Account metadata saves immediately and survives refresh, including before selecting a destination. Refresh connection checks an existing session in one click and closes the trusted window automatically for the same account. Authentication cookies last up to eight hours; expired sessions require sign-in. Tokens are never cached in embedded-app or extension preferences.
 

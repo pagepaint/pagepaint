@@ -3,9 +3,15 @@
 import { test, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 
-async function setup(page, context, { signedIn = true } = {}) {
+async function setup(
+  page,
+  context,
+  { signedIn = true, existingIssues = [], failIssueTitle = null } = {},
+) {
   const calls = [];
   let connected = signedIn;
+  let failed = false,
+    created = 0;
   await context.route("**/github/api/**", async (route) => {
     const name = new URL(route.request().url()).pathname.split("/").at(-1);
     if (name === "session")
@@ -46,17 +52,28 @@ async function setup(page, context, { signedIn = true } = {}) {
           { full_name: "team/public-app", private: false, has_issues: true },
         ],
       });
-    if (url.pathname === "/repos/team/app/issues")
-      return route.fulfill({
-        json:
-          call.method === "GET"
-            ? []
-            : {
-                number: 42,
-                html_url: "https://github.com/team/app/issues/42",
-                node_id: "I_test",
-              },
-      });
+    if (url.pathname === "/repos/team/app/issues") {
+      if (call.method === "GET") {
+        expect(url.searchParams.get("state")).toBe("all");
+        return route.fulfill({ json: existingIssues });
+      }
+      if (call.body.title === failIssueTitle && !failed) {
+        failed = true;
+        return route.fulfill({
+          status: 503,
+          json: { message: "Simulated temporary GitHub failure" },
+        });
+      }
+      const issue = {
+        number: 42 + created++,
+        html_url: `https://github.com/team/app/issues/${41 + created}`,
+        node_id: `I_test_${created}`,
+        state: "open",
+        ...call.body,
+      };
+      existingIssues.push(issue);
+      return route.fulfill({ status: 201, json: issue });
+    }
     if (url.pathname === "/graphql")
       return route.fulfill({
         json: call.body.query.startsWith("query")
@@ -491,7 +508,7 @@ test("reviews a screenshot, annotation, and complete thread before creating and 
   await page.getByRole("button", { name: "Send", exact: true }).click();
   const popupPromise = page.waitForEvent("popup");
   await page
-    .getByRole("button", { name: "Create GitHub issue", exact: true })
+    .getByRole("button", { name: "Send to GitHub", exact: true })
     .click();
   const popup = await popupPromise;
   await expect(
@@ -527,6 +544,9 @@ test("reviews a screenshot, annotation, and complete thread before creating and 
   );
   expect(creation.body.title).toBe("[Checkout] Fix spacing");
   expect(creation.body.body).toContain("Keep the yellow highlight");
+  expect(creation.body.body).toMatch(
+    /!\[Annotated screenshot\]\(\.\.\/blob\/pagepaint-feedback\/\.pagepaint\/.+\.png\?raw=true\)/,
+  );
   expect(creation.body.body).toContain("?github=1");
   expect(calls.filter((call) => call.method === "PUT")).toHaveLength(3);
   const records = await page.evaluate(() => testReview.getFeedback());
@@ -589,7 +609,7 @@ test("converts a lazy recording through a connection window on a different origi
     .click();
   const popupPromise = page.waitForEvent("popup");
   await page
-    .getByRole("button", { name: "Create GitHub issue", exact: true })
+    .getByRole("button", { name: "Send to GitHub", exact: true })
     .click();
   const popup = await popupPromise;
   await expect(
@@ -613,4 +633,329 @@ test("converts a lazy recording through a connection window on a different origi
   expect(
     (await page.evaluate(() => testReview.getFeedback()))[0].video.mediaId,
   ).toBe("test-media");
+});
+
+test("sends directly from a card and links an exact closed-title match without losing a draft", async ({
+  page,
+  context,
+}) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  const { calls, projectId } = await setup(page, context, {
+    existingIssues: [
+      {
+        number: 7,
+        title: "Fix the clipped button",
+        state: "closed",
+        html_url: "https://github.com/team/app/issues/7",
+        node_id: "I_existing",
+      },
+    ],
+  });
+  await page.evaluate(() =>
+    testReview.savePreferences({
+      github: { repository: "team/app", labels: [], includeAttachments: false },
+    }),
+  );
+  await page.getByLabel("YOUR FEEDBACK").fill("Fix the clipped button");
+  await page.getByRole("button", { name: "Send", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Open thread", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Create all in GitHub", exact: true }),
+  ).toBeVisible();
+  await page.getByLabel("YOUR FEEDBACK").fill("My next unsaved note");
+  await page.screenshot({ path: ".logs/github-direct-mobile.png" });
+  const popupPromise = page.waitForEvent("popup");
+  await page
+    .getByRole("button", { name: "Send to GitHub", exact: true })
+    .click();
+  const popup = await popupPromise;
+  await expect(
+    popup.getByRole("link", { name: "#7 · Fix the clipped button · closed" }),
+  ).toBeVisible();
+  await popup.setViewportSize({ width: 375, height: 812 });
+  expect(
+    await popup.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await popup.screenshot({
+    path: ".logs/github-existing-review-mobile.png",
+    fullPage: true,
+  });
+  await popup
+    .getByRole("button", { name: "Link existing issue", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "GitHub #7 ↗", exact: true }),
+  ).toBeVisible();
+  expect(calls.filter((call) => call.method === "POST")).toHaveLength(0);
+  expect(await page.evaluate(() => testReview.activeThreadId)).toBeFalsy();
+  await expect(page.getByLabel("YOUR FEEDBACK")).toHaveValue(
+    "My next unsaved note",
+  );
+  await reloadProject(page, projectId);
+  await page.evaluate(() => testReview.showConversation());
+  await expect(
+    page.getByRole("button", { name: "GitHub #7 ↗", exact: true }),
+  ).toBeVisible();
+});
+
+test("reviews a batch, persists each success, and retries remaining threads without duplicate writes", async ({
+  page,
+  context,
+}) => {
+  const { calls, projectId } = await setup(page, context, {
+    failIssueTitle: "Fix the footer",
+  });
+  await page.evaluate(() =>
+    testReview.savePreferences({
+      github: {
+        repository: "team/app",
+        labels: ["feedback"],
+        includeAttachments: false,
+      },
+    }),
+  );
+  for (const text of ["Fix the header", "Fix the footer"]) {
+    await page.getByLabel("YOUR FEEDBACK").fill(text);
+    await page.getByRole("button", { name: "Send", exact: true }).click();
+  }
+  await expect
+    .poll(() => page.evaluate(() => testReview.records.length))
+    .toBe(2);
+  await expect(page.getByLabel("YOUR FEEDBACK")).toHaveValue("");
+  await page.screenshot({ path: ".logs/github-direct-desktop.png" });
+  const popupPromise = page.waitForEvent("popup");
+  await page
+    .getByRole("button", { name: "Create all in GitHub", exact: true })
+    .click();
+  const popup = await popupPromise;
+  await expect(
+    popup.getByRole("button", { name: "Create selected issues", exact: true }),
+  ).toBeEnabled();
+  expect(calls.filter((call) => call.method === "POST")).toHaveLength(0);
+  await popup.getByLabel("Include thread 2").uncheck();
+  await expect(popup.locator("#selection-status")).toContainText(
+    "1 thread selected",
+  );
+  await popup.getByLabel("Include thread 2").check();
+  await popup.screenshot({
+    path: ".logs/github-batch-review.png",
+    fullPage: true,
+  });
+  await popup
+    .getByRole("button", { name: "Create selected issues", exact: true })
+    .click();
+  await expect(popup.getByRole("alert")).toContainText(
+    "Simulated temporary GitHub failure",
+  );
+  await expect(
+    page.getByRole("button", { name: "GitHub #42 ↗", exact: true }),
+  ).toBeVisible();
+  expect(
+    (await page.evaluate(() => testReview.getFeedback())).filter(
+      (record) => record.github,
+    ),
+  ).toHaveLength(1);
+  expect(
+    (await page.evaluate(() => testReview.store.list())).filter(
+      (record) => record.github,
+    ),
+  ).toHaveLength(1);
+  await popup
+    .getByRole("button", { name: "Create selected issues", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "GitHub #43 ↗", exact: true }),
+  ).toBeVisible();
+  expect(
+    calls.filter(
+      (call) => call.method === "POST" && call.body.title === "Fix the header",
+    ),
+  ).toHaveLength(1);
+  expect(
+    calls.filter(
+      (call) => call.method === "POST" && call.body.title === "Fix the footer",
+    ),
+  ).toHaveLength(2);
+  await reloadProject(page, projectId);
+  await page.evaluate(() => testReview.showConversation());
+  expect(
+    (await page.evaluate(() => testReview.getFeedback())).filter(
+      (record) => record.github,
+    ),
+  ).toHaveLength(2);
+  expect(
+    JSON.stringify(await page.evaluate(() => testReview.preferences)),
+  ).not.toContain("test-window-token");
+  const againPromise = page.waitForEvent("popup");
+  await page
+    .getByRole("button", { name: "Create all in GitHub", exact: true })
+    .click();
+  const again = await againPromise;
+  await expect(again.getByLabel("Include thread 1")).not.toBeChecked();
+  await expect(again.getByLabel("Include thread 2")).not.toBeChecked();
+  await expect(
+    again.getByRole("button", { name: "Create selected issues", exact: true }),
+  ).toBeDisabled();
+});
+
+test("requires another review if a matching issue appears before publishing", async ({
+  page,
+  context,
+}) => {
+  const existingIssues = [];
+  const { calls } = await setup(page, context, { existingIssues });
+  await page.evaluate(() =>
+    testReview.savePreferences({ github: { repository: "team/app" } }),
+  );
+  await page.getByLabel("YOUR FEEDBACK").fill("New issue during review");
+  await page.getByRole("button", { name: "Send", exact: true }).click();
+  const popupPromise = page.waitForEvent("popup");
+  await page
+    .getByRole("button", { name: "Send to GitHub", exact: true })
+    .click();
+  const popup = await popupPromise;
+  await expect(
+    popup.getByRole("button", { name: "Create GitHub issue", exact: true }),
+  ).toBeEnabled();
+  existingIssues.push({
+    number: 9,
+    title: "New issue during review",
+    state: "open",
+    html_url: "https://github.com/team/app/issues/9",
+    node_id: "I_new",
+  });
+  await popup
+    .getByRole("button", { name: "Create GitHub issue", exact: true })
+    .click();
+  await expect(popup.getByRole("alert")).toContainText(
+    "Review the updated matches",
+  );
+  expect(calls.filter((call) => call.method === "POST")).toHaveLength(0);
+  await popup.getByLabel("If an issue already exists").selectOption("create");
+  await popup
+    .getByRole("button", { name: "Create GitHub issue", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "GitHub #42 ↗", exact: true }),
+  ).toBeVisible();
+  expect(calls.filter((call) => call.method === "POST")).toHaveLength(1);
+});
+
+test("bulk review blocks duplicate new titles, includes replies, links closed matches, and respects deselection", async ({
+  page,
+  context,
+}) => {
+  const { calls } = await setup(page, context, {
+    existingIssues: [
+      {
+        number: 7,
+        title: "Existing closed issue",
+        state: "closed",
+        html_url: "https://github.com/team/app/issues/7",
+        node_id: "I_closed",
+      },
+    ],
+  });
+  await page.evaluate(() =>
+    testReview.savePreferences({ github: { repository: "team/app" } }),
+  );
+  await page.getByLabel("YOUR FEEDBACK").fill("Repeated new title");
+  await page.getByRole("button", { name: "Send", exact: true }).click();
+  await page.getByRole("button", { name: "Open thread", exact: true }).click();
+  await page
+    .getByLabel("YOUR FEEDBACK")
+    .fill("Reply belongs in the same issue");
+  await page.getByRole("button", { name: "Send", exact: true }).click();
+  await page.getByRole("button", { name: "All issues", exact: true }).click();
+  for (const text of [
+    "Repeated new title",
+    "Existing closed issue",
+    "Leave this local",
+  ]) {
+    await page.getByLabel("YOUR FEEDBACK").fill(text);
+    await page.getByRole("button", { name: "Send", exact: true }).click();
+  }
+  const popupPromise = page.waitForEvent("popup");
+  await page
+    .getByRole("button", { name: "Create all in GitHub", exact: true })
+    .click();
+  const popup = await popupPromise;
+  await expect(
+    popup.getByRole("link", { name: "#7 · Existing closed issue · closed" }),
+  ).toBeVisible();
+  await popup
+    .getByRole("button", { name: "Create selected issues", exact: true })
+    .click();
+  await expect(popup.getByRole("alert")).toContainText(
+    "Two selected threads share a title",
+  );
+  expect(calls.filter((call) => call.method === "POST")).toHaveLength(0);
+  await popup.getByLabel("Issue title for thread 2").fill("Another new issue");
+  await popup.getByLabel("Include thread 4").uncheck();
+  await popup
+    .getByRole("button", { name: "Create selected issues", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "GitHub #7 ↗", exact: true }),
+  ).toBeVisible();
+  expect(calls.filter((call) => call.method === "POST")).toHaveLength(2);
+  expect(
+    calls.find(
+      (call) =>
+        call.method === "POST" && call.body.title === "Repeated new title",
+    ).body.body,
+  ).toContain("Reply belongs in the same issue");
+  const records = await page.evaluate(() => testReview.getFeedback());
+  expect(
+    records.find((record) => record.text === "Leave this local").github,
+  ).toBeUndefined();
+  expect(records.filter((record) => record.github)).toHaveLength(3);
+});
+
+test("reauthenticates when the duplicate preflight finds an expired connection", async ({
+  page,
+  context,
+}) => {
+  await setup(page, context);
+  await page.evaluate(() =>
+    testReview.savePreferences({ github: { repository: "team/app" } }),
+  );
+  let expired = true;
+  await context.route(
+    "https://api.github.com/repos/team/app/issues?*",
+    (route) => {
+      if (!expired) return route.fallback();
+      expired = false;
+      return route.fulfill({
+        status: 401,
+        json: { message: "Bad credentials" },
+      });
+    },
+  );
+  await page.getByLabel("YOUR FEEDBACK").fill("Check after expiry");
+  await page.getByRole("button", { name: "Send", exact: true }).click();
+  const popupPromise = page.waitForEvent("popup");
+  await page
+    .getByRole("button", { name: "Send to GitHub", exact: true })
+    .click();
+  const popup = await popupPromise;
+  await expect(
+    popup.getByText("Your connection expired. Sign in again.", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    popup.getByRole("button", { name: "Create GitHub issue", exact: true }),
+  ).toBeDisabled();
+  await popup
+    .getByRole("button", { name: "Sign in with GitHub ↗", exact: true })
+    .click();
+  await expect(
+    popup.getByRole("button", { name: "Create GitHub issue", exact: true }),
+  ).toBeEnabled();
+  await expect(popup.getByLabel("Issue title", { exact: true })).toHaveValue(
+    "Check after expiry",
+  );
 });

@@ -11,7 +11,7 @@ A plain JavaScript feedback widget for AI-built apps. Load one CDN script, draw 
 
 ```html
 <script
-  src="https://pagepaint.dev/v0.4.2/pagepaint.js"
+  src="https://pagepaint.dev/v0.4.3/pagepaint.js"
   data-pagepaint
   data-project="my-app"
   defer
@@ -20,10 +20,10 @@ A plain JavaScript feedback widget for AI-built apps. Load one CDN script, draw 
 
 The dependencies are bundled. The script runs in the app's origin, so each domain and localhost port has its own browser storage and folder permission. Use a different `data-project` for separate apps sharing an origin. The display name is saved on first visit: localhost uses the page title, falling back to host and port; hosted apps use the hostname without `www.`. Set `data-project-name` to choose another default, or rename it in Settings. Renaming preserves the project ID and existing history. Your site's CSP must allow the CDN script, the widget's inline styles, data/blob images, and blob media.
 
-The installation guide and short product demo are at <https://pagepaint.dev/>. Five homepage designs can be reviewed at <https://pagepaint.dev/directions/>. The unversioned `/pagepaint.js` URL follows the current release; the versioned URL pins this release. ES modules are available at `/v0.4.2/pagepaint.mjs`. Existing scripts and pinned versions at the legacy workers.dev domain continue to work.
+The installation guide and short product demo are at <https://pagepaint.dev/>. Five homepage designs can be reviewed at <https://pagepaint.dev/directions/>. The unversioned `/pagepaint.js` URL follows the current release; the versioned URL pins this release. ES modules are available at `/v0.4.3/pagepaint.mjs`. Existing scripts and pinned versions at the legacy workers.dev domain continue to work.
 
 ```js
-import { init } from "https://pagepaint.dev/v0.4.2/pagepaint.mjs";
+import { init } from "https://pagepaint.dev/v0.4.3/pagepaint.mjs";
 
 const review = init({
   projectId: "my-app",
@@ -94,7 +94,7 @@ JavaScript initialization also accepts a `hotkeys` object. Keys are `toggle`, `d
 
 The video button records a user-selected screen, window, or tab using `getDisplayMedia` and `MediaRecorder`. It produces a previewable attachment with recording-time context and saves its Blob in IndexedDB. Recordings are video-only, limited to one minute or approximately 50 MB. Stop through **Stop & attach**, add a comment, then Send. ZIPs and repo saves contain the original `.webm` or `.mp4` file. Canceling screen selection leaves the draft intact. Stop before leaving a CDN-embedded page; its recorder cannot survive page navigation.
 
-Download [the Chrome / Edge extension ZIP](https://pagepaint.dev/v0.4.2/pagepaint-extension.zip), extract it, enable Developer mode at `chrome://extensions` or `edge://extensions`, and choose **Load unpacked** with that folder. Click the extension icon on an app, or use Alt+Shift+P (configurable in the browser’s extension shortcuts). Browser-internal pages may block capture. Version 0.4.2 was submitted to Chrome Web Store review on October 8, 2026, with automatic publication enabled after approval. The ZIP works now; a store installation link will follow approval. The homepage has a step-by-step [extension installation guide](https://pagepaint.dev/#extension).
+Download [the Chrome / Edge extension ZIP](https://pagepaint.dev/v0.4.3/pagepaint-extension.zip), extract it, enable Developer mode at `chrome://extensions` or `edge://extensions`, and choose **Load unpacked** with that folder. Click the extension icon on an app, or use Alt+Shift+P (configurable in the browser’s extension shortcuts). Browser-internal pages may block capture. Version 0.4.2 was submitted to Chrome Web Store review on October 8, 2026, with automatic publication enabled after approval. The ZIP works now; a store installation link will follow approval. The homepage has a step-by-step [extension installation guide](https://pagepaint.dev/#extension).
 
 The extension bundles the shared library, uses native tab screenshots instead of DOM reconstruction, and records in an offscreen document so a clip can continue across navigations. Click its recording badge/action to stop if the on-page toolbar is unavailable. Completed clips are recoverable in its local project library. **Open Pagepaint library** in Settings provides centralized project history, repo folder saving, and ZIP export. Projects are separated by full origin, including localhost port. CDN embeds and the extension have separate storage histories. Activating the extension replaces a mounted CDN widget for that page session, preserving its app-origin data and avoiding duplicate controls.
 
@@ -110,11 +110,13 @@ Capture cloning waits for external stylesheets and fonts, and suppresses the hid
 
 ### GitHub issues and Projects
 
-Open **Settings → GitHub**, sign in, select a repository, and save its configuration. Each Pagepaint project keeps its own destination, optional GitHub Project URL, labels, and attachment preference. Open a feedback thread and choose **Create GitHub issue** to review the title, full thread, URLs, and attachments in a trusted Pagepaint window before posting. The local thread retains its history and gains a GitHub issue link. Retrying after a lost response recovers the existing issue using the thread identifier.
+Open **Settings → GitHub**, sign in, select a repository, and save its configuration. Each Pagepaint project keeps its own destination, optional GitHub Project URL, labels, and attachment preference. Each saved card has separate **Open thread** and **Send to GitHub** actions. **Send to GitHub** opens the trusted review window directly, with the title, complete thread, URLs, and attachments. **Create all in GitHub**, beside **Download ZIP**, reviews all saved threads together; choose which ones to send and edit their titles before confirming. Unsent drafts are excluded. Threads already linked to an existing issue start unchecked.
+
+Pagepaint checks open and closed repository issues before review and again before publishing. A thread marker or verified saved link recovers the same issue after a lost response. Exact, case-sensitive title matches offer **Link existing** or an explicit **Create a separate issue** choice; linking leaves the existing issue content and state unchanged and keeps feedback locally. Duplicate new titles in one batch must be renamed or deselected. Each successful batch result is saved immediately, so closing the window or retrying a partial failure preserves completed links. Repository checks cannot guarantee atomic uniqueness across other clients creating issues simultaneously.
 
 The repository picker searches owner and repository names, including private repositories. Arrow keys and Enter select a result; Escape closes the picker. Connected-account metadata saves immediately, before destination configuration, and survives page refresh in both the CDN widget and extension. **Refresh connection** checks the trusted session in one click and closes its window automatically when the saved account still matches. GitHub credentials remain in the trusted window's encrypted, HttpOnly cookie; the current authentication session lasts up to eight hours. An expired session requires sign-in again. No access tokens enter app storage or feedback exports.
 
-Attachments are optional and use a `pagepaint-feedback` branch in the chosen repository. Annotated and original screenshots, editable shape metadata, and video clips are linked from the issue. Both personal and organization GitHub Projects are supported. If adding a created issue to a board fails, Pagepaint keeps the issue link and reports the board error.
+Attachments are optional and use a `pagepaint-feedback` branch in the chosen repository. Annotated and original screenshots appear inline in the issue using repository-relative image paths. Viewers still need access to a private repository. Editable shape metadata and video clips remain file links. Both personal and organization GitHub Projects are supported. If adding a created issue to a board fails, Pagepaint keeps the issue link and reports the board error.
 
 The CDN embed and extension share the hosted authentication service. Feedback never passes through it: the connection window calls GitHub directly. OAuth credentials must first be registered and provisioned; see the [GitHub setup guide](https://pagepaint.dev/github/setup.html). For self-hosting, set the widget's `githubUrl` option (or `data-github-url`) to your `/github/` window and update `AUTH_ORIGIN`, the Worker custom domain, and the OAuth callback together. Sign out ends the browser session; revoke the app in GitHub to remove authorization entirely.
 

@@ -82,6 +82,65 @@ label {
   font-size: 13px;
   margin: 24px 0 0;
 }
+fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+button:focus-visible,
+a:focus-visible,
+summary:focus-visible {
+  outline: 2px solid #dfff55;
+  outline-offset: 3px;
+}
+.match {
+  margin: 14px 0;
+  padding: 14px;
+  border: 1px solid #596139;
+  border-radius: 8px;
+  background: #22271a;
+  overflow-wrap: anywhere;
+}
+.match p {
+  margin: 0;
+  font-size: 13px;
+}
+.match label {
+  margin-top: 12px;
+}
+.batch-thread {
+  margin: 16px 0;
+  padding: 18px;
+  border: 1px solid #34392b;
+  border-radius: 10px;
+  background: #171b13;
+}
+.batch-thread > .check {
+  margin-top: 0;
+  font-weight: 600;
+}
+.batch-thread > label {
+  margin-top: 12px;
+}
+.batch-thread details summary {
+  cursor: pointer;
+  padding: 12px 0;
+  font-size: 13px;
+}
+.batch-thread small {
+  color: #a7ab9c;
+  overflow-wrap: anywhere;
+}
+.batch-thread .note {
+  padding: 12px;
+}
+#review button.secondary {
+  margin-left: 0;
+}
+#return-results {
+  margin-top: 12px;
+}
 input,
 select {
   display: block;
@@ -115,6 +174,17 @@ footer {
 }
 #review {
   margin-top: 28px;
+}
+.reviewing header {
+  margin-bottom: 24px;
+}
+.reviewing h1 {
+  font-size: 32px;
+  letter-spacing: -1px;
+  margin: 12px 0;
+}
+.reviewing h1 br {
+  display: none;
 }
 h2 {
   font-size: 17px;
@@ -165,9 +235,6 @@ footer {
   border-top: 1px solid #34372c;
   margin-top: 40px;
   padding-top: 20px;
-}
-#outcome {
-  overflow-wrap: anywhere;
 }
 [hidden] {
   display: none !important;

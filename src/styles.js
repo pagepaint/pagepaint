@@ -126,7 +126,11 @@ export const styles = `
   .attachment-copy { flex: 1; min-width: 0; }
   .attachment-copy strong { font-size: 11px; font-weight: 600; }
   .attachment-copy p { font-size: 10px; color: var(--muted); }
-  .panel-footer { border-top: 1px solid var(--line); background: #141710; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 11px 20px; }
+  .panel-footer { border-top: 1px solid var(--line); background: #141710; display: flex; flex-direction: column; align-items: stretch; gap: 8px; padding: 11px 20px; }
+  .footer-actions, .thread-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+  .thread-actions { justify-content: flex-start; margin-top: 8px; }
+  .primary.github-button { font-size: 11px; padding: 7px 10px; min-height: 34px; }
+  .thread-nav .github-button { margin-block: 6px; }
   .save-status { display: flex; align-items: center; gap: 6px; font-size: 10px; color: var(--muted); }
   .status-dot { width: 5px; height: 5px; border-radius: 50%; background: #b7da81; flex: 0 0 auto; }
   .save-status[data-warning] .status-dot { background: #f7bf56; }

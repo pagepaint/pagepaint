@@ -116,7 +116,7 @@ function loadLibrary() {
   if (!library) {
     library = new Promise((resolve, reject) => {
       const script = document.createElement("script");
-      script.src = "/v0.4.2/pagepaint.js";
+      script.src = "/v0.4.3/pagepaint.js";
       script.onload = () => resolve(window.Pagepaint);
       script.onerror = () => {
         script.remove();

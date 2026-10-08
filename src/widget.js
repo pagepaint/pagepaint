@@ -125,13 +125,13 @@ export class ReviewWidget {
         <section id="appearance" class="appearance" aria-label="Feedback appearance" hidden><label class="project-setting">Project name<input id="project-name" maxlength="120" /></label><div class="config-tabs" role="tablist" aria-label="Feedback configuration"><button role="tab" id="general-tab" aria-selected="true" aria-controls="general-config" data-action="general-config">General</button><button role="tab" id="github-tab" aria-selected="false" aria-controls="github-config" data-action="github-config">GitHub</button></div><div id="general-config" role="tabpanel" aria-labelledby="general-tab"><p class="appearance-intro">Pick an accent for your feedback tools. You can change it in Settings anytime.</p><div class="accent-options" role="group" aria-label="Accent color">${ACCENTS.map(({ id, name, color }) => `<button class="accent-option" data-accent="${id}" style="--choice:${color}" aria-pressed="${id === this.accent}"><span class="accent-dot">${icon("check")}</span><span>${name}</span></button>`).join("")}</div><div class="shortcut-info"><strong>Keyboard shortcuts</strong><p>Click a field and press your combination. Backspace clears it. Mod means Ctrl or Command. Browser shortcuts may take priority.</p><div class="shortcut-fields">${HOTKEYS.map(([action, label]) => `<label class="shortcut-row"><span>${label}</span><input data-hotkey="${action}" aria-label="${label} shortcut" readonly placeholder="Disabled" /></label>`).join("")}</div><div class="repo-actions"><button class="storage-button" data-action="reset-hotkeys">Reset shortcuts</button><button class="storage-button" data-action="reset-panel">Reset menu position</button></div><p id="shortcut-error" role="alert" hidden></p></div><button id="open-library" class="storage-button" data-action="open-library" hidden>Open Pagepaint library</button><div class="repo-info"><strong>Save into your app’s repo</strong><p id="repo-status"></p><div class="repo-actions"><button id="choose-repo" class="storage-button" data-action="choose-repo">Choose repo folder</button><button id="write-repo" class="storage-button" data-action="write-repo">Save notes to repo</button><button id="agent-instructions" class="storage-button" data-action="agent-instructions">Add agent instructions</button></div><p class="storage-hint">Files go into .annotations/. Your agent can mark items resolved in the JSON.</p></div><div class="storage-info"><strong>Saved on this device</strong><p id="storage-usage">Checking browser storage…</p><p id="storage-protection"></p><button id="persist-storage" class="storage-button" data-action="persist-storage">Keep data on this device</button><p class="storage-hint">Clearing site data removes feedback. Download a ZIP to keep a copy or share it.</p></div></div><section id="github-config" role="tabpanel" aria-labelledby="github-tab" hidden><p class="appearance-intro">Connect this Pagepaint project to a repository. Turn a feedback thread into an issue when you’re ready to share it.</p><p id="github-account" class="github-account">GitHub is not connected.</p><div class="repo-actions"><button id="github-connect" class="primary" data-action="github-connect">Sign in with GitHub</button><button id="github-disconnect" class="storage-button" data-action="github-disconnect" hidden>Sign out</button></div><div class="project-setting"><span>GitHub repository</span><div id="repository-picker" class="repository-picker"><button id="github-repository" class="repository-trigger" aria-label="GitHub repository" aria-haspopup="dialog" aria-expanded="false" aria-controls="github-repository-menu"><span>Connect GitHub first</span><span aria-hidden="true">⌄</span></button><div id="github-repository-menu" class="repository-menu" role="dialog" aria-label="Choose GitHub repository" hidden><input id="github-repository-search" type="search" role="combobox" aria-label="Search GitHub repositories" aria-autocomplete="list" aria-expanded="false" aria-controls="github-repository-results" autocomplete="off" placeholder="Search owner or repository…" /><div id="github-repository-results" class="repository-results" role="listbox" aria-label="GitHub repositories"></div><p id="github-repository-status" class="repository-status" role="status"></p></div></div></div><label class="project-setting">GitHub Project URL (optional)<input id="github-project" type="url" placeholder="https://github.com/orgs/team/projects/1" /></label><label class="project-setting">Issue labels (comma separated)<input id="github-labels" maxlength="300" placeholder="feedback, bug" /></label><label class="github-check"><input id="github-attachments" type="checkbox" />Include screenshots and recordings</label><p class="storage-hint">Attachments are committed to the selected repository’s pagepaint-feedback branch. The issue contains links to these files. Your local copies stay here.</p><p id="github-error" role="alert" hidden></p><button class="primary" data-action="save-github">Save GitHub configuration</button></section><div id="general-actions" class="appearance-actions"><button class="secondary" data-action="cancel-appearance">Cancel</button><button id="save-appearance" class="primary" data-action="save-appearance">Use this color ${icon("check")}</button></div></section>
         <div class="context-bar">${icon("link")}<span id="page-path" class="page-path"></span></div>
         <p id="notice" class="notice" role="alert" hidden></p>
-        <nav id="thread-nav" class="thread-nav"><button class="storage-button" data-action="new-thread">New issue</button><button id="github-issue" class="storage-button" data-action="github-issue" hidden>Create GitHub issue</button><span id="thread-label">Issues</span><button id="resolve-thread" class="storage-button" data-action="resolve-thread" hidden>Resolve issue</button><button id="all-threads" class="storage-button" data-action="all-threads" hidden>All issues</button></nav><div id="messages" class="messages" role="log" aria-label="Feedback conversation" aria-live="polite"></div>
+        <nav id="thread-nav" class="thread-nav"><button class="storage-button" data-action="new-thread">New issue</button><button id="github-issue" class="primary github-button" data-action="github-issue" hidden>Send to GitHub</button><span id="thread-label">Issues</span><button id="resolve-thread" class="storage-button" data-action="resolve-thread" hidden>Resolve issue</button><button id="all-threads" class="storage-button" data-action="all-threads" hidden>All issues</button></nav><div id="messages" class="messages" role="log" aria-label="Feedback conversation" aria-live="polite"></div>
         <form id="composer" class="composer">
           <div id="attachment" class="attachment" hidden><button class="attachment-preview" data-action="edit" type="button" aria-label="Edit attached screenshot"><img id="attachment-image" alt="Attached screenshot"/></button><div class="attachment-copy"><strong>Screenshot attached</strong><p id="attachment-detail">Click to edit your marks</p></div><button class="icon-button" data-action="remove-capture" type="button" aria-label="Remove attached screenshot">${icon("close")}</button></div>
           <div id="video-attachment" class="attachment" hidden><button class="storage-button" data-action="preview-video" type="button">Preview recording</button><span id="video-detail" class="attachment-copy"></span><button class="icon-button" data-action="remove-video" type="button" aria-label="Remove recording">${icon("close")}</button></div><label id="area-label" class="area-label">Area (optional)<input id="area" maxlength="80" placeholder="e.g. Checkout" /></label><div class="input-box"><label class="input-label" for="message">YOUR FEEDBACK</label><textarea id="message" rows="3" maxlength="10000" placeholder="What should we change?" aria-describedby="composer-hint"></textarea><div class="composer-actions"><div class="capture-actions"><button id="draw-button" class="capture-button" data-action="draw-page" type="button">${icon("pen")}<span>Draw & capture</span></button><button id="capture-button" class="icon-button" data-action="capture" type="button" aria-label="Capture screen" title="Capture screen without drawing on the page">${icon("camera")}</button><button id="record-button" class="icon-button" data-action="record-video" type="button" aria-label="Record video" title="Record up to one minute">${icon("video")}</button></div><button id="send" class="primary" type="submit" disabled>Send ${icon("send")}</button></div></div>
           <span id="composer-hint" class="sr-only">Attach a screenshot or send a message. Press Control or Command and Enter to send.</span>
         </form>
-        <footer class="panel-footer"><span id="save-status" class="save-status" role="status"><span class="status-dot"></span><span id="status-text">Loading feedback…</span></span><button id="export" class="export-button" data-action="export">${icon("download")}Download ZIP</button></footer>
+        <footer class="panel-footer"><span id="save-status" class="save-status" role="status"><span class="status-dot"></span><span id="status-text">Loading feedback…</span></span><div class="footer-actions"><button id="export" class="export-button" data-action="export">${icon("download")}Download ZIP</button><button id="github-all" class="primary github-button" data-action="github-all" disabled>Create all in GitHub</button></div></footer>
       </section>
       <dialog id="editor-dialog" aria-labelledby="editor-title"><div class="editor">
         <header class="editor-header"><div class="editor-heading"><h2 id="editor-title">Show what you mean</h2><p id="capture-path"></p></div><button class="icon-button" data-action="finish-editor" aria-label="Close screenshot editor">${icon("close")}</button></header>
@@ -180,6 +180,10 @@ export class ReviewWidget {
             .forEach((color) =>
               color.setAttribute("aria-pressed", String(color === button)),
             );
+        } else if (button.dataset.githubThread) {
+          this.createGitHubIssue(button.dataset.githubThread).catch((error) =>
+            this.notice(error.message),
+          );
         } else if (button.dataset.thread) {
           this.switchThread(button.dataset.thread).catch((error) =>
             this.notice(error.message),
@@ -335,6 +339,8 @@ export class ReviewWidget {
         return this.saveGitHub();
       case "github-issue":
         return this.createGitHubIssue();
+      case "github-all":
+        return this.createAllGitHubIssues();
       case "open-library":
         return this.options.openLibrary?.();
       case "record-video":
@@ -908,13 +914,14 @@ export class ReviewWidget {
     this.element("record-button").disabled = busy || !!this.recording;
     this.element("area").disabled = busy;
     for (const button of this.root.querySelectorAll(
-      "[data-thread], #thread-nav button",
+      "[data-thread], [data-github-thread], #thread-nav button, #github-all",
     ))
       button.disabled = !!(
         this.sending ||
         this.switchingThread ||
         this.convertingGitHub
       );
+    this.element("github-all").disabled ||= !this.records.length;
     this.element("send").disabled =
       this.switchingThread ||
       this.sending ||
@@ -1190,10 +1197,8 @@ export class ReviewWidget {
     }
   }
 
-  async createGitHubIssue() {
-    const root = this.records.find(
-      (record) => record.id === this.activeThreadId,
-    );
+  async createGitHubIssue(threadId = this.activeThreadId) {
+    const root = this.records.find((record) => record.id === threadId);
     if (!root || this.convertingGitHub) return;
     if (root.github?.url) {
       window.open(root.github.url, "_blank", "noopener,noreferrer");
@@ -1204,38 +1209,85 @@ export class ReviewWidget {
       this.showConfigTab("github");
       return;
     }
-    const threadId = root.id;
+    return this.publishGitHubThreads([root], false);
+  }
+
+  async createAllGitHubIssues() {
+    const roots = this.records.filter(
+      (record) => !record.threadId || record.threadId === record.id,
+    );
+    if (!roots.length || this.convertingGitHub) return;
+    if (!this.preferences.github?.repository) {
+      this.showAppearance();
+      this.showConfigTab("github");
+      return;
+    }
+    return this.publishGitHubThreads(roots, true);
+  }
+
+  async saveGitHubIssue(root, result, configuration) {
+    const url = new URL(result.url);
+    if (
+      url.origin !== "https://github.com" ||
+      url.pathname.toLowerCase() !==
+        `/${configuration.repository.toLowerCase()}/issues/${result.number}` ||
+      !Number.isSafeInteger(result.number) ||
+      result.number < 1 ||
+      result.repository?.toLowerCase() !==
+        configuration.repository.toLowerCase()
+    )
+      throw new Error("GitHub returned an invalid issue URL.");
+    const updated = { ...root, github: result };
+    await this.store.put(updated);
+    Object.assign(root, updated);
+    this.renderMessages();
+  }
+
+  async publishGitHubThreads(roots, batch) {
     const configuration = structuredClone(this.preferences.github);
     // Open the connection window before loading attachments so popup activation is retained.
     this.convertingGitHub = true;
-    this.element("github-issue").disabled = true;
+    this.updateSend();
     try {
-      const records = this.records.filter(
-        (record) => (record.threadId || record.id) === threadId,
+      const threads = Promise.all(
+        roots.map((root) =>
+          Promise.all(
+            this.records
+              .filter((record) => (record.threadId || record.id) === root.id)
+              .map((record) => this.resolveRecordVideo(record)),
+          ),
+        ),
       );
-      const payload = Promise.all(
-        records.map((record) => this.resolveRecordVideo(record)),
-      ).then((records) => ({
+      const payload = threads.then((threads) => ({
         configuration,
         projectName: this.projectName,
-        records: structuredClone(records),
+        ...(batch
+          ? { threads: structuredClone(threads) }
+          : { records: structuredClone(threads[0]) }),
       }));
-      const result = await this.github.createIssue(payload);
-      const url = new URL(result.url);
-      if (
-        url.origin !== "https://github.com" ||
-        !/^\/[^/]+\/[^/]+\/issues\/\d+$/.test(url.pathname) ||
-        url.pathname.split("/").slice(1, 3).join("/").toLowerCase() !==
-          configuration.repository.toLowerCase()
-      )
-        throw new Error("GitHub returned an invalid issue URL.");
-      const updated = { ...root, github: result };
-      await this.store.put(updated);
-      Object.assign(root, updated);
-      this.renderMessages();
-      this.notice(
-        result.projectError || `Created GitHub issue #${result.number}.`,
-      );
+      if (batch) {
+        const result = await this.github.createIssues(
+          payload,
+          async ({ threadId, result }) => {
+            const root = roots.find((root) => root.id === threadId);
+            if (!root) throw new Error("GitHub returned an unknown thread.");
+            await this.saveGitHubIssue(root, result, configuration);
+          },
+        );
+        const errors = result.issues
+          .map(({ result }) => result.projectError)
+          .filter(Boolean);
+        this.notice(
+          `${result.issues.length} threads linked to GitHub.${errors.length ? ` ${[...new Set(errors)].join(" ")}` : ""}`,
+        );
+      } else {
+        const result = await this.github.createIssue(payload);
+        await this.saveGitHubIssue(roots[0], result, configuration);
+        this.notice(
+          result.projectError ||
+            `${result.reused ? "Linked existing" : "Created"} GitHub issue #${result.number}.`,
+        );
+      }
     } finally {
       this.convertingGitHub = false;
       if (!this.destroyed) this.updateSend();
@@ -1351,6 +1403,8 @@ export class ReviewWidget {
 
   renderMessages() {
     const messages = this.element("messages");
+    this.element("github-all").disabled =
+      !!this.convertingGitHub || !this.records.length;
     messages.replaceChildren();
     const visible = this.activeThreadId
       ? this.records.filter(
@@ -1370,7 +1424,7 @@ export class ReviewWidget {
     this.element("github-issue").hidden = !root;
     this.element("github-issue").textContent = root?.github?.url
       ? `GitHub #${root.github.number}`
-      : "Create GitHub issue";
+      : "Send to GitHub";
     this.element("github-issue").disabled = !!this.convertingGitHub;
     this.element("area-label").hidden = !!this.activeThreadId;
     this.element("message").placeholder = this.activeThreadId
@@ -1438,11 +1492,22 @@ export class ReviewWidget {
         const thread = document.createElement("button");
         thread.className = "storage-button";
         thread.dataset.thread = record.id;
+        thread.disabled = !!this.convertingGitHub;
         const count = this.records.filter(
           (item) => item.id !== record.id && item.threadId === record.id,
         ).length;
         thread.textContent = `${record.area ? record.area + " · " : ""}Open thread${count ? ` · ${count} replies` : ""}`;
-        article.append(thread);
+        const github = document.createElement("button");
+        github.className = "primary github-button";
+        github.dataset.githubThread = record.id;
+        github.textContent = record.github?.url
+          ? `GitHub #${record.github.number} ↗`
+          : "Send to GitHub";
+        github.disabled = !!this.convertingGitHub;
+        const actions = document.createElement("div");
+        actions.className = "thread-actions";
+        actions.append(thread, github);
+        article.append(actions);
       }
       messages.append(article);
     }

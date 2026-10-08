@@ -37,40 +37,47 @@
       </section>
       <section id="review" hidden>
         <p id="source" class="hint"></p>
-        <label
-          >Repository<select id="repository" aria-label="Repository"></select
-        ></label>
-        <label>Issue title<input id="title" maxlength="200" /></label>
-        <label
-          >GitHub Project URL (optional)<input
-            id="project"
-            type="url"
-            placeholder="https://github.com/orgs/team/projects/1"
-        /></label>
-        <label
-          >Labels (comma separated)<input id="labels" maxlength="300"
-        /></label>
-        <label class="check"
-          ><input id="attachments" type="checkbox" />Upload screenshots and
-          recordings</label
-        >
-        <p id="attachment-info" class="hint"></p>
-        <h2>Thread preview</h2>
-        <div id="preview"></div>
-        <p class="hint">
-          The full page URLs, including query parameters, appear in the issue.
-          Attachments go to a pagepaint-feedback branch in the chosen
-          repository.
-        </p>
+        <fieldset id="review-fields">
+          <label
+            >Repository<select id="repository" aria-label="Repository"></select
+          ></label>
+          <label id="title-label"
+            >Issue title<input id="title" maxlength="200"
+          /></label>
+          <label
+            >GitHub Project URL (optional)<input
+              id="project"
+              type="url"
+              placeholder="https://github.com/orgs/team/projects/1"
+          /></label>
+          <label
+            >Labels (comma separated)<input id="labels" maxlength="300"
+          /></label>
+          <label class="check"
+            ><input id="attachments" type="checkbox" />Upload screenshots and
+            recordings</label
+          >
+          <p id="attachment-info" class="hint"></p>
+          <div id="match"></div>
+          <h2 id="preview-heading">Thread preview</h2>
+          <div id="preview"></div>
+          <div id="batch-list"></div>
+          <p class="hint">
+            The full page URLs, including query parameters, appear in the issue.
+            Attachments go to a pagepaint-feedback branch in the chosen
+            repository.
+          </p>
+          <button id="check-existing" class="secondary">
+            Check existing issues
+          </button>
+        </fieldset>
+        <p id="selection-status" class="hint" role="status"></p>
         <button id="publish">Create GitHub issue</button>
+        <button id="return-results" class="secondary" hidden>
+          Return to Pagepaint
+        </button>
       </section>
       <button id="continue" hidden>Use this GitHub account</button>
-      <section id="outcome" hidden>
-        <h2>Issue created</h2>
-        <a id="issue-link" target="_blank" rel="noopener"></a>
-        <p id="project-result"></p>
-        <button id="done">Return to Pagepaint</button>
-      </section>
       <p id="error" role="alert" hidden></p>
       <p id="status" role="status"></p>
       <footer>
