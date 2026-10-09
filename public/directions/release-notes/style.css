@@ -449,7 +449,14 @@ video {
   color: #4d4d4d;
   max-width: 35ch;
 }
-.extension-download {
+.extension-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  margin-block: 20px 16px;
+}
+.extension-store {
   display: inline-flex;
   align-items: center;
   justify-content: space-between;
@@ -461,10 +468,25 @@ video {
   padding: 12px 16px;
   min-height: 48px;
   text-decoration: none;
-  margin-block: 20px 12px;
 }
-.extension-download:hover {
+.extension-store:hover {
   background: var(--accent-hover);
+}
+.extension-download {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  font-size: 13px;
+  text-underline-offset: 4px;
+}
+.extension-content > h3 {
+  margin-bottom: 16px;
+  font-size: 14px;
+  color: var(--ink);
+}
+.extension-content > .extension-manual-title {
+  margin-top: 28px;
 }
 .extension-heading > .extension-status,
 .extension-content > .extension-note {

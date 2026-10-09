@@ -1,6 +1,8 @@
 # Pagepaint Chrome Web Store submission
 
-Status: **Pending review**, confirmed by the Chrome Web Store dashboard on October 8, 2026. Version 0.4.2 is submitted as item `kdjggnmegnnhpdlnogdlbiaakbhgfcjh`, with automatic publication enabled after approval. Timo completed developer registration, payment, and agreement acceptance. Publisher contact verification, listing images, privacy disclosures, reviewer instructions, and free/public distribution are complete. The item is not yet published.
+Status: **Published · public**, verified in the Chrome Web Store dashboard and public installable listing on October 9, 2026. Store version: 0.4.2. Item: `kdjggnmegnnhpdlnogdlbiaakbhgfcjh`. Developer registration, publisher contact verification, listing images, privacy disclosures, reviewer instructions, and free/public distribution are complete.
+
+Public listing: https://chromewebstore.google.com/detail/pagepaint/kdjggnmegnnhpdlnogdlbiaakbhgfcjh
 
 Publisher dashboard: https://chrome.google.com/webstore/devconsole/446ea031-6771-4e92-b734-cd96aafc3445/kdjggnmegnnhpdlnogdlbiaakbhgfcjh/edit
 
@@ -74,13 +76,13 @@ Hosted GitHub OAuth is configured, and Timo verified sign-in in Edge. Core funct
 
 ## Assets and package
 
-- Submitted package: version 0.4.2. Keep that submission in review. `npm run build` now produces the 0.4.4 manual-install ZIP with direct card and batch GitHub actions; uploading it to this item would start a separate store update.
+- Published store package: version 0.4.2. `npm run build` produces the 0.4.4 manual-install ZIP with direct card and bulk GitHub actions. A newer store package requires a separate update to the existing item.
 - Icons: bundled in `extension/icons/`; source in `public/brand/`.
 - Promotional tile: `store/assets/promo-440x280.png`.
 - Actual extension screenshots: `store/assets/screenshot-annotations.png`, `store/assets/screenshot-project-library.png` (1280×800).
 - Regenerate vector identity PNGs: `node scripts/brand-assets.js` after installing project dependencies and Playwright Chromium.
 - Capture screenshot workflow: `node scripts/store-screenshots.js`; it starts its own temporary fixture server and browser profile. Fixture permissions are never packaged.
 
-Google review is required before public availability. The real item ID is recorded above; keep a public store install button out of the site until approval and a working listing URL are verified. After approval, update the homepage install link, llms.txt, README, and this status. Reuse this existing item for subsequent releases.
+The homepage, alternative Release Notes page, README, and agent documentation link to the verified public listing. Reuse this existing item for subsequent store releases; retain a manual ZIP option and distinguish its version from the store package.
 
 Official references: [publishing](https://developer.chrome.com/docs/webstore/publish), [listing images](https://developer.chrome.com/docs/webstore/images), [privacy disclosures](https://developer.chrome.com/docs/webstore/cws-dashboard-privacy), [local data handling](https://developer.chrome.com/docs/webstore/program-policies/user-data-faq).

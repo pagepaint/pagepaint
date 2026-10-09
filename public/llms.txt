@@ -18,9 +18,11 @@ For separate projects on the same origin, set `data-project="my-app"`. Set `data
 
 ### Chrome / Edge extension
 
-Download [the extension ZIP](https://pagepaint.dev/v0.4.4/pagepaint-extension.zip), extract it, open `chrome://extensions` or `edge://extensions`, enable Developer mode, and choose Load unpacked with the folder containing `manifest.json`. Pin its icon and click it on the app. Default activation shortcut: Alt+Shift+P. Configure that shortcut on the browser's extensions/shortcuts page.
+Install [Pagepaint from the Chrome Web Store](https://chromewebstore.google.com/detail/pagepaint/kdjggnmegnnhpdlnogdlbiaakbhgfcjh) in Chrome or Edge. Pin its icon and click it on the app. Default activation shortcut: Alt+Shift+P. Configure that shortcut on the browser's extensions/shortcuts page. The published store version is 0.4.2, verified on October 9, 2026.
 
-The extension bundles all executable code and has no blanket host permission. It uses native tab screenshots and an offscreen tab recorder. Its local project library is separate from CDN-widget history. Browser-internal pages and protected content may block capture. Version 0.4.2 was submitted to Chrome Web Store review on October 8, 2026, with automatic publication enabled after approval. Install the ZIP until approval; no public store installation link is available yet.
+For the latest version, download [the 0.4.4 extension ZIP](https://pagepaint.dev/v0.4.4/pagepaint-extension.zip), which includes direct card and bulk GitHub sharing. Extract it, open `chrome://extensions` or `edge://extensions`, enable Developer mode, and choose Load unpacked with the folder containing `manifest.json`.
+
+The extension bundles all executable code and has no blanket host permission. It uses native tab screenshots and an offscreen tab recorder. Its local project library is separate from CDN-widget history. Browser-internal pages and protected content may block capture.
 
 ## What it does
 
