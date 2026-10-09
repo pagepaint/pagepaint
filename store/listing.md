@@ -1,6 +1,6 @@
 # Pagepaint Chrome Web Store submission
 
-Status: **Published · public**, verified in the Chrome Web Store dashboard and public installable listing on October 9, 2026. Store version: 0.4.2. Item: `kdjggnmegnnhpdlnogdlbiaakbhgfcjh`. Developer registration, publisher contact verification, listing images, privacy disclosures, reviewer instructions, and free/public distribution are complete.
+Status: **Version 0.4.4 pending review**, submitted and confirmed by the Chrome Web Store dashboard on October 9, 2026, with automatic publication enabled after approval. The public listing remains on version 0.4.2. Item: `kdjggnmegnnhpdlnogdlbiaakbhgfcjh`. Developer registration, publisher contact verification, listing images, privacy disclosures, reviewer instructions, and free/public distribution are complete.
 
 Public listing: https://chromewebstore.google.com/detail/pagepaint/kdjggnmegnnhpdlnogdlbiaakbhgfcjh
 
@@ -76,7 +76,8 @@ Hosted GitHub OAuth is configured, and Timo verified sign-in in Edge. Core funct
 
 ## Assets and package
 
-- Published store package: version 0.4.2. `npm run build` produces the 0.4.4 manual-install ZIP with direct card and bulk GitHub actions. A newer store package requires a separate update to the existing item.
+- Submitted update: version 0.4.4, using the exact [published ZIP](https://pagepaint.dev/v0.4.4/pagepaint-extension.zip). Its 15 package files match the tested build; permissions are unchanged from 0.4.2. SHA-256: `0cceeaba81a9a51430ea0566169d9124ed470ead574a17caa098a5e25fe17bbb`. The dashboard confirmed the 0.4.4 draft and successful review submission with automatic publication enabled.
+- Current published store package: version 0.4.2. Update the website and public documentation after 0.4.4 is approved and the public listing shows that version.
 - Icons: bundled in `extension/icons/`; source in `public/brand/`.
 - Promotional tile: `store/assets/promo-440x280.png`.
 - Actual extension screenshots: `store/assets/screenshot-annotations.png`, `store/assets/screenshot-project-library.png` (1280×800).
